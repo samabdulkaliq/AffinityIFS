@@ -1,7 +1,7 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "./lib/store";
 import { ShieldCheck, UserCheck, ChevronRight } from "lucide-react";
 import Image from "next/image";
@@ -9,13 +9,17 @@ import { PlaceHolderImages } from "./lib/placeholder-images";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const logo = PlaceHolderImages.find(img => img.id === 'brand-logo');
+  
+  // Safely find the logo with a fallback check
+  const logo = Array.isArray(PlaceHolderImages) 
+    ? PlaceHolderImages.find(img => img.id === 'brand-logo') 
+    : null;
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-10 bg-gradient-to-b from-white to-slate-50/50">
       <div className="text-center space-y-6">
         <div className="w-28 h-28 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-primary/5 border border-slate-100 overflow-hidden group">
-          {logo && (
+          {logo ? (
             <Image 
               src={logo.imageUrl} 
               alt={logo.description} 
@@ -24,6 +28,8 @@ export default function LoginPage() {
               className="object-cover transition-transform group-hover:scale-110 duration-500"
               data-ai-hint={logo.imageHint}
             />
+          ) : (
+            <div className="w-full h-full bg-slate-100 flex items-center justify-center text-primary font-bold">A</div>
           )}
         </div>
         <div className="space-y-2">

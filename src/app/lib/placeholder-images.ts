@@ -1,3 +1,4 @@
+
 import data from './placeholder-images.json';
 
 export type ImagePlaceholder = {
@@ -7,4 +8,5 @@ export type ImagePlaceholder = {
   imageHint: string;
 };
 
-export const PlaceHolderImages: ImagePlaceholder[] = data.placeholderImages;
+// Ensure we have a safe fallback to an empty array to prevent "undefined" errors
+export const PlaceHolderImages: ImagePlaceholder[] = data?.placeholderImages || [];
