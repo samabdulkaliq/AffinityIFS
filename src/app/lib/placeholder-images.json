@@ -3,9 +3,9 @@
   "placeholderImages": [
     {
       "id": "brand-logo",
-      "description": "Affinity Brand Logo",
-      "imageUrl": "https://picsum.photos/seed/affinitylogo/200/200",
-      "imageHint": "abstract logo"
+      "description": "Affinity Integrated Facility Solutions Logo",
+      "imageUrl": "https://picsum.photos/seed/affinity-vortex/400/400",
+      "imageHint": "colorful vortex logo"
     }
   ]
 }

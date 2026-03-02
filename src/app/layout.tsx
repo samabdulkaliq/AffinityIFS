@@ -20,11 +20,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-body antialiased bg-slate-900 overflow-x-hidden">
+      <body className="font-body antialiased bg-slate-50 overflow-x-hidden">
         <AuthProvider>
           <div className="flex justify-center items-start min-h-screen">
             {/* Simulation of a mobile phone container for the demo */}
-            <div className="w-full max-w-[480px] min-h-screen bg-background shadow-2xl relative overflow-hidden flex flex-col">
+            <div className="w-full max-w-[480px] min-h-screen bg-white shadow-2xl relative overflow-hidden flex flex-col border-x border-slate-200">
               {children}
             </div>
           </div>

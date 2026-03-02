@@ -4,47 +4,26 @@
 
 @layer base {
   :root {
-    --background: 210 33% 96%; /* #E8EEF4 */
-    --foreground: 0 0% 29%;    /* #4A4A4A approximation */
+    --background: 0 0% 100%;    /* Pure White */
+    --foreground: 215 25% 27%;  /* Dark Slate Grey */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 29%;
+    --card-foreground: 215 25% 27%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 29%;
-    --primary: 0 0% 29%;       /* #4A4A4A */
+    --popover-foreground: 215 25% 27%;
+    --primary: 215 25% 27%;     /* #333F48 - Dark Slate */
     --primary-foreground: 0 0% 98%;
-    --secondary: 187 100% 42%; /* #00BCD4 */
+    --secondary: 199 89% 48%;   /* #00A3E0 - Professional Blue */
     --secondary-foreground: 0 0% 98%;
-    --muted: 210 20% 90%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 187 100% 42%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 199 89% 48%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 210 20% 85%;
-    --input: 210 20% 85%;
-    --ring: 187 100% 42%;
-    --radius: 1rem;
-  }
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 187 100% 42%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 187 100% 42%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 187 100% 42%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 199 89% 48%;
+    --radius: 1.25rem;
   }
 }
 
@@ -72,7 +51,7 @@
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }

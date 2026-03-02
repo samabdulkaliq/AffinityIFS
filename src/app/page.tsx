@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "./lib/store";
-import { ShieldCheck, UserCheck } from "lucide-react";
+import { ShieldCheck, UserCheck, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "./lib/placeholder-images";
 
@@ -12,58 +12,66 @@ export default function LoginPage() {
   const logo = PlaceHolderImages.find(img => img.id === 'brand-logo');
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-8">
-      <div className="text-center space-y-4">
-        <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center mx-auto shadow-xl shadow-secondary/10 border-4 border-slate-50 overflow-hidden">
+    <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-10 bg-gradient-to-b from-white to-slate-50/50">
+      <div className="text-center space-y-6">
+        <div className="w-28 h-28 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-primary/5 border border-slate-100 overflow-hidden group">
           {logo && (
             <Image 
               src={logo.imageUrl} 
               alt={logo.description} 
-              width={100} 
-              height={100} 
-              className="object-cover"
+              width={112} 
+              height={112} 
+              className="object-cover transition-transform group-hover:scale-110 duration-500"
               data-ai-hint={logo.imageHint}
             />
           )}
         </div>
-        <div className="space-y-1">
-          <h1 className="text-4xl font-bold tracking-tight text-primary">Affinity</h1>
-          <p className="text-muted-foreground font-medium">Workforce Excellence Platform</p>
+        <div className="space-y-2">
+          <h1 className="text-4xl font-black tracking-tight text-primary uppercase">Affinity</h1>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] ml-1">Integrated Facility Solutions</p>
         </div>
       </div>
 
-      <Card className="w-full border-none shadow-xl bg-white/50 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle className="text-xl">Welcome Back</CardTitle>
-          <CardDescription>Select your role to continue the demo</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Button 
-            onClick={() => login('CLEANER')}
-            variant="outline" 
-            className="w-full h-16 justify-start text-lg px-6 rounded-2xl border-2 hover:bg-secondary/5 hover:border-secondary transition-all group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mr-4 group-hover:bg-secondary/20 transition-colors">
-              <UserCheck className="w-6 h-6 text-slate-600 group-hover:text-secondary" />
+      <div className="w-full space-y-4">
+        <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Select Access Portal</p>
+        
+        <Button 
+          onClick={() => login('CLEANER')}
+          variant="outline" 
+          className="w-full h-20 justify-between text-lg px-6 rounded-3xl border-2 border-slate-100 hover:bg-white hover:border-secondary hover:shadow-xl hover:shadow-secondary/10 transition-all group bg-white/50"
+        >
+          <div className="flex items-center">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mr-4 group-hover:bg-secondary/10 transition-colors">
+              <UserCheck className="w-6 h-6 text-slate-500 group-hover:text-secondary" />
             </div>
-            <span>Cleaner Portal</span>
-          </Button>
-
-          <Button 
-            onClick={() => login('ADMIN')}
-            variant="outline" 
-            className="w-full h-16 justify-start text-lg px-6 rounded-2xl border-2 hover:bg-primary/5 hover:border-primary transition-all group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center mr-4 group-hover:bg-primary/20 transition-colors">
-              <ShieldCheck className="w-6 h-6 text-slate-600 group-hover:text-primary" />
+            <div className="text-left">
+              <span className="block font-bold text-slate-700">Cleaner Portal</span>
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Clock in & Rewards</span>
             </div>
-            <span>Admin Control</span>
-          </Button>
-        </CardContent>
-      </Card>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-secondary transform group-hover:translate-x-1 transition-all" />
+        </Button>
 
-      <div className="text-center text-xs text-muted-foreground pt-8 max-w-[280px]">
-        By signing in, you agree to our Terms of Service and Privacy Policy. 🔐
+        <Button 
+          onClick={() => login('ADMIN')}
+          variant="outline" 
+          className="w-full h-20 justify-between text-lg px-6 rounded-3xl border-2 border-slate-100 hover:bg-white hover:border-primary hover:shadow-xl hover:shadow-primary/10 transition-all group bg-white/50"
+        >
+          <div className="flex items-center">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mr-4 group-hover:bg-primary/10 transition-colors">
+              <ShieldCheck className="w-6 h-6 text-slate-500 group-hover:text-primary" />
+            </div>
+            <div className="text-left">
+              <span className="block font-bold text-slate-700">Admin Control</span>
+              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Staff & Analytics</span>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary transform group-hover:translate-x-1 transition-all" />
+        </Button>
+      </div>
+
+      <div className="text-center text-[10px] font-bold text-slate-400 pt-8 max-w-[280px] uppercase tracking-widest">
+        Secure Access Platform 🔐
       </div>
     </div>
   );
