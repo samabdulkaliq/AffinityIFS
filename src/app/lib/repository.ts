@@ -1,7 +1,5 @@
 import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger } from './models';
 
-// Simple in-memory storage for demo since we don't have a real DB yet.
-// This will reset on full page reload but persist during SPA navigation.
 class MockRepository {
   users: User[] = [];
   sites: Site[] = [];
@@ -16,7 +14,7 @@ class MockRepository {
   }
 
   private seed() {
-    // 5 Admins
+    // Admins
     for (let i = 1; i <= 5; i++) {
       this.users.push({
         id: `admin-${i}`,
@@ -30,8 +28,8 @@ class MockRepository {
       });
     }
 
-    // 200 Cleaners
-    for (let i = 1; i <= 200; i++) {
+    // Cleaners
+    for (let i = 1; i <= 20; i++) {
       this.users.push({
         id: `cleaner-${i}`,
         name: `Cleaner ${i}`,
@@ -44,9 +42,9 @@ class MockRepository {
       });
     }
 
-    // 20 Sites
-    const siteNames = ["Skyline Towers", "Crystal Plaza", "Green Valley Hospital", "Metro Hub", "Oak Ridge School", "Sunset Mall", "Apex Offices", "Heritage Library", "Pinnacle Suites", "Grandview Residences", "Silver Lake Clinic", "Golden Gate Plaza", "Summit Park", "Echo Valley Tech", "Azure Business Center", "Terra Firm Hq", "North Star Warehouse", "Bridgeport Apartments", "Willow Creek Commons", "Pacific View Estates"];
-    for (let i = 0; i < 20; i++) {
+    // Sites
+    const siteNames = ["Skyline Towers", "Crystal Plaza", "Green Valley Hospital", "Metro Hub", "Oak Ridge School"];
+    for (let i = 0; i < siteNames.length; i++) {
       this.sites.push({
         id: `site-${i + 1}`,
         name: siteNames[i],
@@ -56,12 +54,11 @@ class MockRepository {
       });
     }
 
-    // Some Seeded Shifts and scenarios
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    // Scenario 1: Completed Shift
+    // Scenario 1: Missing Clock-Out (Admin Challenge)
     this.shifts.push({
       id: "shift-1",
       userId: "cleaner-1",
@@ -69,10 +66,18 @@ class MockRepository {
       siteName: "Skyline Towers",
       scheduledStart: new Date(yesterday.setHours(9, 0, 0, 0)).toISOString(),
       scheduledEnd: new Date(yesterday.setHours(17, 0, 0, 0)).toISOString(),
-      status: "COMPLETED"
+      status: "IN_PROGRESS" 
+    });
+    this.timeEvents.push({
+        id: "ev-1",
+        userId: "cleaner-1",
+        shiftId: "shift-1",
+        type: "CLOCK_IN",
+        timestamp: new Date(yesterday.setHours(8, 55, 0, 0)).toISOString(),
+        source: "AUTO"
     });
 
-    // Scenario 2: Missed Clock Out
+    // Scenario 2: Late Arrival Review Request
     this.shifts.push({
       id: "shift-2",
       userId: "cleaner-2",
@@ -80,42 +85,63 @@ class MockRepository {
       siteName: "Crystal Plaza",
       scheduledStart: new Date(yesterday.setHours(8, 0, 0, 0)).toISOString(),
       scheduledEnd: new Date(yesterday.setHours(16, 0, 0, 0)).toISOString(),
-      status: "IN_PROGRESS" // Stuck
+      status: "COMPLETED"
+    });
+    this.timeEvents.push({
+        id: "ev-2",
+        userId: "cleaner-2",
+        shiftId: "shift-2",
+        type: "CLOCK_IN",
+        timestamp: new Date(yesterday.setHours(8, 45, 0, 0)).toISOString(),
+        source: "AUTO"
+    });
+    this.reviewRequests.push({
+      id: "req-1",
+      userId: "cleaner-2",
+      cleanerName: "Cleaner 2",
+      shiftId: "shift-2",
+      reason: "Late Arrival",
+      note: "Traffic on the 401 was backed up for miles due to an accident. Tried my best to get here!",
+      status: "PENDING",
+      createdAt: new Date().toISOString()
     });
 
-    // Scenario 3: Review Request Pending
-    const shift3Start = new Date(yesterday.setHours(10, 0, 0, 0)).toISOString();
+    // Scenario 3: Missing break (Ontario Rule Challenge)
     this.shifts.push({
         id: "shift-3",
         userId: "cleaner-3",
         siteId: "site-3",
         siteName: "Green Valley Hospital",
-        scheduledStart: shift3Start,
-        scheduledEnd: new Date(yesterday.setHours(18, 0, 0, 0)).toISOString(),
+        scheduledStart: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(),
+        scheduledEnd: new Date(yesterday.setHours(20, 0, 0, 0)).toISOString(), // 10 hour shift
         status: "COMPLETED"
     });
+    this.timeEvents.push({
+        id: "ev-3",
+        userId: "cleaner-3",
+        shiftId: "shift-3",
+        type: "CLOCK_IN",
+        timestamp: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(),
+        source: "AUTO"
+    });
+    this.timeEvents.push({
+        id: "ev-4",
+        userId: "cleaner-3",
+        shiftId: "shift-3",
+        type: "CLOCK_OUT",
+        timestamp: new Date(yesterday.setHours(20, 0, 0, 0)).toISOString(),
+        source: "AUTO"
+    });
     this.reviewRequests.push({
-      id: "req-1",
-      userId: "cleaner-3",
-      cleanerName: "Cleaner 3",
-      shiftId: "shift-3",
-      reason: "Missed Clock-In",
-      note: "Phone was dead when I arrived. Started work exactly at 10 AM.",
-      status: "PENDING",
-      createdAt: new Date().toISOString()
-    });
-
-    // Scenario 4: GPS Unavailable
-    this.notifications.push({
-        id: "not-1",
-        userId: "cleaner-1",
-        role: "CLEANER",
-        category: "TIME",
-        title: "GPS Unavailable",
-        body: "We couldn't verify your location at Skyline Towers. Please submit a manual report 📍",
-        createdAt: new Date().toISOString(),
-        read: false
-    });
+        id: "req-2",
+        userId: "cleaner-3",
+        cleanerName: "Cleaner 3",
+        shiftId: "shift-3",
+        reason: "Break Correction",
+        note: "I was so busy I never took my 30 min break. Can you verify this?",
+        status: "PENDING",
+        createdAt: new Date().toISOString()
+      });
 
     // Today's Shift for Cleaner 1
     this.shifts.push({
@@ -129,7 +155,6 @@ class MockRepository {
     });
   }
 
-  // Getters & Setters
   getUser(id: string) { return this.users.find(u => u.id === id); }
   getSite(id: string) { return this.sites.find(s => s.id === id); }
   getShiftsForUser(userId: string) { return this.shifts.filter(s => s.userId === userId); }

@@ -1,12 +1,12 @@
-
 "use client";
 
 import { useAuth } from "@/app/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { LogOut, User, Bell, Shield, Phone, HelpCircle } from "lucide-react";
+import { LogOut, User, Bell, Shield, HelpCircle, ChevronRight, Sparkles } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 
 export default function CleanerSettingsPage() {
   const { user, logout } = useAuth();
@@ -15,7 +15,6 @@ export default function CleanerSettingsPage() {
     { icon: User, label: "Profile Information", sub: "Phone, Email, Worker Type" },
     { icon: Bell, label: "Notifications", sub: "Shift reminders, Points alerts", toggle: true },
     { icon: Shield, label: "Privacy & Security", sub: "Location sharing, Biometrics" },
-    { icon: HelpCircle, label: "Help & Support", sub: "FAQ, Contact Admin" },
   ];
 
   return (
@@ -32,6 +31,26 @@ export default function CleanerSettingsPage() {
       </div>
 
       <div className="space-y-4">
+        <Link href="/cleaner/help">
+            <Card className="border-none shadow-md bg-gradient-to-r from-secondary to-blue-600 text-white overflow-hidden relative group active:scale-[0.98] transition-all">
+                <div className="absolute top-0 right-0 p-2 opacity-20">
+                    <Sparkles className="w-12 h-12 group-hover:scale-110 transition-transform" />
+                </div>
+                <CardContent className="p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                            <HelpCircle className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <p className="font-bold">AI Support Center</p>
+                            <p className="text-[10px] text-white/70 uppercase tracking-tighter">Get instant help on-site</p>
+                        </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 opacity-50" />
+                </CardContent>
+            </Card>
+        </Link>
+
         <Card className="border-none shadow-sm overflow-hidden">
           <CardContent className="p-0 divide-y">
             {settingsItems.map((item, i) => (
