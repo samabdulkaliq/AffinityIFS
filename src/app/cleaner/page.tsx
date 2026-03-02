@@ -1,92 +1,139 @@
+
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "../lib/store";
 import { repository } from "../lib/repository";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { MapPin, Clock, Star, Zap } from "lucide-react";
+import { MapPin, Clock, Star, Zap, ChevronRight, LayoutGrid } from "lucide-react";
+import { motion } from "framer-motion";
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const item = {
+  hidden: { y: 20, opacity: 0 },
+  show: { y: 0, opacity: 1 }
+};
 
 export default function CleanerDashboard() {
   const { user } = useAuth();
   const todayShift = repository.getShiftsForUser(user!.id).find(s => s.status === 'SCHEDULED' || s.status === 'IN_PROGRESS');
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="grid grid-cols-2 gap-4">
-        <Card className="border-none shadow-sm bg-gradient-to-br from-secondary/10 to-transparent">
-          <CardContent className="p-4 flex flex-col items-center text-center">
-            <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center mb-2">
-              <Zap className="w-5 h-5 text-secondary" />
-            </div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Points</p>
-            <p className="text-2xl font-bold text-primary">{user?.points}</p>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm">
-          <CardContent className="p-4 flex flex-col items-center text-center">
-            <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center mb-2">
-              <Star className="w-5 h-5 text-yellow-600" />
-            </div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rating</p>
-            <p className="text-2xl font-bold text-primary">4.9</p>
-          </CardContent>
-        </Card>
-      </div>
+    <motion.div 
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="space-y-8 pb-10"
+    >
+      {/* Premium Header Stats */}
+      <motion.div variants={item} className="grid grid-cols-2 gap-4">
+        <div className="premium-card p-6 flex flex-col items-center text-center relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-full -mr-8 -mt-8 blur-2xl"></div>
+          <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center mb-3">
+            <Zap className="w-6 h-6 text-primary" />
+          </div>
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Total Points</p>
+          <p className="text-3xl font-black mt-1 text-white">{user?.points}</p>
+        </div>
+        <div className="premium-card p-6 flex flex-col items-center text-center relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-500/10 rounded-full -mr-8 -mt-8 blur-2xl"></div>
+          <div className="w-12 h-12 rounded-2xl bg-yellow-500/20 flex items-center justify-center mb-3">
+            <Star className="w-6 h-6 text-yellow-500" />
+          </div>
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">User Rating</p>
+          <p className="text-3xl font-black mt-1 text-white">4.9</p>
+        </div>
+      </motion.div>
 
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="font-bold text-lg">Next Shift</h3>
-          <Link href="/cleaner/shifts" className="text-xs font-semibold text-secondary">View All</Link>
+      {/* Hero Shift Component */}
+      <motion.div variants={item} className="space-y-4">
+        <div className="flex justify-between items-end px-2">
+          <h3 className="text-2xl font-black text-white tracking-tight">Active Duty</h3>
+          <Link href="/cleaner/shifts" className="text-xs font-bold text-primary flex items-center gap-1 group">
+            Schedule <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
 
         {todayShift ? (
-          <Card className="border-none shadow-lg overflow-hidden relative">
-            <div className="absolute top-0 left-0 w-1.5 h-full bg-secondary"></div>
-            <CardHeader className="pb-2">
+          <div className="premium-card bg-gradient-to-br from-card to-primary/10 overflow-hidden relative border-t border-white/10">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-primary/20 rounded-full -mr-20 -mt-20 blur-[80px]"></div>
+            <div className="p-8 space-y-6">
               <div className="flex justify-between items-start">
-                <CardTitle className="text-xl font-bold">{todayShift.siteName}</CardTitle>
-                <div className="px-2 py-1 rounded bg-secondary/10 text-secondary text-[10px] font-bold uppercase tracking-widest">
-                  Upcoming
+                <div className="space-y-1">
+                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Next Location</span>
+                  <h4 className="text-3xl font-black text-white leading-none">{todayShift.siteName}</h4>
+                </div>
+                <div className="px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30 text-primary text-[10px] font-black uppercase tracking-widest">
+                  Live Status
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center text-sm text-muted-foreground">
-                <MapPin className="w-4 h-4 mr-2 text-slate-400" />
-                {repository.getSite(todayShift.siteId)?.address}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
+                    <MapPin className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Address</p>
+                    <p className="text-xs text-white font-medium truncate max-w-[120px]">
+                      {repository.getSite(todayShift.siteId)?.address}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/5">
+                    <Clock className="w-5 h-5 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase">Time</p>
+                    <p className="text-xs text-white font-medium">
+                      {new Date(todayShift.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Clock className="w-4 h-4 mr-2 text-slate-400" />
-                {new Date(todayShift.scheduledStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - 
-                {new Date(todayShift.scheduledEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </div>
-              <Button asChild className="w-full bg-secondary hover:bg-secondary/90 text-white rounded-xl h-12">
-                <Link href="/cleaner/clock">Go to Time Clock</Link>
+
+              <Button asChild className="w-full h-14 btn-premium rounded-2xl shadow-xl">
+                <Link href="/cleaner/clock" className="flex items-center justify-center gap-2">
+                  Launch SmartClock™ <ChevronRight className="w-5 h-5" />
+                </Link>
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ) : (
-          <div className="text-center py-12 px-4 bg-white rounded-3xl border border-dashed border-slate-200">
-            <p className="text-muted-foreground italic">No shifts scheduled for today ✨</p>
+          <div className="premium-card py-16 px-6 text-center border-dashed border-white/10 bg-transparent">
+            <LayoutGrid className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+            <p className="text-muted-foreground font-medium italic">No operations scheduled for today</p>
           </div>
         )}
-      </div>
+      </motion.div>
 
-      <div className="space-y-4">
-        <h3 className="font-bold text-lg">Daily Tips</h3>
-        <Card className="border-none bg-primary text-white shadow-lg shadow-primary/20">
-          <CardContent className="p-4 flex gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
-              <Star className="w-6 h-6 text-white" />
+      {/* Daily Performance Insight */}
+      <motion.div variants={item} className="space-y-4">
+        <h3 className="text-lg font-bold text-white px-2">Growth Center</h3>
+        <div className="premium-card bg-gradient-to-r from-indigo-500/20 to-blue-500/20 border-l-4 border-indigo-500">
+          <div className="p-6 flex gap-4">
+            <div className="w-14 h-14 rounded-[1.25rem] bg-indigo-500 flex items-center justify-center shrink-0 shadow-lg shadow-indigo-500/30">
+              <Star className="w-7 h-7 text-white fill-white/20" />
             </div>
-            <div>
-              <p className="font-semibold text-sm">Perfect Attendance</p>
-              <p className="text-xs text-white/70 mt-1">Clock in exactly on time for 5 shifts in a row to earn bonus points! 🏆</p>
+            <div className="space-y-1">
+              <p className="font-black text-white text-sm uppercase tracking-tight">Elite Streak</p>
+              <p className="text-xs text-white/60 leading-relaxed font-medium">
+                Finish today's shift without any location disputes to reach <span className="text-indigo-400 font-bold">Gold Tier</span> status.
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
