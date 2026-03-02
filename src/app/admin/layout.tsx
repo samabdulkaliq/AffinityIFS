@@ -1,14 +1,17 @@
 "use client";
 
 import { useAuth } from "../lib/store";
-import { ShieldCheck, Bell, Menu, LayoutDashboard, Users, Map, CheckCircle2, Settings } from "lucide-react";
+import { Bell, LayoutDashboard, Users, Map, CheckCircle2, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
+import { PlaceHolderImages } from "../lib/placeholder-images";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
+  const logo = PlaceHolderImages.find(img => img.id === 'brand-logo');
 
   if (!user || user.role !== 'ADMIN') return null;
 
@@ -25,8 +28,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="bg-primary text-white p-6 rounded-b-[2rem] shadow-lg shadow-primary/20">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center overflow-hidden">
+              {logo && (
+                <Image 
+                  src={logo.imageUrl} 
+                  alt="Affinity Logo" 
+                  width={40} 
+                  height={40} 
+                  className="object-cover"
+                  data-ai-hint={logo.imageHint}
+                />
+              )}
             </div>
             <div>
               <h1 className="text-lg font-bold">Admin Console</h1>

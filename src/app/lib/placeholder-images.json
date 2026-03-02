@@ -1,0 +1,11 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "brand-logo",
+      "description": "Affinity Brand Logo",
+      "imageUrl": "https://picsum.photos/seed/affinitylogo/200/200",
+      "imageHint": "abstract logo"
+    }
+  ]
+}

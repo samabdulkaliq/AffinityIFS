@@ -3,16 +3,28 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "./lib/store";
-import { ShieldCheck, UserCheck, Sparkles } from "lucide-react";
+import { ShieldCheck, UserCheck } from "lucide-react";
+import Image from "next/image";
+import { PlaceHolderImages } from "./lib/placeholder-images";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const logo = PlaceHolderImages.find(img => img.id === 'brand-logo');
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 space-y-8">
       <div className="text-center space-y-4">
-        <div className="w-20 h-20 bg-secondary rounded-3xl flex items-center justify-center mx-auto shadow-lg shadow-secondary/30 transform rotate-12">
-          <Sparkles className="w-10 h-10 text-white" />
+        <div className="w-24 h-24 bg-white rounded-[2rem] flex items-center justify-center mx-auto shadow-xl shadow-secondary/10 border-4 border-slate-50 overflow-hidden">
+          {logo && (
+            <Image 
+              src={logo.imageUrl} 
+              alt={logo.description} 
+              width={100} 
+              height={100} 
+              className="object-cover"
+              data-ai-hint={logo.imageHint}
+            />
+          )}
         </div>
         <div className="space-y-1">
           <h1 className="text-4xl font-bold tracking-tight text-primary">Affinity</h1>
