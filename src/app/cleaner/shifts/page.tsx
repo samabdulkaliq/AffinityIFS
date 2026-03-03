@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 /**
@@ -37,6 +39,7 @@ type FilterStatus = 'ALL' | 'TODAY' | 'WEEK' | 'SITES';
 
 export default function CleanerShiftsPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<FilterStatus>('ALL');
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -125,44 +128,45 @@ export default function CleanerShiftsPage() {
           <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
             <Timer className="w-4 h-4 animate-pulse" /> Active Now
           </h3>
-          <Link href={`/cleaner/clock`}>
-            <Card className="border-none shadow-2xl shadow-blue-100 rounded-[2.5rem] bg-white overflow-hidden group active:scale-[0.98] transition-all relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
-              <CardContent className="p-8 space-y-6">
-                <div className="flex justify-between items-start relative z-10">
-                  <div className="space-y-1">
-                    <h4 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">{activeShift.siteName}</h4>
-                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{formatDate(activeShift.scheduledStart)}</p>
-                  </div>
-                  <Badge className="bg-blue-600 text-white font-black uppercase text-[10px] px-3 py-1 animate-pulse">Live</Badge>
+          <Card 
+            onClick={() => router.push('/cleaner/clock')}
+            className="border-none shadow-2xl shadow-blue-100 rounded-[2.5rem] bg-white overflow-hidden group active:scale-[0.98] transition-all relative cursor-pointer"
+          >
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-50" />
+            <CardContent className="p-8 space-y-6">
+              <div className="flex justify-between items-start relative z-10">
+                <div className="space-y-1">
+                  <h4 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">{activeShift.siteName}</h4>
+                  <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{formatDate(activeShift.scheduledStart)}</p>
                 </div>
+                <Badge className="bg-blue-600 text-white font-black uppercase text-[10px] px-3 py-1 animate-pulse">Live</Badge>
+              </div>
 
-                <div className="grid grid-cols-3 gap-2 py-4 border-y border-slate-50 relative z-10">
-                   <div className="text-center space-y-1">
-                      <p className="text-[8px] font-black text-slate-400 uppercase">Tasks</p>
-                      <p className="text-sm font-black text-slate-900">{activeShift.tasks?.filter(t => t.completed).length}/{activeShift.tasks?.length}</p>
-                   </div>
-                   <div className="text-center space-y-1 border-x border-slate-100">
-                      <p className="text-[8px] font-black text-slate-400 uppercase">Photos</p>
-                      <p className="text-sm font-black text-slate-900">{activeShift.photosUploaded}/{activeShift.photosRequired}</p>
-                   </div>
-                   <div className="text-center space-y-1">
-                      <p className="text-[8px] font-black text-slate-400 uppercase">GPS</p>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 mx-auto mt-0.5" />
-                   </div>
-                </div>
+              <div className="grid grid-cols-3 gap-2 py-4 border-y border-slate-50 relative z-10">
+                 <div className="text-center space-y-1">
+                    <p className="text-[8px] font-black text-slate-400 uppercase">Tasks</p>
+                    <p className="text-sm font-black text-slate-900">{activeShift.tasks?.filter(t => t.completed).length}/{activeShift.tasks?.length}</p>
+                 </div>
+                 <div className="text-center space-y-1 border-x border-slate-100">
+                    <p className="text-[8px] font-black text-slate-400 uppercase">Photos</p>
+                    <p className="text-sm font-black text-slate-900">{activeShift.photosUploaded}/{activeShift.photosRequired}</p>
+                 </div>
+                 <div className="text-center space-y-1">
+                    <p className="text-[8px] font-black text-slate-400 uppercase">GPS</p>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 mx-auto mt-0.5" />
+                 </div>
+              </div>
 
-                <div className="flex gap-2 pt-2 relative z-10">
-                   <Button asChild className="flex-1 h-14 rounded-2xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-slate-200">
-                      <span>View Shift</span>
-                   </Button>
-                   <Button asChild variant="outline" className="h-14 w-14 rounded-2xl border-slate-100 hover:bg-slate-50">
-                      <Link href="/cleaner/log"><Camera className="w-5 h-5 text-slate-400" /></Link>
-                   </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+              <div className="flex gap-2 pt-2 relative z-10">
+                 <Button asChild className="flex-1 h-14 rounded-2xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-slate-200">
+                    <Link href="/cleaner/clock">View Shift</Link>
+                 </Button>
+                 <Button asChild variant="outline" className="h-14 w-14 rounded-2xl border-slate-100 hover:bg-slate-50" onClick={(e) => e.stopPropagation()}>
+                    <Link href="/cleaner/log"><Camera className="w-5 h-5 text-slate-400" /></Link>
+                 </Button>
+              </div>
+            </CardContent>
+          </Card>
         </section>
       )}
 
@@ -192,7 +196,7 @@ export default function CleanerShiftsPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl hover:bg-blue-50 text-blue-500" onClick={(e) => { e.preventDefault(); /* Open Maps */ }}>
+                    <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl hover:bg-blue-50 text-blue-500" onClick={(e) => { e.preventDefault(); e.stopPropagation(); /* Open Maps */ }}>
                        <Navigation className="w-4 h-4" />
                     </Button>
                     <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-blue-500" />
