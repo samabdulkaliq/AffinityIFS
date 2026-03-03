@@ -1,59 +1,127 @@
-
 "use client";
 
 import { useAuth } from "@/app/lib/store";
 import { repository } from "@/app/lib/repository";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Clock, Zap, MessageSquare } from "lucide-react";
+import { Bell, Clock, Zap, Shield, AlertCircle, CheckCircle2, ChevronRight, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+
+/**
+ * @fileOverview Operational Intelligence Inbox.
+ * High-fidelity notification system for field alerts and compliance updates.
+ */
 
 export default function CleanerNotificationsPage() {
   const { user } = useAuth();
-  const notifications = repository.notifications.filter(n => n.userId === user?.id || n.userId === 'all');
+  const notifications = repository.notifications
+    .filter(n => n.userId === user?.id || n.userId === 'all')
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const getCategoryStyles = (category: string) => {
+    switch (category) {
+      case 'TIME': return { icon: Clock, bg: "bg-blue-50 text-blue-600", border: "border-blue-100" };
+      case 'REWARDS': return { icon: Zap, bg: "bg-amber-50 text-amber-600", border: "border-amber-100" };
+      case 'APPROVALS': return { icon: CheckCircle2, bg: "bg-emerald-50 text-emerald-600", border: "border-emerald-100" };
+      case 'REMINDERS': return { icon: Shield, bg: "bg-indigo-50 text-indigo-600", border: "border-indigo-100" };
+      default: return { icon: Bell, bg: "bg-slate-50 text-slate-600", border: "border-slate-100" };
+    }
+  };
+
+  const formatRelativeTime = (isoString: string) => {
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffInMins = Math.floor((now.getTime() - date.getTime()) / 60000);
+
+    if (diffInMins < 1) return 'Just now';
+    if (diffInMins < 60) return `${diffInMins}m ago`;
+    if (diffInMins < 1440) return `${Math.floor(diffInMins / 60)}h ago`;
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
-      <div className="flex justify-between items-center px-2">
-        <h2 className="text-2xl font-bold text-primary uppercase tracking-tighter">Inbox</h2>
-        <Badge variant="secondary" className="bg-secondary text-white">New</Badge>
+    <div className="space-y-8 pb-24 animate-in fade-in duration-700">
+      <div className="px-2 flex justify-between items-end">
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Inbox</h2>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Operational Pulse</p>
+        </div>
+        <div className="flex gap-2">
+            <Badge variant="outline" className="border-slate-200 text-slate-400 font-black text-[9px] uppercase tracking-widest px-3">
+                {notifications.filter(n => !n.read).length} NEW
+            </Badge>
+        </div>
       </div>
 
       <div className="space-y-3">
         {notifications.length > 0 ? (
-          notifications.map((notif) => (
-            <Card key={notif.id} className={cn(
-              "border-none shadow-sm overflow-hidden transition-all active:scale-[0.98]",
-              !notif.read ? "bg-white border-l-4 border-secondary" : "bg-slate-50/50 opacity-60"
-            )}>
-              <CardContent className="p-4 flex gap-4">
-                <div className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
-                  notif.category === 'TIME' ? "bg-blue-100 text-blue-600" :
-                  notif.category === 'REWARDS' ? "bg-yellow-100 text-yellow-600" :
-                  "bg-slate-100 text-slate-600"
+          notifications.map((notif, index) => {
+            const style = getCategoryStyles(notif.category);
+            const Icon = style.icon;
+
+            return (
+              <motion.div
+                key={notif.id}
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <Card className={cn(
+                  "border-none shadow-sm overflow-hidden transition-all active:scale-[0.98] group rounded-[1.5rem]",
+                  !notif.read ? "bg-white" : "bg-slate-50/50 opacity-80"
                 )}>
-                  {notif.category === 'TIME' ? <Clock className="w-5 h-5" /> :
-                   notif.category === 'REWARDS' ? <Zap className="w-5 h-5" /> :
-                   <MessageSquare className="w-5 h-5" />}
-                </div>
-                <div className="flex-1 space-y-1">
-                  <div className="flex justify-between items-start">
-                    <p className="text-sm font-bold text-primary">{notif.title}</p>
-                    <span className="text-[8px] font-bold text-slate-400 uppercase">{new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">{notif.body}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                  <CardContent className="p-5 flex gap-4">
+                    <div className={cn(
+                      "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border transition-transform group-hover:scale-110",
+                      style.bg,
+                      style.border
+                    )}>
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    
+                    <div className="flex-1 space-y-1.5 min-w-0">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-2">
+                            {!notif.read && <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shrink-0" />}
+                            <h4 className="text-sm font-black text-slate-900 leading-tight truncate pr-4">{notif.title}</h4>
+                        </div>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter whitespace-nowrap">
+                            {formatRelativeTime(notif.createdAt)}
+                        </span>
+                      </div>
+                      
+                      <p className="text-xs text-slate-500 font-medium leading-relaxed pr-2">
+                        {notif.body}
+                      </p>
+
+                      <div className="flex items-center gap-3 pt-1">
+                        <span className="text-[8px] font-black text-slate-300 uppercase tracking-[0.2em]">{notif.category}</span>
+                        <ChevronRight className="w-3 h-3 text-slate-200 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })
         ) : (
-          <div className="text-center py-20 text-muted-foreground italic">
-            <Bell className="w-12 h-12 mx-auto mb-4 opacity-10" />
-            No new notifications
+          <div className="py-24 text-center space-y-4">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto border border-slate-100">
+              <Inbox className="w-10 h-10 text-slate-200" />
+            </div>
+            <p className="text-slate-400 font-black text-xs uppercase tracking-widest">Everything Clear</p>
           </div>
         )}
       </div>
+
+      {notifications.length > 0 && (
+        <div className="text-center pt-4">
+            <button className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-blue-600 transition-colors">
+                Mark all as read
+            </button>
+        </div>
+      )}
     </div>
   );
 }

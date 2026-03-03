@@ -81,7 +81,7 @@ class MockRepository {
     const twoDaysAgo = new Date(now); twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
     const lastWeek = new Date(now); lastWeek.setDate(lastWeek.getDate() - 7);
 
-    // --- CLEANER 1: ALEX RIVERA (Scenario: Active Vault & High Points) ---
+    // --- CLEANER 1: ALEX RIVERA (Scenario: Active Vault & Notifications) ---
     this.shifts.push({
         id: "shift-alex-today",
         userId: "cleaner-1",
@@ -92,14 +92,16 @@ class MockRepository {
         status: "SCHEDULED"
     });
 
-    // REWARDS HISTORY for Alex (Cleaner 1)
     this.rewards.push(
       { id: 'r1', userId: 'cleaner-1', pointsDelta: 1000, reason: 'Safety Compliance Milestone (Quarterly)', createdAt: now.toISOString() },
-      { id: 'r2', userId: 'cleaner-1', pointsDelta: 500, reason: 'Perfect Attendance Week 8', createdAt: yesterday.toISOString() },
-      { id: 'r3', userId: 'cleaner-1', pointsDelta: 750, reason: 'WHMIS Certification Completion', createdAt: twoDaysAgo.toISOString() },
-      { id: 'r4', userId: 'cleaner-1', pointsDelta: 250, reason: 'Client Excellence - 5 Star Site Review', createdAt: lastWeek.toISOString() },
-      { id: 'r5', userId: 'cleaner-1', pointsDelta: 100, reason: 'First Log of the Day Bonus', createdAt: now.toISOString() },
-      { id: 'r6', userId: 'cleaner-1', pointsDelta: 2250, reason: 'Regional Top Performer Award', createdAt: lastWeek.toISOString() }
+      { id: 'r2', userId: 'cleaner-1', pointsDelta: 500, reason: 'Perfect Attendance Week 8', createdAt: yesterday.toISOString() }
+    );
+
+    this.notifications.push(
+      { id: "n1", userId: "cleaner-1", role: "CLEANER", category: "REWARDS", title: "Vault Credit: 1,000 PTS", body: "Congratulations! You earned points for 'Safety Compliance Milestone'. Check your Vault for details.", createdAt: now.toISOString(), read: false },
+      { id: "n2", userId: "cleaner-1", role: "CLEANER", category: "REMINDERS", title: "Shift Departure Warning", body: "Operational Status: You haven't left for Metro Hub yet. Departure recommended within 5 minutes to maintain 100% Punctuality Score.", createdAt: new Date(now.getTime() - 15 * 60000).toISOString(), read: false },
+      { id: "n3", userId: "cleaner-1", role: "CLEANER", category: "TIME", title: "Ontario Break Rule Reminder", body: "Compliance Note: Your shift today is 8 hours. Ensure you take your mandatory 30m unpaid break after 5 hours of work.", createdAt: yesterday.toISOString(), read: true },
+      { id: "n4", userId: "cleaner-1", role: "CLEANER", category: "APPROVALS", title: "Manual Adjustment Rejected", body: "The request for overtime on Feb 28 was rejected by Ops. Site logs show exit was within scheduled window.", createdAt: twoDaysAgo.toISOString(), read: true }
     );
 
     // --- CLEANER 2: JORDAN SMITH (Scenario: Active / On Site) ---
@@ -112,9 +114,17 @@ class MockRepository {
         scheduledEnd: new Date(now.getTime() + 4 * 3600000).toISOString(),
         status: "IN_PROGRESS"
     });
-    this.timeEvents.push({
-      id: "ev-1", userId: "cleaner-2", shiftId: "shift-jordan-active",
-      type: "CLOCK_IN", timestamp: new Date(now.getTime() - 4 * 3600000).toISOString(), source: "AUTO"
+
+    this.notifications.push(
+      { id: "n5", userId: "cleaner-2", role: "CLEANER", category: "TIME", title: "SmartClock™ Verified", body: "Geofence verified at Crystal Plaza. Your shift has been automatically clocked in at 08:00 AM.", createdAt: new Date(now.getTime() - 4 * 3600000).toISOString(), read: false },
+      { id: "n6", userId: "cleaner-2", role: "CLEANER", category: "REMINDERS", title: "Field Log Required", body: "It has been 60 minutes since your last documentation photo. Please capture a 'Work Quality' photo to maintain compliance.", createdAt: new Date(now.getTime() - 60 * 60000).toISOString(), read: false }
+    );
+
+    // --- GLOBAL NOTIFICATIONS ---
+    this.notifications.push({
+        id: "n-global-1", userId: "all", role: "CLEANER", category: "REMINDERS",
+        title: "WHMIS Safety Update", body: "New safety protocols for 'Lot B' chemicals have been uploaded. All staff must review before next shift deployment.",
+        createdAt: lastWeek.toISOString(), read: true
     });
 
     // --- ADMIN SCENARIO: PENDING REVIEW ---
@@ -127,24 +137,6 @@ class MockRepository {
         note: "I worked 12 hours straight at Skyline Towers. The site was double-booked and I couldn't leave the floor for my 30m break.",
         status: "PENDING",
         createdAt: now.toISOString()
-    });
-
-    this.reviewRequests.push({
-        id: "req-late-01",
-        userId: "cleaner-4",
-        cleanerName: "Casey Jones",
-        shiftId: "shift-past-02",
-        reason: "GPS Issue",
-        note: "I was at the North Gate on time at 7:55am, but the geofence only triggered when I entered the main lobby at 8:15am.",
-        status: "PENDING",
-        createdAt: yesterday.toISOString()
-    });
-
-    // --- GLOBAL NOTIFICATIONS ---
-    this.notifications.push({
-        id: "n-global-1", userId: "all", role: "CLEANER", category: "REMINDERS",
-        title: "WHMIS Update Required", body: "New safety protocols for Lot B chemicals uploaded. Please review in Training.",
-        createdAt: now.toISOString(), read: false
     });
   }
 
