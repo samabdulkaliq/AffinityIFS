@@ -1,83 +1,172 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "./lib/store";
-import { ShieldCheck, UserCheck, ChevronRight } from "lucide-react";
+import { ShieldCheck, Mail, Lock, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "./lib/placeholder-images";
+import { useToast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function LoginPage() {
+export default function AppEntryFlow() {
   const { login } = useAuth();
+  const { toast } = useToast();
   
-  // Safely find the logo with a fallback check
+  const [showSplash, setShowSplash] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Transition from Splash to Login
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const logo = Array.isArray(PlaceHolderImages) 
     ? PlaceHolderImages.find(img => img.id === 'brand-logo') 
     : null;
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast({
+        variant: "destructive",
+        title: "Missing fields",
+        description: "Please enter your email and password."
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    // Simulate slight network delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const success = await login(email, password);
+    
+    if (!success) {
+      setIsLoading(false);
+      toast({
+        variant: "destructive",
+        title: "Authentication failed",
+        description: "Invalid credentials. Try 'cleaner1@affinity.com' or 'david@affinity.com'."
+      });
+    }
+  };
+
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 space-y-10 bg-gradient-to-b from-white to-slate-50/50">
-      <div className="text-center space-y-6">
-        <div className="w-28 h-28 bg-white rounded-3xl flex items-center justify-center mx-auto shadow-2xl shadow-primary/5 border border-slate-100 overflow-hidden group">
-          {logo ? (
-            <Image 
-              src={logo.imageUrl} 
-              alt={logo.description} 
-              width={112} 
-              height={112} 
-              className="object-cover transition-transform group-hover:scale-110 duration-500"
-              data-ai-hint={logo.imageHint}
-            />
-          ) : (
-            <div className="w-full h-full bg-slate-100 flex items-center justify-center text-primary font-bold">A</div>
-          )}
-        </div>
-        <div className="space-y-2">
-          <h1 className="text-4xl font-black tracking-tight text-primary uppercase">Affinity</h1>
-          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.3em] ml-1">Integrated Facility Solutions</p>
-        </div>
-      </div>
+    <div className="flex-1 bg-white relative flex flex-col items-center justify-center">
+      <AnimatePresence mode="wait">
+        {showSplash ? (
+          <motion.div 
+            key="splash"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col items-center justify-center space-y-8"
+          >
+            <div className="w-32 h-32 bg-white rounded-[2rem] flex items-center justify-center shadow-xl border border-slate-50 overflow-hidden">
+              {logo ? (
+                <Image 
+                  src={logo.imageUrl} 
+                  alt={logo.description} 
+                  width={128} 
+                  height={128} 
+                  className="object-cover"
+                  data-ai-hint={logo.imageHint}
+                />
+              ) : (
+                <div className="text-4xl font-black text-blue-600">A</div>
+              )}
+            </div>
+            <div className="text-center space-y-2">
+              <h1 className="text-5xl font-black tracking-tighter text-slate-900">AFFINITY</h1>
+              <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.4em] ml-1">Integrated Facility Solutions</p>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="login"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-sm px-8 space-y-10"
+          >
+            <div className="flex flex-col items-center space-y-6">
+              <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-lg border border-slate-50 overflow-hidden">
+                {logo ? (
+                  <Image 
+                    src={logo.imageUrl} 
+                    alt={logo.description} 
+                    width={80} 
+                    height={80} 
+                    className="object-cover"
+                    data-ai-hint={logo.imageHint}
+                  />
+                ) : (
+                  <div className="text-2xl font-black text-blue-600">A</div>
+                )}
+              </div>
+              <div className="text-center space-y-2">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Welcome back</h2>
+                <p className="text-sm text-slate-500 font-medium">Sign in to continue</p>
+              </div>
+            </div>
 
-      <div className="w-full space-y-4">
-        <p className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Select Access Portal</p>
-        
-        <Button 
-          onClick={() => login('CLEANER')}
-          variant="outline" 
-          className="w-full h-20 justify-between text-lg px-6 rounded-3xl border-2 border-slate-100 hover:bg-white hover:border-secondary hover:shadow-xl hover:shadow-secondary/10 transition-all group bg-white/50"
-        >
-          <div className="flex items-center">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mr-4 group-hover:bg-secondary/10 transition-colors">
-              <UserCheck className="w-6 h-6 text-slate-500 group-hover:text-secondary" />
-            </div>
-            <div className="text-left">
-              <span className="block font-bold text-slate-700">Cleaner Portal</span>
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Clock in & Rewards</span>
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-secondary transform group-hover:translate-x-1 transition-all" />
-        </Button>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-4">
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <Input 
+                    type="email" 
+                    placeholder="Email Address"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus-visible:ring-blue-500 font-medium"
+                  />
+                </div>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <Input 
+                    type="password" 
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus-visible:ring-blue-500 font-medium"
+                  />
+                </div>
+              </div>
 
-        <Button 
-          onClick={() => login('ADMIN')}
-          variant="outline" 
-          className="w-full h-20 justify-between text-lg px-6 rounded-3xl border-2 border-slate-100 hover:bg-white hover:border-primary hover:shadow-xl hover:shadow-primary/10 transition-all group bg-white/50"
-        >
-          <div className="flex items-center">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mr-4 group-hover:bg-primary/10 transition-colors">
-              <ShieldCheck className="w-6 h-6 text-slate-500 group-hover:text-primary" />
-            </div>
-            <div className="text-left">
-              <span className="block font-bold text-slate-700">Admin Control</span>
-              <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Staff & Analytics</span>
-            </div>
-          </div>
-          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-primary transform group-hover:translate-x-1 transition-all" />
-        </Button>
-      </div>
+              <div className="flex justify-end">
+                <button type="button" className="text-xs font-bold text-blue-600 hover:text-blue-700">
+                  Forgot password?
+                </button>
+              </div>
 
-      <div className="text-center text-[10px] font-bold text-slate-400 pt-8 max-w-[280px] uppercase tracking-widest">
-        Secure Access Platform 🔐
-      </div>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-xl shadow-blue-100 font-black uppercase text-xs tracking-widest transition-all active:scale-95"
+              >
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
+              </Button>
+            </form>
+
+            <div className="text-center">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
+                Secure login 🔒
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -24,6 +24,7 @@ class MockRepository {
       this.users.push({
         id: `admin-${i}`,
         name: i === 1 ? "David Smith" : `Admin User ${i}`,
+        email: i === 1 ? "david@affinity.com" : `admin${i}@affinity.com`,
         role: 'ADMIN',
         workerType: 'EMPLOYEE',
         phone: `416-555-010${i}`,
@@ -39,9 +40,11 @@ class MockRepository {
     ];
 
     for (let i = 1; i <= 5; i++) {
+      const cleanerId = i;
       this.users.push({
-        id: `cleaner-${i}`,
-        name: names[i-1] || `Cleaner ${i}`,
+        id: `cleaner-${cleanerId}`,
+        name: names[i-1] || `Cleaner ${cleanerId}`,
+        email: `cleaner${cleanerId}@affinity.com`,
         role: 'CLEANER',
         workerType: i % 4 === 0 ? 'CONTRACT' : 'EMPLOYEE',
         phone: `647-555-${1000 + i}`,

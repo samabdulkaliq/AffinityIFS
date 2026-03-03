@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
-  login: (role: UserRole) => void;
+  login: (email: string, password?: string) => Promise<boolean>;
   logout: () => void;
   isMockMode: boolean;
   setMockMode: (mode: boolean) => void;
@@ -20,13 +20,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isMockMode, setMockMode] = useState(true);
   const router = useRouter();
 
-  const login = (role: UserRole) => {
-    // For demo, just pick the first user with that role
-    const mockUser = repository.users.find(u => u.role === role);
+  const login = async (email: string, password?: string) => {
+    // In production, this would use Firebase Auth.
+    // For the demo, we find the user by email in the repository.
+    const mockUser = repository.users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (mockUser) {
       setUser(mockUser);
-      router.push(role === 'ADMIN' ? '/admin' : '/cleaner');
+      router.push(mockUser.role === 'ADMIN' ? '/admin' : '/cleaner');
+      return true;
     }
+    return false;
   };
 
   const logout = () => {

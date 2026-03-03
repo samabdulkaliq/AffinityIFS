@@ -9,6 +9,7 @@ export type NotificationCategory = 'TIME' | 'APPROVALS' | 'REMINDERS' | 'REWARDS
 export interface User {
   id: string;
   name: string;
+  email: string;
   role: UserRole;
   workerType: WorkerType;
   phone: string;
