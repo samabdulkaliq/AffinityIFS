@@ -1,9 +1,5 @@
-import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger, UserCertification } from './models';
 
-/**
- * @fileOverview Enterprise Mock Repository for Affinity.
- * Seeded with complex operational scenarios for production testing.
- */
+import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger, UserCertification } from './models';
 
 class MockRepository {
   users: User[] = [];
@@ -46,13 +42,13 @@ class MockRepository {
       const userCerts: UserCertification[] = [
         { 
           id: `cert-${cleanerId}-1`, 
-          name: "WHMIS 2024", 
+          name: "WHMIS Training", 
           status: i === 2 ? 'EXPIRED' : (i === 4 ? 'EXPIRING' : 'VALID'), 
           expiryDate: i === 2 ? '2024-01-15' : (i === 4 ? '2024-04-10' : '2025-06-30') 
         },
         { 
           id: `cert-${cleanerId}-2`, 
-          name: "First Aid & CPR", 
+          name: "Site Safety", 
           status: i % 3 === 0 ? 'EXPIRING' : 'VALID', 
           expiryDate: i % 3 === 0 ? '2024-04-01' : '2026-02-20' 
         }
@@ -72,7 +68,7 @@ class MockRepository {
       });
     }
 
-    // Sam Tester for focused UI testing
+    // Sam Tester for production testing
     this.users.push({
       id: "cleaner-sam",
       name: "Sam Tester",
@@ -84,7 +80,7 @@ class MockRepository {
       points: 2500,
       avatarUrl: "https://picsum.photos/seed/samtester/100/100",
       certifications: [
-        { id: "cert-sam-1", name: "WHMIS 2024", status: 'VALID', expiryDate: '2025-12-31' },
+        { id: "cert-sam-1", name: "WHMIS Training", status: 'VALID', expiryDate: '2025-12-31' },
         { id: "cert-sam-2", name: "Site Rules", status: 'VALID', expiryDate: '2025-08-15' }
       ]
     });
@@ -121,7 +117,7 @@ class MockRepository {
         scheduledEnd: todayAt17.toISOString(),
         status: "IN_PROGRESS",
         tasks: [
-          { id: 't1', label: 'Wipe Lobby Tables', completed: true },
+          { id: 't1', label: 'Wipe Entrance Tables', completed: true },
           { id: 't2', label: 'Refill Restroom Soap', completed: false }
         ]
     });
@@ -138,23 +134,10 @@ class MockRepository {
       scheduledEnd: samTodayEnd.toISOString(),
       status: "SCHEDULED",
       tasks: [
-        { id: 's1', label: 'Mop Lobby', completed: false },
-        { id: 's2', label: 'Refill Towels', completed: false },
-        { id: 's3', label: 'Sanitize Desk Surfaces', completed: false }
+        { id: 's1', label: 'Mop Entrance Hall', completed: false },
+        { id: 's2', label: 'Refill Hand Towels', completed: false },
+        { id: 's3', label: 'Clean Desk Surfaces', completed: false }
       ]
-    });
-
-    // Past Shifts
-    const yestAt9 = new Date(now); yestAt9.setDate(now.getDate() - 1); yestAt9.setHours(9, 0);
-    const yestAt17 = new Date(now); yestAt17.setDate(now.getDate() - 1); yestAt17.setHours(17, 0);
-    this.shifts.push({
-        id: "shift-alex-yest",
-        userId: "cleaner-1",
-        siteId: "site-1",
-        siteName: "Metro Hub",
-        scheduledStart: yestAt9.toISOString(),
-        scheduledEnd: yestAt17.toISOString(),
-        status: "COMPLETED",
     });
 
     // --- NOTIFICATIONS ---
@@ -164,8 +147,8 @@ class MockRepository {
         userId: "cleaner-1",
         role: 'CLEANER',
         category: 'TIME',
-        title: 'Work Verified',
-        body: 'You arrived at Metro Hub. Work clock started.',
+        title: 'Work Started',
+        body: 'You arrived at Metro Hub. Your work time has started.',
         createdAt: new Date(now.getTime() - 15 * 60000).toISOString(),
         read: true
       }

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -22,7 +23,8 @@ import {
   Navigation,
   Info,
   BookOpen,
-  Loader2
+  Loader2,
+  Star
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -84,8 +86,8 @@ export default function CleanerDashboard() {
 
   const aiMessage = useMemo(() => {
     if (!isOnShift) return "Ready for work today? Being early helps everyone! ⏰";
-    if (!isTasksComplete) return `You have ${tasks.length - completedTasksCount} tasks left. You're doing great! 💪`;
-    if (!isPhotosComplete) return "Don't forget to take your shift photos. 📸";
+    if (!isTasksComplete) return `You have ${tasks.length - completedTasksCount} things left to do. You're doing great! 💪`;
+    if (!isPhotosComplete) return "Don't forget to take your photos. 📸";
     if (!isInventoryDone) return "Almost done! Please check the supplies. 🧾";
     return "Excellent work today! You're a star. ⭐";
   }, [isOnShift, isTasksComplete, isPhotosComplete, isInventoryDone, tasks.length, completedTasksCount]);
@@ -93,7 +95,7 @@ export default function CleanerDashboard() {
   const needsAttentionItems = useMemo(() => {
     const items = [];
     if (isOnShift) {
-      if (!isTasksComplete) items.push({ label: "Tasks not finished", icon: CheckCircle2, color: "text-blue-500", href: "/cleaner/clock" });
+      if (!isTasksComplete) items.push({ label: "Things not finished", icon: CheckCircle2, color: "text-blue-500", href: "/cleaner/clock" });
       if (!isPhotosComplete) items.push({ label: "Photos missing", icon: Camera, color: "text-amber-500", href: "/cleaner/log" });
       if (!isInventoryDone) items.push({ label: "Supplies not checked", icon: Info, color: "text-red-500", href: "/cleaner/log" });
     }
@@ -139,7 +141,7 @@ export default function CleanerDashboard() {
             </h1>
             <div className="flex items-center gap-2">
                <Badge variant="outline" className="bg-slate-900 text-white border-none font-black text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
-                 <Flame className="w-2.5 h-2.5 text-orange-400 fill-orange-400" /> {user.points > 1500 ? 'STAR CLEANER' : 'NEW WORKER'}
+                 <Flame className="w-2.5 h-2.5 text-orange-400 fill-orange-400" /> {user.points > 1500 ? 'GOLD STAR CLEANER' : 'NEW HELPER'}
                </Badge>
                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{user.points} points 🏆</p>
             </div>
@@ -148,7 +150,7 @@ export default function CleanerDashboard() {
 
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           <Badge variant="outline" className={cn(
-            "whitespace-nowrap font-black text-[8px] uppercase tracking-widest py-1 px-3",
+            "whitespace-nowrap font-black text-[8px] uppercase tracking-widest py-1 px-3 rounded-full",
             isOnShift ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
           )}>
             {isOnShift ? "● Working Now" : "○ Not Working"}
@@ -167,12 +169,12 @@ export default function CleanerDashboard() {
               <Sparkles className="w-6 h-6 text-blue-100" />
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Smart Guide 🧠</p>
+              <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Your AI Guide 🧠</p>
               <p className="text-sm font-bold text-white leading-relaxed">
                 "{aiMessage}"
               </p>
               <p className="text-[10px] text-white/50 font-black uppercase tracking-widest pt-1 flex items-center gap-1">
-                Tap for help <ChevronRight className="w-3 h-3" />
+                Tap here for help <ChevronRight className="w-3 h-3" />
               </p>
             </div>
           </div>
@@ -229,11 +231,11 @@ export default function CleanerDashboard() {
             <div className="p-8 space-y-8">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                   <p className="text-[10px] font-black text-[#3A6FF7] uppercase tracking-widest">Today&apos;s Job 📍</p>
+                   <p className="text-[10px] font-black text-[#3A6FF7] uppercase tracking-widest">Today&apos;s Work 📍</p>
                    <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">{site.name}</h2>
                 </div>
                 <Badge className={cn(
-                  "border-none font-black text-[9px] uppercase tracking-widest px-3 py-1",
+                  "border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-full",
                   isOnShift ? "bg-blue-600 text-white animate-pulse" : "bg-emerald-50 text-emerald-600"
                 )}>
                   {isOnShift ? "Working" : "Ready"}
@@ -243,12 +245,12 @@ export default function CleanerDashboard() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1 bg-slate-50 p-4 rounded-3xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Time</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Start Time</p>
                     <p className="text-sm font-black text-slate-700">{formatTime(todayShift.scheduledStart)}</p>
                   </div>
                   <div className="space-y-1 bg-slate-50 p-4 rounded-3xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Location</p>
-                    <p className="text-sm font-black text-slate-700">{isOnShift ? "Verified" : "Nearby"}</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">At Site?</p>
+                    <p className="text-sm font-black text-slate-700">{isOnShift ? "Yes" : "Nearby"}</p>
                   </div>
                 </div>
 
@@ -272,12 +274,12 @@ export default function CleanerDashboard() {
                   <p className="text-sm text-slate-500 font-medium leading-relaxed">
                     {isOnShift 
                       ? "Great work! Remember to check off your tasks." 
-                      : `Go to ${site.name}. We’ll start your clock when you arrive.`}
+                      : `Go to ${site.name}. We will start your work time when you arrive.`}
                   </p>
                 </div>
 
                 <Button asChild className="w-full h-18 rounded-[2.5rem] btn-gradient text-xl font-black border-none shadow-2xl">
-                  <Link href="/cleaner/clock">{isOnShift ? "See My Tasks" : "Go to Work"}</Link>
+                  <Link href="/cleaner/clock">{isOnShift ? "See My Tasks" : "Start Work"}</Link>
                 </Button>
               </div>
             </div>
@@ -320,7 +322,7 @@ export default function CleanerDashboard() {
             className="bg-white p-5 rounded-[2rem] border border-slate-100 flex flex-col items-center gap-2 text-center active:scale-95 transition-all shadow-sm"
           >
             <Clock className="w-5 h-5 text-amber-500" />
-            <span className="text-[9px] font-black text-slate-600 uppercase">Clock</span>
+            <span className="text-[9px] font-black text-slate-600 uppercase">Work Time</span>
           </button>
         </div>
       </motion.div>

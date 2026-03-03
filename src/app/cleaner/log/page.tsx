@@ -24,8 +24,8 @@ import { Textarea } from "@/components/ui/textarea"
 
 type InventoryStatus = 'GOOD' | 'LOW' | 'EMPTY' | 'DAMAGE' | null;
 
-const INVENTORY_ITEMS = ["Paper Towels", "Toilet Paper", "Soap", "Garbage Bags", "Floor Cleaner"];
-const ISSUE_TYPES = ["Broken dispenser", "Leak", "Damage", "Safety concern", "Other"];
+const INVENTORY_ITEMS = ["Paper Towels", "Toilet Paper", "Hand Soap", "Garbage Bags", "Floor Cleaner"];
+const ISSUE_TYPES = ["Broken dispenser", "Leaking sink", "Floor damage", "Safety concern", "Other"];
 
 export default function WorkLogPage() {
   const { user } = useAuth();
@@ -38,11 +38,11 @@ export default function WorkLogPage() {
   
   const [logState, setLogState] = useState({
     photos: [
-      { id: 'lobby', label: 'Lobby', completed: true },
-      { id: 'restroom', label: 'Restroom', completed: true },
-      { id: 'floors', label: 'Floors', completed: false },
-      { id: 'garbage', label: 'Garbage', completed: false },
-      { id: 'supplies', label: 'Supply Room', completed: false },
+      { id: 'lobby', label: 'Main Entrance', completed: true },
+      { id: 'restroom', label: 'Washrooms', completed: true },
+      { id: 'floors', label: 'Hallway Floors', completed: false },
+      { id: 'garbage', label: 'Waste Bins', completed: false },
+      { id: 'supplies', label: 'Supply Closet', completed: false },
     ],
     lastPhotoStatus: null as 'SAVED' | 'BLURRY' | 'OFFSITE' | null,
   });
@@ -82,8 +82,8 @@ export default function WorkLogPage() {
 
   const handleSubmitInventory = () => {
     toast({ 
-      title: "Update Sent", 
-      description: inventoryStatus === 'GOOD' ? "Everything is saved." : "Message sent to your manager." 
+      title: "Report Sent", 
+      description: inventoryStatus === 'GOOD' ? "Everything is saved." : "Your message has been sent to the manager." 
     });
     setInventoryStatus(null);
     setSelectedItems([]);
@@ -105,8 +105,8 @@ export default function WorkLogPage() {
           <Camera className="w-8 h-8 text-slate-200" />
         </div>
         <div>
-          <h3 className="text-xl font-black text-slate-900">My Photos</h3>
-          <p className="text-sm text-slate-500 font-medium">Please start working to take photos.</p>
+          <h3 className="text-xl font-black text-slate-900">Work Photos</h3>
+          <p className="text-sm text-slate-500 font-medium">Please start work to take your photos.</p>
         </div>
       </div>
     );
@@ -116,14 +116,13 @@ export default function WorkLogPage() {
     <div className="space-y-8 pb-32 animate-in fade-in duration-700">
       <div className="px-1">
         <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none">My Photos 📸</h2>
-        <p className="text-sm text-slate-500 font-medium mt-2">Take photos of the site.</p>
+        <p className="text-sm text-slate-500 font-medium mt-2">Take pictures of your work today.</p>
       </div>
 
-      {/* Required Photos Section */}
       <div className="space-y-4">
         <div className="flex justify-between items-end px-1">
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Needed Photos 📸</h3>
-          <span className="text-xs font-black text-blue-600">{completedCount} of {logState.photos.length} Done</span>
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Required Photos 📸</h3>
+          <span className="text-xs font-black text-blue-600">{completedCount} / {logState.photos.length}</span>
         </div>
         
         <Card className="premium-card overflow-hidden">
@@ -140,11 +139,11 @@ export default function WorkLogPage() {
                     </div>
                     <div className="flex flex-col">
                       <span className={cn("text-sm font-bold", p.completed ? "text-slate-900" : "text-slate-400")}>{p.label}</span>
-                      {p.completed && <span className="text-[8px] font-black uppercase text-emerald-500">Verified</span>}
+                      {p.completed && <span className="text-[8px] font-black uppercase text-emerald-500">Done</span>}
                     </div>
                   </div>
                   {!p.completed && (
-                    <div className="bg-amber-50 text-amber-600 text-[8px] font-black px-2 py-0.5 rounded-full">NOT DONE</div>
+                    <div className="bg-amber-50 text-amber-600 text-[8px] font-black px-2 py-0.5 rounded-full">NOT YET</div>
                   )}
                 </div>
               ))}
@@ -158,16 +157,15 @@ export default function WorkLogPage() {
                 className="w-full h-16 rounded-[2rem] btn-gradient text-lg font-black border-none"
               >
                 <Camera className="w-6 h-6 mr-3" /> 
-                {isAllComplete ? "All Photos Done! 🎉" : "Take a Photo"}
+                {isAllComplete ? "All Photos Taken! 🎉" : "Take Photo"}
               </Button>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Inventory Check Section */}
       <div className="space-y-4">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Supply Check 🧾</h3>
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Check Supplies 🧾</h3>
         <Card className="premium-card">
           <CardContent className="p-6 space-y-6">
             <div className="flex items-start gap-4">
@@ -176,11 +174,10 @@ export default function WorkLogPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-black text-slate-900 leading-tight">Site Supplies</p>
-                <p className="text-xs font-medium text-slate-500 leading-relaxed">Let us know if you need more supplies.</p>
+                <p className="text-xs font-medium text-slate-500 leading-relaxed">Let us know if you need more cleaning soap or paper.</p>
               </div>
             </div>
 
-            {/* Step 1: Initial Status */}
             {!inventoryStatus ? (
               <div className="grid grid-cols-2 gap-3">
                 <button 
@@ -195,7 +192,7 @@ export default function WorkLogPage() {
                   className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 bg-white border-slate-50 hover:bg-slate-50 active:scale-95 transition-all"
                 >
                   <span className="text-2xl mb-1">🟡</span>
-                  <span className="text-[9px] font-black uppercase tracking-tighter">Getting Low</span>
+                  <span className="text-[9px] font-black uppercase tracking-tighter">Running Low</span>
                 </button>
                 <button 
                   onClick={() => handleInventoryCheckStatus('EMPTY')}
@@ -209,7 +206,7 @@ export default function WorkLogPage() {
                   className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 bg-white border-slate-50 hover:bg-slate-50 active:scale-95 transition-all"
                 >
                   <span className="text-2xl mb-1">⚠️</span>
-                  <span className="text-[9px] font-black uppercase tracking-tighter">Report Issue</span>
+                  <span className="text-[9px] font-black uppercase tracking-tighter">Report Problem</span>
                 </button>
               </div>
             ) : (
@@ -227,16 +224,15 @@ export default function WorkLogPage() {
                         inventoryStatus === 'LOW' ? "bg-amber-500" :
                         "bg-red-500"
                       )}>
-                        {inventoryStatus === 'GOOD' ? 'GOOD' : inventoryStatus === 'LOW' ? 'LOW STOCK' : 'REPORT'}
+                        {inventoryStatus === 'GOOD' ? 'OK' : inventoryStatus === 'LOW' ? 'LOW' : 'ISSUE'}
                       </div>
                       <button onClick={() => setInventoryStatus(null)} className="text-[10px] font-black text-slate-400 uppercase underline">Change</button>
                     </div>
                   </div>
 
-                  {/* Step 2: Details based on status */}
                   {(inventoryStatus === 'LOW' || inventoryStatus === 'EMPTY') && (
                     <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Items Needed</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">What do we need?</p>
                       <div className="grid gap-2">
                         {INVENTORY_ITEMS.map(item => (
                           <div key={item} className="flex items-center gap-3">
@@ -251,7 +247,7 @@ export default function WorkLogPage() {
 
                   {inventoryStatus === 'DAMAGE' && (
                     <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">What is the problem?</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">What happened?</p>
                       <div className="grid gap-2">
                         {ISSUE_TYPES.map(type => (
                           <button 
@@ -266,14 +262,14 @@ export default function WorkLogPage() {
                           </button>
                         ))}
                       </div>
-                      <Textarea placeholder="Describe what happened..." className="bg-white min-h-[80px]" value={note} onChange={e => setNote(e.target.value)} />
+                      <Textarea placeholder="Describe the problem..." className="bg-white min-h-[80px]" value={note} onChange={e => setNote(e.target.value)} />
                     </div>
                   )}
 
                   {inventoryStatus === 'GOOD' && (
                     <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3">
                       <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                      <p className="text-sm font-medium text-emerald-700">Everything looks good today.</p>
+                      <p className="text-sm font-medium text-emerald-700">Everything is okay.</p>
                     </div>
                   )}
 

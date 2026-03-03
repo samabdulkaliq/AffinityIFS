@@ -1,40 +1,26 @@
-# Affinity Workforce Platform Prototype
 
-This is a high-fidelity prototype of the Affinity Workforce Platform, built with Next.js 15, Tailwind CSS, ShadCN UI, and Genkit for AI intelligence.
+# Affinity IFS Workforce Protototype
 
-## 🚀 How to Use the Prototype
+This is a high-fidelity prototype of the Affinity Workforce Platform, built for senior field workers.
 
-The app is running automatically in your preview. Use the navigation below to explore:
+## 🚀 Key Features for Production
 
-### 🔐 Login Credentials
-Since this is a mock prototype, any password will work for the following emails:
+### 👴 Senior-Friendly Experience
+- **Zero Jargon:** All technical terms (Clock-in, Inventory, Logs) have been replaced with familiar words (Start Work, Supplies, Photos).
+- **AI Smart Guide:** An interactive assistant that explains app features in simple language using Genkit AI.
+- **Calm UI:** High-contrast, airy design with large buttons and clear spacing.
 
-- **Cleaner Portal:** `cleaner1@affinity.com`
-- **Admin Control:** `david@affinity.com`
+### 🔐 Multi-Scenario Testing
+- **New Cleaner:** Log in as `sam@affinity.com` (any password) to test the fresh onboarding and scheduling experience.
+- **Admin Portal:** Log in as `david@affinity.com` to review shift exceptions and staff training status.
 
-### 🛠️ Key Features
+### 🛠️ Key Modules
+- **Duty Verification:** Real-time geofence scanning and task tracking.
+- **Work Logs:** Simple photo documentation with validation logic.
+- **Rewards Arena:** Gamified performance metrics and marketplace.
+- **Training Hub:** Easy-to-read certification tracking for staff health.
 
-#### 1. Cleaner Experience
-- **Simple Onboarding:** A friendly 3-step intro for first-time users.
-- **Calm Home Screen:** Action-focused dashboard with a 3-button navigation row.
-- **SmartClock™:** Visual geofencing UI with proximity detection.
-- **Shift Photos:** A simplified tool for uploading progress photos and auditing supplies.
-- **Vault & Arena:** Gamified rewards system and performance leaderboards.
-
-#### 2. Admin Experience
-- **Ops Center Dashboard:** High-level overview of staff health and compliance.
-- **Live Pulse (Feed):** A real-time audit trail of all field activity.
-- **Intelligent Time Review:** AI-powered analysis of shift discrepancies and Ontario break rule compliance.
-- **Asset Management:** Inventory tracking for equipment and supplies.
-
-## 📁 Technical Stack
-- **Framework:** Next.js 15 (App Router)
-- **Styling:** Tailwind CSS + ShadCN UI
-- **Icons:** Lucide React
-- **AI Engine:** Genkit (Gemini 2.5 Flash)
-- **State:** React Context with a Mock Repository (Simulating a database)
-
-## 🏗️ Project Structure
-- `src/ai/flows/`: Genkit AI logic for the Support Assistant and Time Review tool.
-- `src/app/lib/repository.ts`: The mock database containing users, shifts, and complex operational scenarios.
-- `src/app/cleaner/clock/page.tsx`: The map-based shift tracking logic.
+## 📁 Technical Details
+- **Framework:** Next.js 15
+- **Intelligence:** Genkit (Gemini 2.5 Flash)
+- **Repository:** Enterprise-grade mock data layer for consistent testing.
