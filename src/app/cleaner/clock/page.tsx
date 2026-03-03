@@ -1,16 +1,14 @@
+
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/app/lib/store";
 import { repository } from "@/app/lib/repository";
 import { Button } from "@/components/ui/button";
 import { 
   MapPin, 
   Coffee, 
-  Navigation, 
   ShieldCheck, 
-  Loader2, 
-  Zap, 
   AlertCircle, 
   Info, 
   LogOut, 
@@ -24,14 +22,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Shift, ShiftTask } from "@/app/lib/models";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-
-/**
- * @fileOverview Enhanced SmartClock™ Interface for Affinity.
- * Integrates PRD requirements: Geofencing, Task Documentation, and Manager Oversight.
- */
+import { OnboardingTooltip } from "@/app/components/ui/onboarding-tooltip";
 
 export default function TimeClockPage() {
   const { user } = useAuth();
@@ -44,7 +37,6 @@ export default function TimeClockPage() {
   const [distance, setDistance] = useState(0.85);
   const [tasks, setTasks] = useState<ShiftTask[]>([]);
 
-  // Load initial shift state
   useEffect(() => {
     if (!user) return;
     const shifts = repository.getShiftsForUser(user.id);
@@ -55,14 +47,13 @@ export default function TimeClockPage() {
         setTasks(current.tasks || []);
         if (current.status === 'IN_PROGRESS') {
           setStatus('CLOCKED_IN');
-          setTimer(14400); // Demo: 4 hours elapsed
+          setTimer(14400);
         } else {
           setStatus('SCANNING');
         }
     }
   }, [user]);
 
-  // Timer logic
   useEffect(() => {
     let interval: any;
     if (status === 'CLOCKED_IN') {
@@ -71,7 +62,6 @@ export default function TimeClockPage() {
     return () => clearInterval(interval);
   }, [status]);
 
-  // Simulation: Proximity tracking
   useEffect(() => {
     if (status === 'SCANNING') {
       const interval = setInterval(() => {
@@ -89,7 +79,6 @@ export default function TimeClockPage() {
     }
   }, [status]);
 
-  // Simulation: Auto-Clock Progress
   useEffect(() => {
     if (status === 'ON_SITE') {
       const interval = setInterval(() => {
@@ -99,7 +88,6 @@ export default function TimeClockPage() {
     }
   }, [status]);
 
-  // Trigger Clock-In
   useEffect(() => {
     if (status === 'ON_SITE' && autoClockProgress >= 100) {
       handleAutoClockIn();
@@ -123,6 +111,7 @@ export default function TimeClockPage() {
     if (!activeShift) return;
     repository.updateShiftTasks(activeShift.id, taskId);
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t));
+    localStorage.setItem("affinity_tooltip_tasks_seen", "true");
     toast({ title: "Task Updated", description: "Progress synced with management portal." });
   };
 
@@ -185,11 +174,9 @@ export default function TimeClockPage() {
         </p>
       </div>
 
-      {/* Geofence Visualization */}
       <div className="px-4">
         <div className="bg-white rounded-[2rem] aspect-[16/10] relative overflow-hidden shadow-xl border border-slate-100">
             <div className="absolute inset-0 bg-slate-50 opacity-40" style={{ backgroundImage: 'radial-gradient(circle, #0F172A 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
-            
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                 <motion.div 
                     animate={{ scale: [1, 1.5, 1], opacity: [0.1, 0.2, 0.1] }}
@@ -197,7 +184,6 @@ export default function TimeClockPage() {
                     className="w-48 h-48 rounded-full border-2 border-blue-500/20 bg-blue-500/5"
                 />
             </div>
-
             <motion.div 
                 animate={status === 'SCANNING' ? { top: '30%', left: '30%' } : { top: '50%', left: '50%' }}
                 className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
@@ -211,11 +197,10 @@ export default function TimeClockPage() {
                     </Badge>
                 </div>
             </motion.div>
-
             <div className="absolute bottom-4 left-4 right-4 flex justify-between items-center">
                 <div className="bg-white/90 backdrop-blur-md p-2 px-3 rounded-xl border border-white shadow-lg flex items-center gap-2">
                     <Activity className="w-3 h-3 text-emerald-500 animate-pulse" />
-                    <span className="text-[9px] font-black text-slate-700 uppercase tracking-tight">Active Motion Detected</span>
+                    <span className="text-[9px] font-black text-slate-700 uppercase tracking-tight">Active Motion</span>
                 </div>
                 <div className={cn(
                     "px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg border",
@@ -228,7 +213,6 @@ export default function TimeClockPage() {
         </div>
       </div>
 
-      {/* Main Clock / Interaction */}
       <div className="px-6 space-y-6">
         <div className="flex flex-col items-center">
             <div className="relative w-56 h-56 flex items-center justify-center bg-white rounded-full shadow-2xl border-4 border-slate-50">
@@ -255,18 +239,16 @@ export default function TimeClockPage() {
             </div>
         </div>
 
-        {/* Manager Note Section */}
         {activeShift.managerNote && (
             <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100 flex items-start gap-3">
                 <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Manager's Note</p>
+                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Note</p>
                     <p className="text-xs font-medium text-amber-900/80 leading-relaxed italic">"{activeShift.managerNote}"</p>
                 </div>
             </div>
         )}
 
-        {/* Task Verification Checklist (PRD 6.2) */}
         {(status === 'CLOCKED_IN' || status === 'ON_BREAK') && (
             <div className="space-y-4">
                 <div className="flex items-center justify-between px-1">
@@ -278,7 +260,13 @@ export default function TimeClockPage() {
                         {tasks.filter(t => t.completed).length}/{tasks.length} DONE
                     </Badge>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid gap-2 relative">
+                    <OnboardingTooltip 
+                      text="Mark tasks as you complete them ✅" 
+                      storageKey="affinity_tooltip_tasks_seen" 
+                      isVisible={true}
+                      position="bottom"
+                    />
                     {tasks.map((task) => (
                         <div 
                             key={task.id} 
@@ -304,7 +292,6 @@ export default function TimeClockPage() {
                     ))}
                 </div>
 
-                {/* Documentation Progress (PRD 6.1) */}
                 <Card className="border-none bg-blue-600 text-white rounded-[1.5rem] overflow-hidden shadow-lg shadow-blue-200">
                     <CardContent className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -324,7 +311,6 @@ export default function TimeClockPage() {
             </div>
         )}
 
-        {/* Operational Actions */}
         <div className="space-y-3">
             {(status === 'CLOCKED_IN' || status === 'ON_BREAK') && (
                 <div className="grid grid-cols-2 gap-3">
@@ -338,7 +324,7 @@ export default function TimeClockPage() {
             )}
             <div className="flex justify-center">
                 <button className="text-[9px] font-black text-slate-400 uppercase flex items-center gap-1.5 hover:text-blue-600 transition-colors py-2">
-                    <Info className="w-3.5 h-3.5" /> Operational Dispute? Contact Support
+                    <Info className="w-3.5 h-3.5" /> Support
                 </button>
             </div>
         </div>

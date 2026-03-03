@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -11,16 +12,11 @@ import {
   CheckCircle2, 
   Package, 
   History,
-  ChevronRight,
   Upload
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-
-/**
- * @fileOverview Simplified Shift Photos & Inventory Check.
- * Redesigned for clarity, calm, and zero cognitive load.
- */
+import { OnboardingTooltip } from "@/app/components/ui/onboarding-tooltip";
 
 export default function FieldOpsLogPage() {
   const { user } = useAuth();
@@ -44,6 +40,7 @@ export default function FieldOpsLogPage() {
       ...prev,
       photosCount: Math.min(prev.photosCount + 1, 5),
     }));
+    localStorage.setItem("affinity_tooltip_photos_seen", "true");
     toast({ title: "Photo uploaded", description: "This has been added to your shift." });
   };
 
@@ -68,13 +65,11 @@ export default function FieldOpsLogPage() {
 
   return (
     <div className="space-y-8 pb-32 animate-in fade-in duration-700">
-      {/* Header */}
       <div className="px-1">
         <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Shift Photos</h2>
         <p className="text-sm text-slate-500 font-medium mt-2">Update your progress and inventory.</p>
       </div>
 
-      {/* Section 1: Photo Progress */}
       <div className="space-y-4">
         <h3 className="text-sm font-bold text-slate-900 px-1">Photo Progress</h3>
         
@@ -98,20 +93,25 @@ export default function FieldOpsLogPage() {
               <Progress value={(logs.photosCount / 5) * 100} className="h-2 bg-slate-100" />
             </div>
 
-            <Button 
-              onClick={handlePhotoUpload}
-              className="w-full h-16 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-200 active:scale-95 transition-all border-none"
-            >
-              <Camera className="w-6 h-6 mr-3" /> Upload Photo
-            </Button>
+            <div className="relative">
+              <OnboardingTooltip 
+                text="Upload photos to show your work 📷" 
+                storageKey="affinity_tooltip_photos_seen" 
+                isVisible={true}
+              />
+              <Button 
+                onClick={handlePhotoUpload}
+                className="w-full h-16 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-200 active:scale-95 transition-all border-none"
+              >
+                <Camera className="w-6 h-6 mr-3" /> Upload Photo
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Section 2: Inventory Check */}
       <div className="space-y-4">
         <h3 className="text-sm font-bold text-slate-900 px-1">Inventory Check</h3>
-
         <Card className={cn(
           "border-none shadow-sm rounded-[2rem] transition-all overflow-hidden",
           logs.supplyLogged ? "bg-emerald-50/50 border-emerald-100" : "bg-white"
@@ -131,7 +131,6 @@ export default function FieldOpsLogPage() {
                 </p>
               </div>
             </div>
-
             <Button 
               onClick={handleSupplyAudit}
               disabled={logs.supplyLogged}

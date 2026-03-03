@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState, useEffect } from "react";
 import { useAuth } from "../lib/store";
 import { CleanerBottomNav } from "../components/cleaner/bottom-nav";
 import { Bell, User } from "lucide-react";
@@ -8,10 +9,24 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { OnboardingWizard } from "../components/cleaner/onboarding-wizard";
 
 export default function CleanerLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem("affinity_onboarding_seen");
+    if (!hasSeenOnboarding) {
+      setShowOnboarding(true);
+    }
+  }, []);
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem("affinity_onboarding_seen", "true");
+    setShowOnboarding(false);
+  };
 
   if (!user || user.role !== 'CLEANER') return null;
 
@@ -20,6 +35,8 @@ export default function CleanerLayout({ children }: { children: React.ReactNode 
 
   return (
     <div className="flex flex-col flex-1 pb-32">
+      {showOnboarding && <OnboardingWizard onComplete={handleOnboardingComplete} />}
+      
       <header className="flex justify-between items-center p-6 sticky top-0 bg-transparent z-40">
         <div className="flex items-center gap-4">
           <Avatar className="h-12 w-12 border-2 border-white shadow-xl ring-2 ring-slate-100 transition-transform active:scale-90">

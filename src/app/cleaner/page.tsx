@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MapPin, Clock, Calendar, CheckCircle2, ChevronRight, Sun } from "lucide-react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { OnboardingTooltip } from "../components/ui/onboarding-tooltip";
 
 const container = {
   hidden: { opacity: 0 },
@@ -31,13 +31,11 @@ export default function CleanerDashboard() {
 
   const userShifts = repository.getShiftsForUser(user.id);
   
-  // Scenario A: Active or Scheduled Shift Today
   const todayShift = userShifts.find(
     s => (s.status === 'SCHEDULED' || s.status === 'IN_PROGRESS') && 
     new Date(s.scheduledStart).toDateString() === new Date().toDateString()
   );
 
-  // Scenario B: Completed Shift Today
   const completedToday = userShifts.find(
     s => s.status === 'COMPLETED' && 
     new Date(s.scheduledStart).toDateString() === new Date().toDateString()
@@ -58,7 +56,6 @@ export default function CleanerDashboard() {
       animate="show"
       className="space-y-8 pb-20 max-w-md mx-auto"
     >
-      {/* 3 Action Shortcuts - Simple, Large, Soft Blue */}
       <motion.div variants={item} className="grid grid-cols-3 gap-4 px-1">
         {shortcuts.map((s) => (
           <Link 
@@ -74,7 +71,6 @@ export default function CleanerDashboard() {
         ))}
       </motion.div>
 
-      {/* Main Action Card */}
       <motion.div variants={item} className="px-1">
         {todayShift ? (
           <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-blue-500/5 overflow-hidden">
@@ -100,7 +96,14 @@ export default function CleanerDashboard() {
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-3 relative">
+                {!isOnShift && (
+                  <OnboardingTooltip 
+                    text="Tap here to begin your shift ⏱" 
+                    storageKey="affinity_tooltip_shift_seen" 
+                    isVisible={true}
+                  />
+                )}
                 {isOnShift ? (
                   <div className="grid grid-cols-2 gap-3">
                     <Button asChild variant="outline" className="h-16 rounded-2xl border-2 border-slate-100 font-bold text-slate-600 hover:bg-slate-50">
@@ -111,7 +114,11 @@ export default function CleanerDashboard() {
                     </Button>
                   </div>
                 ) : (
-                  <Button asChild className="w-full h-16 rounded-2xl bg-blue-600 text-white text-lg font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95 border-none">
+                  <Button 
+                    asChild 
+                    className="w-full h-16 rounded-2xl bg-blue-600 text-white text-lg font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95 border-none"
+                    onClick={() => localStorage.setItem("affinity_tooltip_shift_seen", "true")}
+                  >
                     <Link href="/cleaner/clock" className="flex items-center justify-center gap-2">
                       Start Shift <ChevronRight className="w-5 h-5" />
                     </Link>
@@ -151,7 +158,6 @@ export default function CleanerDashboard() {
         )}
       </motion.div>
 
-      {/* Helpful Hint Section - Calm/Friendly */}
       <motion.div variants={item} className="px-6">
         <div className="bg-blue-50/30 p-5 rounded-2xl border border-blue-100/50 flex items-start gap-4">
           <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm">
