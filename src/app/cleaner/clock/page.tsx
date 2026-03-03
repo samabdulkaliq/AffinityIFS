@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/app/lib/store";
 import { repository } from "@/app/lib/repository";
 import { Button } from "@/components/ui/button";
@@ -19,15 +19,12 @@ import {
   CheckCircle2,
   AlertTriangle,
   Clock as ClockIcon,
-  X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Shift, ShiftTask } from "@/app/lib/models";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
-import { Card, CardContent } from "@/components/ui/card";
-import { OnboardingTooltip } from "@/app/components/ui/onboarding-tooltip";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +33,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+
+/**
+ * @fileOverview Redesigned Duty Screen.
+ * High-fidelity SmartClock™ with operational validation and status tracking.
+ */
 
 export default function TimeClockPage() {
   const { user } = useAuth();
@@ -49,10 +51,10 @@ export default function TimeClockPage() {
   const [tasks, setTasks] = useState<ShiftTask[]>([]);
   const [showEndSummary, setShowEndSummary] = useState(false);
 
-  // Mocked state for missing items for validation
-  const [photoCount, setPhotoCount] = useState(2);
+  // Mocked state for validation scenarios
+  const [photoCount] = useState(2);
   const totalRequiredPhotos = 5;
-  const isInventoryDone = false;
+  const isInventoryDone = false; // Mocking that inventory check hasn't been submitted
 
   useEffect(() => {
     if (!user) return;
@@ -64,7 +66,7 @@ export default function TimeClockPage() {
         setTasks(current.tasks || []);
         if (current.status === 'IN_PROGRESS') {
           setStatus('CLOCKED_IN');
-          setTimer(14400); // 4 hours in
+          setTimer(14400); // Mocking 4 hours in
         } else {
           setStatus('SCANNING');
         }

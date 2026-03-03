@@ -13,16 +13,13 @@ import {
   Package, 
   Check,
   Circle,
-  ChevronRight,
   AlertTriangle,
   Info,
-  ChevronDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
 type InventoryStatus = 'GOOD' | 'LOW' | 'EMPTY' | 'DAMAGE' | null;
@@ -74,6 +71,13 @@ export default function WorkLogPage() {
 
     toast({ title: "Photo saved ✅", description: `${updatedPhotos[nextIdx].label} verification complete.` });
     setTimeout(() => setLogState(p => ({ ...p, lastPhotoStatus: null })), 3000);
+  };
+
+  const handleInventoryCheckStatus = (status: InventoryStatus) => {
+    setInventoryStatus(status);
+    if (status === 'GOOD') {
+      toast({ title: "Site is stocked", description: "All Good status recorded." });
+    }
   };
 
   const handleSubmitInventory = () => {
@@ -140,7 +144,7 @@ export default function WorkLogPage() {
                     </div>
                   </div>
                   {!p.completed && (
-                    <Badge variant="outline" className="bg-amber-50 text-amber-600 border-none text-[8px] font-black">PENDING</Badge>
+                    <div className="bg-amber-50 text-amber-600 text-[8px] font-black px-2 py-0.5 rounded-full">PENDING</div>
                   )}
                 </div>
               ))}
@@ -217,14 +221,14 @@ export default function WorkLogPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Badge className={cn(
-                        "font-black uppercase text-[10px] tracking-widest",
+                      <div className={cn(
+                        "font-black uppercase text-[10px] tracking-widest px-2 py-0.5 rounded-full text-white",
                         inventoryStatus === 'GOOD' ? "bg-emerald-500" :
                         inventoryStatus === 'LOW' ? "bg-amber-500" :
                         "bg-red-500"
                       )}>
                         {inventoryStatus === 'GOOD' ? 'GOOD' : inventoryStatus === 'LOW' ? 'LOW STOCK' : 'REPORT'}
-                      </Badge>
+                      </div>
                       <button onClick={() => setInventoryStatus(null)} className="text-[10px] font-black text-slate-400 uppercase underline">Change</button>
                     </div>
                   </div>
@@ -241,7 +245,7 @@ export default function WorkLogPage() {
                           </div>
                         ))}
                       </div>
-                      <Textarea placeholder="Add a note (optional)..." className="bg-white" value={note} onChange={e => setNote(e.target.value)} />
+                      <Textarea placeholder="Add a note (optional)..." className="bg-white min-h-[80px]" value={note} onChange={e => setNote(e.target.value)} />
                     </div>
                   )}
 
@@ -262,7 +266,7 @@ export default function WorkLogPage() {
                           </button>
                         ))}
                       </div>
-                      <Textarea placeholder="Describe the problem..." className="bg-white" value={note} onChange={e => setNote(e.target.value)} />
+                      <Textarea placeholder="Describe the problem..." className="bg-white min-h-[80px]" value={note} onChange={e => setNote(e.target.value)} />
                     </div>
                   )}
 
@@ -284,15 +288,4 @@ export default function WorkLogPage() {
       </div>
     </div>
   );
-
-  function handleInventoryCheckStatus(status: InventoryStatus) {
-    setInventoryStatus(status);
-    if (status === 'GOOD') {
-      toast({ title: "Site is stocked", description: "All Good status recorded." });
-    }
-  }
 }
-
-const Badge = ({ children, variant, className }: any) => (
-  <div className={cn("px-2 py-0.5 rounded-full flex items-center justify-center", className)}>{children}</div>
-);
