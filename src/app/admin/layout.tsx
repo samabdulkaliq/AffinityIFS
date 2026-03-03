@@ -24,10 +24,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user || user.role !== 'ADMIN') return null;
 
   const navItems = [
-    { label: "Feed", icon: LayoutDashboard, href: "/admin/feed" }, // Placeholders for nav consistency
+    { label: "Feed", icon: LayoutDashboard, href: "/admin/feed" },
+    { label: "Workers", icon: Users, href: "/admin/workers" },
     { label: "Assets", icon: LayoutGrid, href: "/admin/assets" },
     { label: "Chat", icon: MessageSquare, href: "/admin/chat" },
-    { label: "Profile", icon: UserIcon, href: "/admin/settings" },
     { label: "Admin", icon: Crown, href: "/admin" },
   ];
 

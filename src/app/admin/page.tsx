@@ -11,7 +11,8 @@ import {
   MessageSquare, 
   Activity as ActivityIcon, 
   ChevronRight, 
-  MapPin
+  MapPin,
+  Users
 } from "lucide-react";
 import Link from "next/link";
 import { 
@@ -34,6 +35,7 @@ const activityData = [
 
 export default function AdminDashboard() {
   const pendingRequests = repository.getReviewRequests().filter(r => r.status === 'PENDING');
+  const expiredCerts = repository.getWorkersWithExpiredCerts();
   
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-24">
@@ -44,6 +46,26 @@ export default function AdminDashboard() {
         </div>
         <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-black">14 STAFF LIVE</Badge>
       </div>
+
+      {/* Staff Compliance Alert - NEW */}
+      {expiredCerts.length > 0 && (
+        <Link href="/admin/workers?filter=EXPIRED">
+          <Card className="border-none bg-red-600 text-white shadow-xl shadow-red-200 rounded-3xl overflow-hidden group active:scale-[0.98] transition-all">
+            <CardContent className="p-6 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">Compliance Alert</p>
+                  <p className="text-lg font-black">{expiredCerts.length} workers have expired certifications</p>
+                </div>
+              </div>
+              <ChevronRight className="w-6 h-6 text-white/50 group-hover:translate-x-1 transition-all" />
+            </CardContent>
+          </Card>
+        </Link>
+      )}
 
       {/* Attendance Chart - PRD 14.0 */}
       <Card className="border-none bg-slate-900 shadow-2xl rounded-[2.5rem] overflow-hidden">
@@ -101,6 +123,23 @@ export default function AdminDashboard() {
       <div className="space-y-4">
         <h3 className="text-xl font-black text-slate-900 px-1">Management Flow</h3>
         <div className="space-y-3">
+            <Link href="/admin/workers">
+                <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-3xl bg-white overflow-hidden group">
+                    <CardContent className="p-5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                <Users className="w-6 h-6 text-blue-500" />
+                            </div>
+                            <div>
+                                <h4 className="font-black text-slate-900 uppercase text-xs tracking-tight">Worker Management</h4>
+                                <p className="text-[10px] font-bold text-slate-400">Staff Health & Certification Hub</p>
+                            </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-blue-500" />
+                    </CardContent>
+                </Card>
+            </Link>
+
             <Link href="/admin/approvals">
                 <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-3xl bg-white overflow-hidden group">
                     <CardContent className="p-5 flex items-center justify-between">

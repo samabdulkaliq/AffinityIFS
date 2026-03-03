@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useAuth } from "@/app/lib/store";
@@ -15,7 +14,10 @@ import {
   Clock,
   Camera,
   Globe,
-  Info
+  Info,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
@@ -89,32 +91,48 @@ export default function CleanerSettingsPage() {
         </Link>
       </div>
 
-      {/* 4. Certifications */}
+      {/* 4. My Certifications 🎓 */}
       <div className="space-y-4">
-        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Certifications</h4>
+        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">My Certifications 🎓</h4>
         <Card className="border-none shadow-sm rounded-[2rem] bg-white overflow-hidden">
             <CardContent className="p-0 divide-y divide-slate-50">
-                <div className="p-5 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
-                            <ShieldCheck className="w-5 h-5" />
+                {user?.certifications?.map((cert) => (
+                  <div key={cert.id} className="p-5 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center shadow-sm",
+                          cert.status === 'VALID' ? "bg-emerald-50 text-emerald-500" :
+                          cert.status === 'EXPIRING' ? "bg-amber-50 text-amber-500" :
+                          "bg-red-50 text-red-500"
+                        )}>
+                          {cert.status === 'VALID' ? <CheckCircle2 className="w-5 h-5" /> :
+                           cert.status === 'EXPIRING' ? <AlertTriangle className="w-5 h-5" /> :
+                           <XCircle className="w-5 h-5" />}
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-slate-700">WHMIS 2024</p>
-                            <p className="text-[10px] text-emerald-600 font-bold uppercase">Valid</p>
+                          <p className="text-sm font-bold text-slate-700">{cert.name}</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase">Expires: {new Date(cert.expiryDate).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                         </div>
+                      </div>
+                      <Badge variant="outline" className={cn(
+                        "text-[8px] font-black uppercase tracking-widest px-2 py-0.5 border",
+                        cert.status === 'VALID' ? "border-emerald-100 text-emerald-600 bg-emerald-50/30" :
+                        cert.status === 'EXPIRING' ? "border-amber-100 text-amber-600 bg-amber-50/30" :
+                        "border-red-100 text-red-600 bg-red-50/30"
+                      )}>
+                        {cert.status === 'VALID' ? 'VALID' :
+                         cert.status === 'EXPIRING' ? 'EXPIRES SOON' : 'EXPIRED'}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="text-[8px] font-black border-emerald-100 text-emerald-600">VALID</Badge>
-                </div>
-                <div className="p-5 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500">
-                            <Info className="w-5 h-5" />
-                        </div>
-                        <p className="text-sm font-bold text-slate-700">Site Protocol</p>
-                    </div>
-                    <Button variant="ghost" size="sm" className="text-[10px] font-black text-blue-600 uppercase">START</Button>
-                </div>
+                    {cert.status === 'EXPIRED' && (
+                      <div className="flex items-center gap-2 px-3 py-2 bg-red-50/50 rounded-xl border border-red-50">
+                        <Info className="w-3 h-3 text-red-500" />
+                        <p className="text-[10px] font-medium text-red-700">Please contact your supervisor.</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
             </CardContent>
         </Card>
       </div>

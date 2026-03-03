@@ -1,4 +1,4 @@
-import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger } from './models';
+import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger, UserCertification } from './models';
 
 /**
  * @fileOverview Enterprise Mock Repository for Affinity.
@@ -40,8 +40,27 @@ class MockRepository {
       "Morgan Lee", "Riley Vance", "Quinn Brooks", "Avery Lane", "Parker Gray"
     ];
 
+    const certNames = ["WHMIS 2024", "First Aid & CPR", "Site Safety Protocol", "Equipment Safety"];
+
     for (let i = 1; i <= 10; i++) {
       const cleanerId = i;
+      
+      // Seed certifications with varied scenarios
+      const userCerts: UserCertification[] = [
+        { 
+          id: `cert-${cleanerId}-1`, 
+          name: "WHMIS 2024", 
+          status: i === 2 ? 'EXPIRED' : (i === 4 ? 'EXPIRING' : 'VALID'), 
+          expiryDate: i === 2 ? '2024-01-15' : (i === 4 ? '2024-04-10' : '2025-06-30') 
+        },
+        { 
+          id: `cert-${cleanerId}-2`, 
+          name: "First Aid & CPR", 
+          status: i % 3 === 0 ? 'EXPIRING' : 'VALID', 
+          expiryDate: i % 3 === 0 ? '2024-04-01' : '2026-02-20' 
+        }
+      ];
+
       this.users.push({
         id: `cleaner-${cleanerId}`,
         name: names[i-1] || `Cleaner ${cleanerId}`,
@@ -52,6 +71,7 @@ class MockRepository {
         status: 'ACTIVE',
         points: 1200 + (i * 150),
         avatarUrl: `https://picsum.photos/seed/cleaner${i}/100/100`,
+        certifications: userCerts
       });
     }
 
@@ -197,6 +217,14 @@ class MockRepository {
   getRewardsForUser(userId: string) { return this.rewards.filter(r => r.userId === userId); }
   getNotificationsForUser(userId: string) { return this.notifications.filter(n => n.userId === userId); }
   
+  getWorkersWithExpiredCerts() {
+    return this.users.filter(u => u.role === 'CLEANER' && u.certifications?.some(c => c.status === 'EXPIRED'));
+  }
+
+  getWorkersWithExpiringCerts() {
+    return this.users.filter(u => u.role === 'CLEANER' && u.certifications?.some(c => c.status === 'EXPIRING'));
+  }
+
   createTimeEvent(event: Omit<TimeEvent, 'id'>) {
     const newEvent = { ...event, id: Math.random().toString(36).substring(2, 9) };
     this.timeEvents.push(newEvent);

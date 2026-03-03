@@ -6,6 +6,15 @@ export type EventSource = 'AUTO' | 'MANUAL' | 'ADMIN';
 export type RequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type NotificationCategory = 'TIME' | 'APPROVALS' | 'REMINDERS' | 'REWARDS';
 
+export type CertificationStatus = 'VALID' | 'EXPIRING' | 'EXPIRED';
+
+export interface UserCertification {
+  id: string;
+  name: string;
+  status: CertificationStatus;
+  expiryDate: string; // ISO
+}
+
 export interface User {
   id: string;
   name: string;
@@ -16,6 +25,7 @@ export interface User {
   status: 'ACTIVE' | 'INACTIVE';
   points: number;
   avatarUrl: string;
+  certifications?: UserCertification[];
 }
 
 export interface Site {
