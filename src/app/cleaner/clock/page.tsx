@@ -132,14 +132,14 @@ export default function TimeClockPage() {
         timestamp: new Date().toISOString(),
         source: 'AUTO'
     });
-    toast({ title: "SmartClock™ Verified", description: `Clocked into ${activeShift.siteName}.` });
+    toast({ title: "Clock Verified", description: `You are now working at ${activeShift.siteName}.` });
   }, [activeShift, user, toast]);
 
   const handleTaskToggle = (taskId: string) => {
     if (!activeShift) return;
     repository.updateShiftTasks(activeShift.id, taskId);
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t));
-    toast({ title: "Task Updated", description: "Progress synced." });
+    toast({ title: "Task Done", description: "Progress saved." });
   };
 
   const handleBreak = () => {
@@ -152,7 +152,7 @@ export default function TimeClockPage() {
         timestamp: new Date().toISOString(),
         source: 'MANUAL'
     });
-    toast({ title: isBreaking ? "Break Started" : "Shift Resumed" });
+    toast({ title: isBreaking ? "Break Started" : "Working Again" });
   };
 
   const completedTasksCount = tasks.filter(t => t.completed).length;
@@ -185,7 +185,7 @@ export default function TimeClockPage() {
           timestamp: new Date().toISOString(),
           source: 'AUTO'
       });
-      toast({ title: "Shift Completed", description: "Operational logs archived." });
+      toast({ title: "Shift Finished", description: "Work log saved." });
     }
   };
 
@@ -209,8 +209,8 @@ export default function TimeClockPage() {
             <AlertCircle className="w-8 h-8 text-slate-300" />
         </div>
         <div className="space-y-2">
-            <h3 className="text-xl font-black text-slate-900">Off Duty</h3>
-            <p className="text-sm text-slate-500 font-medium">Scanning for upcoming geofences...</p>
+            <h3 className="text-xl font-black text-slate-900">Not Working</h3>
+            <p className="text-sm text-slate-500 font-medium">Looking for your next shift location...</p>
         </div>
       </div>
     );
@@ -239,7 +239,7 @@ export default function TimeClockPage() {
         </div>
 
         <div className="space-y-3">
-          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Shift Completed 🎉</h2>
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Shift Done! 🎉</h2>
           <p className="text-lg font-medium text-slate-500">Great work today, {user?.name.split(' ')[0]}!</p>
         </div>
 
@@ -253,7 +253,7 @@ export default function TimeClockPage() {
             <p className="text-lg font-black text-slate-900">✔ Done</p>
           </div>
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventory</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supplies</p>
             <p className="text-lg font-black text-slate-900">✔ Done</p>
           </div>
           <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1">
@@ -268,7 +268,7 @@ export default function TimeClockPage() {
                 <Zap className="w-6 h-6 text-[#F4B860] fill-[#F4B860]" />
              </div>
              <div className="text-left">
-               <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Points Earned</p>
+               <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Points Won</p>
                <p className="text-2xl font-black text-slate-900">+450 PTS</p>
              </div>
            </div>
@@ -282,7 +282,7 @@ export default function TimeClockPage() {
           }}
           className="w-full h-16 rounded-[2rem] bg-slate-900 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-slate-200"
         >
-          Return Home
+          Go Back Home
         </Button>
       </motion.div>
     );
@@ -303,7 +303,7 @@ export default function TimeClockPage() {
               isTasksComplete ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-blue-50 border-blue-100 text-blue-600"
             )}>
               {isTasksComplete ? <CheckCircle2 className="w-3.5 h-3.5" /> : <ClipboardCheck className="w-3.5 h-3.5" />}
-              {completedTasksCount}/{tasks.length} Tasks
+              {completedTasksCount}/{tasks.length} Done
             </div>
             <div className={cn(
               "p-2 rounded-xl flex items-center gap-2 border text-[10px] font-black uppercase tracking-tight",
@@ -318,7 +318,7 @@ export default function TimeClockPage() {
 
       <div className="text-center px-6">
         <div className="flex justify-center mb-2">
-            <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 font-black px-3">ACTIVE DEPLOYMENT</Badge>
+            <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 font-black px-3">WORKING NOW</Badge>
         </div>
         <h2 className="text-2xl font-black text-slate-900 leading-tight">{activeShift!.siteName}</h2>
         <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1 flex items-center justify-center gap-1">
@@ -359,7 +359,7 @@ export default function TimeClockPage() {
                     status === 'SCANNING' ? "bg-amber-50 border-amber-100 text-amber-600" : "bg-emerald-50 border-emerald-100 text-emerald-600"
                 )}>
                     <ShieldCheck className="w-3.5 h-3.5" />
-                    <span className="text-[8px] font-black uppercase tracking-widest">{status === 'SCANNING' ? 'Scanning' : 'Verified'}</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest">{status === 'SCANNING' ? 'Finding You' : 'Verified'}</span>
                 </div>
             </div>
         </div>
@@ -379,13 +379,13 @@ export default function TimeClockPage() {
                     </svg>
                 )}
                 <div className="text-center z-10">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Shift Timer</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Time Worked</p>
                     <h3 className={cn("text-4xl font-black tabular-nums tracking-tighter", status === 'ON_BREAK' ? "text-amber-500" : "text-slate-900")}>
                         {status === 'ON_SITE' ? `${autoClockProgress}%` : formatTime(timer)}
                     </h3>
                     <div className="flex items-center justify-center gap-1.5 mt-2">
                         <div className={cn("w-1.5 h-1.5 rounded-full", status === 'CLOCKED_IN' ? "bg-emerald-500" : "bg-slate-300")} />
-                        <span className="text-[9px] font-black text-slate-500 uppercase">{status.replace('_', ' ')}</span>
+                        <span className="text-[9px] font-black text-slate-500 uppercase">{status === 'ON_BREAK' ? 'On Break' : 'Working'}</span>
                     </div>
                 </div>
             </div>
@@ -396,7 +396,7 @@ export default function TimeClockPage() {
                 <div className="flex items-center justify-between px-1">
                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <ClipboardCheck className="w-4 h-4 text-blue-500" />
-                        Task Protocols
+                        Things to Do
                     </h3>
                     <Badge variant="outline" className="text-[8px] font-black border-slate-200">
                         {completedTasksCount}/{tasks.length} DONE
@@ -423,7 +423,7 @@ export default function TimeClockPage() {
                                     <span className={cn("text-xs font-bold", task.completed ? "text-slate-400 line-through" : "text-slate-700")}>
                                         {task.label}
                                     </span>
-                                    {task.completed && <span className="text-[8px] font-black uppercase text-emerald-600 mt-0.5">Verified</span>}
+                                    {task.completed && <span className="text-[8px] font-black uppercase text-emerald-600 mt-0.5">Finished</span>}
                                 </div>
                             </div>
                             {!task.completed && <ChevronRight className="w-4 h-4 text-slate-300" />}
@@ -437,16 +437,16 @@ export default function TimeClockPage() {
             {(status === 'CLOCKED_IN' || status === 'ON_BREAK') && (
                 <div className="grid grid-cols-2 gap-3">
                     <Button onClick={handleBreak} variant="outline" className="h-14 rounded-2xl border-2 font-black uppercase text-[10px] tracking-widest shadow-sm">
-                        <Coffee className="w-4 h-4 mr-2" /> {status === 'ON_BREAK' ? 'Resume' : 'Take Break'}
+                        <Coffee className="w-4 h-4 mr-2" /> {status === 'ON_BREAK' ? 'Back to Work' : 'Start Break'}
                     </Button>
                     <Button onClick={handleEndDutyClick} className="h-14 rounded-2xl bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 font-black uppercase text-[10px] tracking-widest shadow-sm">
-                        <LogOut className="w-4 h-4 mr-2" /> End Duty
+                        <LogOut className="w-4 h-4 mr-2" /> Finish Shift
                     </Button>
                 </div>
             )}
             <div className="flex justify-center">
                 <button className="text-[9px] font-black text-slate-400 uppercase flex items-center gap-1.5 hover:text-blue-600 transition-colors py-2">
-                    <Info className="w-3.5 h-3.5" /> Support
+                    <Info className="w-3.5 h-3.5" /> Need Help?
                 </button>
             </div>
         </div>
@@ -461,10 +461,10 @@ export default function TimeClockPage() {
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
                   <ClipboardCheck className="w-5 h-5 text-white" />
                 </div>
-                <DialogTitle className="text-2xl font-black text-slate-900">Review Your Shift</DialogTitle>
+                <DialogTitle className="text-2xl font-black text-slate-900">Check Your Work</DialogTitle>
               </div>
               <DialogDescription className="text-slate-500 font-medium text-sm">
-                Operational verification check before departure.
+                Make sure everything is done before you leave.
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -473,15 +473,15 @@ export default function TimeClockPage() {
             {/* Task Summary */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Task Summary</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tasks Done</p>
                 <Badge className={cn("text-[9px] font-black uppercase", isTasksComplete ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>
-                  {completedTasksCount} / {tasks.length} DONE
+                  {completedTasksCount} / {tasks.length} Done
                 </Badge>
               </div>
               {!isTasksComplete && (
                 <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
                   <AlertTriangle className="w-5 h-5 text-amber-500" />
-                  <p className="text-xs font-bold text-amber-700">You have {tasks.length - completedTasksCount} tasks remaining.</p>
+                  <p className="text-xs font-bold text-amber-700">You have {tasks.length - completedTasksCount} things left to do.</p>
                 </div>
               )}
             </div>
@@ -489,15 +489,15 @@ export default function TimeClockPage() {
             {/* Photo Summary */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Photo Verification</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Photos Taken</p>
                 <Badge className={cn("text-[9px] font-black uppercase", isPhotosComplete ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>
-                  {photoCount} / {totalRequiredPhotos} DONE
+                  {photoCount} / {totalRequiredPhotos} Done
                 </Badge>
               </div>
               {!isPhotosComplete && (
                 <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
                   <Camera className="w-5 h-5 text-amber-500" />
-                  <p className="text-xs font-bold text-amber-700">Missing {totalRequiredPhotos - photoCount} required photos.</p>
+                  <p className="text-xs font-bold text-amber-700">Please take {totalRequiredPhotos - photoCount} more photos.</p>
                 </div>
               )}
             </div>
@@ -505,9 +505,9 @@ export default function TimeClockPage() {
             {/* Inventory Status */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventory Log</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Supply Check</p>
                 <Badge className={cn("text-[9px] font-black uppercase", isInventoryDone ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600")}>
-                  {isInventoryDone ? "SUBMITTED" : "MISSING"}
+                  {isInventoryDone ? "Done" : "Missing"}
                 </Badge>
               </div>
               {!isInventoryDone && (
@@ -516,11 +516,10 @@ export default function TimeClockPage() {
                   className="w-full h-12 rounded-xl border-dashed border-red-200 text-red-500 font-black uppercase text-[10px]"
                   onClick={() => {
                     setShowReview(false);
-                    // Navigate to log page usually, but here we just simulate
-                    toast({ title: "Navigation", description: "Heading to Work Log..." });
+                    toast({ title: "Supplies", description: "Opening the Supply Check..." });
                   }}
                 >
-                  Complete Inventory Now
+                  Check Supplies Now
                 </Button>
               )}
             </div>
@@ -528,29 +527,29 @@ export default function TimeClockPage() {
             {/* Break Status */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Break Compliance</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Break Time</p>
                 <Badge className={cn("text-[9px] font-black uppercase", isBreakTaken ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600")}>
-                  {isBreakTaken ? "TAKEN" : "PENDING"}
+                  {isBreakTaken ? "Taken" : "Not Taken"}
                 </Badge>
               </div>
               {!isBreakTaken && timer > 18000 && (
                 <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
                   <Info className="w-5 h-5 text-blue-500" />
-                  <p className="text-xs font-medium text-blue-700 leading-relaxed">Ontario Rule: Shifts over 5 hours require a 30min unpaid break.</p>
+                  <p className="text-xs font-medium text-blue-700 leading-relaxed">Reminder: Long shifts need a 30 min break.</p>
                 </div>
               )}
             </div>
 
             {/* Shift Breakdown */}
             <div className="space-y-4 pt-4 border-t border-slate-50">
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Shift Totals</p>
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Today&apos;s Total</p>
                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <p className="text-[9px] font-black text-slate-400 uppercase">Duration</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Hours</p>
                     <p className="text-lg font-black text-slate-900">{(timer/3600).toFixed(1)} hrs</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[9px] font-black text-slate-400 uppercase">Paid Total</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Paid Time</p>
                     <p className="text-lg font-black text-blue-600">{paidHours} hrs</p>
                   </div>
                </div>
@@ -565,13 +564,13 @@ export default function TimeClockPage() {
                   variant="outline"
                   className="w-full h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black uppercase text-[10px] tracking-widest"
                 >
-                  End Anyway (Manager Review Required)
+                  Finish Anyway (Manager will Check)
                 </Button>
                 <Button 
                   onClick={() => setShowReview(false)}
                   className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-200"
                 >
-                  Return to Shift
+                  Go Back to Work
                 </Button>
               </>
             ) : (
@@ -579,7 +578,7 @@ export default function TimeClockPage() {
                 onClick={() => handleFinalClockOut(false)}
                 className="w-full h-16 rounded-2xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-slate-200"
               >
-                Confirm Completion
+                Finished for Today
               </Button>
             )}
           </div>
@@ -587,4 +586,8 @@ export default function TimeClockPage() {
       </Dialog>
     </div>
   );
+}
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }

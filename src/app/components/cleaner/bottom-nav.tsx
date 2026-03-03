@@ -12,16 +12,15 @@ export function CleanerBottomNav() {
 
   const navItems = [
     { label: "Home", icon: Home, href: "/cleaner" },
-    { label: "Duty", icon: Clock, href: "/cleaner/clock" },
-    { label: "Shifts", icon: Calendar, href: "/cleaner/shifts" },
+    { label: "Clock", icon: Clock, href: "/cleaner/clock" },
+    { label: "History", icon: Calendar, href: "/cleaner/shifts" },
     { label: "Rewards", icon: Trophy, href: "/cleaner/wallet" },
-    { label: "Work Log", icon: Camera, href: "/cleaner/log" },
+    { label: "Photos", icon: Camera, href: "/cleaner/log" },
   ];
 
   return (
     <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[440px] h-20 glass-nav rounded-[2.5rem] flex justify-around items-center px-6 safe-area-bottom z-50 shadow-[0_20px_50px_rgba(58,111,247,0.15)]">
       {navItems.map((item) => {
-        // Updated active logic to catch sub-routes like /cleaner/shifts/[id]
         const isActive = pathname === item.href || 
                          (item.href === '/cleaner' && pathname.startsWith('/cleaner/notifications')) || 
                          (item.href === '/cleaner/shifts' && pathname.startsWith('/cleaner/shifts/')) ||

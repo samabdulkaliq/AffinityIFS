@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -71,21 +72,21 @@ export default function CleanerDashboard() {
 
   // 2) Dynamic Smart Assistant Messaging
   const aiMessage = useMemo(() => {
-    if (!isOnShift) return "Ready for your next deployment? Punctuality adds 100 points! ⏰";
-    if (!isTasksComplete) return `You have ${tasks.length - completedTasksCount} tasks remaining. Keep pushing! 💪`;
-    if (!isPhotosComplete) return "Don't forget to take your final site verification photos. 📸";
-    if (!isInventoryDone) return "Almost done! Please submit your inventory check. 🧾";
-    return "Great job today! You're on track for a perfect shift. ⭐";
+    if (!isOnShift) return "Ready for your next work day? Being on time earns extra points! ⏰";
+    if (!isTasksComplete) return `You have ${tasks.length - completedTasksCount} things left to do. Keep going! 💪`;
+    if (!isPhotosComplete) return "Don't forget to take your final photos of the site. 📸";
+    if (!isInventoryDone) return "Almost done! Please check the supplies. 🧾";
+    return "Great job today! You're doing a perfect job. ⭐";
   }, [isOnShift, isTasksComplete, isPhotosComplete, isInventoryDone, tasks.length, completedTasksCount]);
 
   // 4) Needs Attention Logic
   const needsAttentionItems = useMemo(() => {
     const items = [];
     if (isOnShift) {
-      if (!isTasksComplete) items.push({ label: "Tasks Incomplete", icon: CheckCircle2, color: "text-blue-500", href: "/cleaner/clock" });
-      if (!isPhotosComplete) items.push({ label: "Photos Missing", icon: Camera, color: "text-amber-500", href: "/cleaner/log" });
-      if (!isInventoryDone) items.push({ label: "Inventory Missing", icon: Info, color: "text-red-500", href: "/cleaner/log" });
-      if (todayShift?.managerNote) items.push({ label: "New Manager Note", icon: MessageSquare, color: "text-purple-500", href: "/cleaner/shifts/" + todayShift.id });
+      if (!isTasksComplete) items.push({ label: "Tasks not finished", icon: CheckCircle2, color: "text-blue-500", href: "/cleaner/clock" });
+      if (!isPhotosComplete) items.push({ label: "Photos missing", icon: Camera, color: "text-amber-500", href: "/cleaner/log" });
+      if (!isInventoryDone) items.push({ label: "Supplies not checked", icon: Info, color: "text-red-500", href: "/cleaner/log" });
+      if (todayShift?.managerNote) items.push({ label: "New note from manager", icon: MessageSquare, color: "text-purple-500", href: "/cleaner/shifts/" + todayShift.id });
     }
     return items;
   }, [isOnShift, isTasksComplete, isPhotosComplete, isInventoryDone, todayShift]);
@@ -93,8 +94,8 @@ export default function CleanerDashboard() {
   if (!user) return null;
 
   const shortcuts = [
-    { label: "Duty", icon: Clock, href: "/cleaner/clock", color: "text-blue-500", bg: "bg-blue-50" },
-    { label: "Work Log", icon: CheckCircle2, href: "/cleaner/log", color: "text-emerald-500", bg: "bg-emerald-50" },
+    { label: "Clock", icon: Clock, href: "/cleaner/clock", color: "text-blue-500", bg: "bg-blue-50" },
+    { label: "Photos", icon: Camera, href: "/cleaner/log", color: "text-emerald-500", bg: "bg-emerald-50" },
     { label: "History", icon: Calendar, href: "/cleaner/shifts", color: "text-amber-500", bg: "bg-amber-50" },
   ];
 
@@ -114,7 +115,7 @@ export default function CleanerDashboard() {
             </h1>
             <div className="flex items-center gap-2">
                <Badge variant="outline" className="bg-slate-900 text-white border-none font-black text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
-                 <Flame className="w-2.5 h-2.5 text-orange-400 fill-orange-400" /> {user.points > 1500 ? 'HOT STREAK' : 'LEVEL 1'}
+                 <Flame className="w-2.5 h-2.5 text-orange-400 fill-orange-400" /> {user.points > 1500 ? 'STAR CLEANER' : 'LEVEL 1'}
                </Badge>
                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{user.points} points 🏆</p>
             </div>
@@ -127,12 +128,12 @@ export default function CleanerDashboard() {
             "whitespace-nowrap font-black text-[8px] uppercase tracking-widest py-1 px-3",
             isOnShift ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
           )}>
-            {isOnShift ? "● Active Duty" : "○ Not Started"}
+            {isOnShift ? "● Working Now" : "○ Not Working"}
           </Badge>
           {isOnShift && (
             <>
               <Badge variant="outline" className="whitespace-nowrap bg-blue-50 text-blue-600 border-blue-100 font-black text-[8px] uppercase tracking-widest py-1 px-3">
-                {completedTasksCount}/{tasks.length} Tasks
+                {completedTasksCount}/{tasks.length} Done
               </Badge>
               <Badge variant="outline" className="whitespace-nowrap bg-amber-50 text-amber-600 border-amber-100 font-black text-[8px] uppercase tracking-widest py-1 px-3">
                 {photoCount}/{totalRequiredPhotos} Photos
@@ -151,7 +152,7 @@ export default function CleanerDashboard() {
               <Sparkles className="w-5 h-5 text-blue-100" />
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Smart Assistant 🧠</p>
+              <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Helpful Tip 🧠</p>
               <p className="text-sm font-bold text-white leading-relaxed">
                 "{aiMessage}"
               </p>
@@ -211,25 +212,25 @@ export default function CleanerDashboard() {
             <div className="p-8 space-y-8">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                   <p className="text-[10px] font-black text-[#3A6FF7] uppercase tracking-widest">Today&apos;s Job 📍</p>
+                   <p className="text-[10px] font-black text-[#3A6FF7] uppercase tracking-widest">Today&apos;s Work 📍</p>
                    <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">{site.name}</h2>
                 </div>
                 <Badge className={cn(
                   "border-none font-black text-[9px] uppercase tracking-widest px-3 py-1",
                   isOnShift ? "bg-blue-600 text-white animate-pulse" : "bg-emerald-50 text-emerald-600"
                 )}>
-                  {isOnShift ? "Live Now" : "On Schedule"}
+                  {isOnShift ? "Working Now" : "Ready"}
                 </Badge>
               </div>
 
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase">Scheduled</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Work Hours</p>
                     <p className="text-xs font-bold text-slate-700">{formatTime(todayShift.scheduledStart)} - {formatTime(todayShift.scheduledEnd)}</p>
                   </div>
                   <div className="space-y-1 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase">Clock-in</p>
+                    <p className="text-[9px] font-black text-slate-400 uppercase">My Time</p>
                     <p className="text-xs font-bold text-slate-700">{isOnShift ? formatTime(todayShift.scheduledStart) : "--:--"}</p>
                   </div>
                 </div>
@@ -241,14 +242,14 @@ export default function CleanerDashboard() {
                   <div className="flex-1">
                     <p className="text-sm font-black text-slate-700 leading-snug">{site.address}</p>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight mt-1">
-                      {isOnShift ? "Verified at site ✅" : "0.12 km away 📍"}
+                      {isOnShift ? "Verified at site ✅" : "Almost there 📍"}
                     </p>
                   </div>
                 </div>
 
                 {!isOnShift && (
                   <Button variant="outline" className="w-full h-12 rounded-xl border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50">
-                    <Navigation className="w-4 h-4 mr-2" /> Open in Maps
+                    <Navigation className="w-4 h-4 mr-2" /> Show on Maps
                   </Button>
                 )}
               </div>
@@ -260,13 +261,13 @@ export default function CleanerDashboard() {
                   </h3>
                   <p className="text-sm text-slate-500 font-medium leading-relaxed">
                     {isOnShift 
-                      ? "Keep it up! Check your log to upload required photos." 
-                      : `Go to ${site.name}. We’ll start your time when you arrive.`}
+                      ? "Keep it up! Take some photos of your progress." 
+                      : `Go to ${site.name}. We’ll start your clock when you get there.`}
                   </p>
                 </div>
 
                 <Button asChild className="w-full h-16 rounded-[2rem] btn-gradient text-lg font-black border-none">
-                  <Link href="/cleaner/clock">{isOnShift ? "Manage Shift" : "View Deployment"}</Link>
+                  <Link href="/cleaner/clock">{isOnShift ? "Check My Shift" : "Go to My Shift"}</Link>
                 </Button>
               </div>
             </div>
@@ -281,7 +282,7 @@ export default function CleanerDashboard() {
               <p className="text-sm text-slate-400 font-medium">No shifts scheduled for the rest of today. Enjoy your break!</p>
             </div>
             <Button asChild variant="outline" className="rounded-xl font-black uppercase text-[10px] tracking-widest px-8">
-               <Link href="/cleaner/shifts">View Schedule</Link>
+               <Link href="/cleaner/shifts">See Schedule</Link>
             </Button>
           </div>
         )}
