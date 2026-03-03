@@ -2,7 +2,7 @@ import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsL
 
 /**
  * @fileOverview Mock Repository for Affinity Workforce Platform.
- * Seeded with multiple production scenarios for the Duty/Clock and Cycle tabs.
+ * Seeded with multiple production scenarios for the Duty, Cycle, Vault, and Arena tabs.
  */
 
 class MockRepository {
@@ -19,7 +19,7 @@ class MockRepository {
   }
 
   private seed() {
-    // 1. ADMiNS
+    // 1. ADMINS
     for (let i = 1; i <= 5; i++) {
       this.users.push({
         id: `admin-${i}`,
@@ -34,15 +34,22 @@ class MockRepository {
     }
 
     // 2. CLEANERS
+    const names = [
+      "Alex Rivera", "Jordan Smith", "Sam Taylor", "Casey Jones", "Taylor Reed",
+      "Morgan Bell", "Riley West", "Quinn Davis", "Avery Lane", "Skyler Cole",
+      "Charlie Fox", "Peyton Hill", "Dakota Moon", "Emerson Blue", "Sage Grey",
+      "Phoenix Sun", "Justice Law", "River Song", "Ocean Deep", "Sky High"
+    ];
+
     for (let i = 1; i <= 20; i++) {
       this.users.push({
         id: `cleaner-${i}`,
-        name: `Cleaner ${i}`,
+        name: names[i-1] || `Cleaner ${i}`,
         role: 'CLEANER',
         workerType: i % 3 === 0 ? 'CONTRACT' : 'EMPLOYEE',
         phone: `555-${1000 + i}`,
         status: 'ACTIVE',
-        points: 1250 + (i * 50),
+        points: 2000 - (i * 75) + (i === 1 ? 850 : 0), // Cleaner 1 gets a boost
         avatarUrl: `https://picsum.photos/seed/cleaner${i}/100/100`,
       });
     }
@@ -71,14 +78,9 @@ class MockRepository {
     const todayAt17 = new Date(now); todayAt17.setHours(17, 0, 0, 0);
     
     const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
-    const nextDay = new Date(now); nextDay.setDate(nextDay.getDate() + 2);
-    
     const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
-    const lastWeek = new Date(now); lastWeek.setDate(lastWeek.getDate() - 7);
 
-    // --- CYCLE TAB SCENARIOS (Cleaner 1) ---
-
-    // 1. Active/Approach (Scenario A for Duty Tab)
+    // --- CLEANER 1 SCENARIOS (Vault & Cycle) ---
     this.shifts.push({
         id: "shift-approach",
         userId: "cleaner-1",
@@ -89,53 +91,17 @@ class MockRepository {
         status: "SCHEDULED"
     });
 
-    // 2. Upcoming Shift 1
-    this.shifts.push({
-        id: "shift-tomorrow",
-        userId: "cleaner-1",
-        siteId: "site-2",
-        siteName: "Crystal Plaza",
-        scheduledStart: new Date(tomorrow.setHours(8, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(tomorrow.setHours(16, 0, 0, 0)).toISOString(),
-        status: "SCHEDULED"
+    this.rewards.push({
+        id: "r1", userId: "cleaner-1", pointsDelta: 500, reason: "Perfect Attendance Streak", createdAt: yesterday.toISOString()
     });
-
-    // 3. Upcoming Shift 2
-    this.shifts.push({
-        id: "shift-next-day",
-        userId: "cleaner-1",
-        siteId: "site-4",
-        siteName: "Oak Ridge School",
-        scheduledStart: new Date(nextDay.setHours(18, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(nextDay.setHours(22, 0, 0, 0)).toISOString(),
-        status: "SCHEDULED"
+    this.rewards.push({
+        id: "r2", userId: "cleaner-1", pointsDelta: 250, reason: "5-Star Site Feedback", createdAt: new Date(now.getTime() - 86400000 * 2).toISOString()
     });
-
-    // 4. Completed History 1
-    this.shifts.push({
-        id: "shift-completed-1",
-        userId: "cleaner-1",
-        siteId: "site-3",
-        siteName: "Skyline Towers",
-        scheduledStart: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(yesterday.setHours(18, 0, 0, 0)).toISOString(),
-        status: "COMPLETED"
-    });
-
-    // 5. Cancelled Shift
-    this.shifts.push({
-        id: "shift-cancelled",
-        userId: "cleaner-1",
-        siteId: "site-5",
-        siteName: "Green Valley Hospital",
-        scheduledStart: new Date(lastWeek.setHours(12, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(lastWeek.setHours(20, 0, 0, 0)).toISOString(),
-        status: "CANCELLED"
+    this.rewards.push({
+        id: "r3", userId: "cleaner-1", pointsDelta: 100, reason: "Eco-Friendly Supply Usage", createdAt: new Date(now.getTime() - 86400000 * 5).toISOString()
     });
 
     // --- OTHER SCENARIOS ---
-    
-    // Scenario B: Cleaner 2 - already at "Crystal Plaza" (IN_PROGRESS -> CLOCKED_IN)
     this.shifts.push({
         id: "shift-active",
         userId: "cleaner-2",
@@ -145,43 +111,21 @@ class MockRepository {
         scheduledEnd: new Date(now.setHours(16, 0, 0, 0)).toISOString(),
         status: "IN_PROGRESS"
     });
-    this.timeEvents.push({
-        id: "ev-active-start",
-        userId: "cleaner-2",
-        shiftId: "shift-active",
-        type: "CLOCK_IN",
-        timestamp: new Date(now.setHours(7, 58, 0, 0)).toISOString(),
-        source: "AUTO"
-    });
 
-    // Scenario C: Admin Challenge - Missing Break at "Skyline Towers"
-    this.shifts.push({
-        id: "shift-dispute",
-        userId: "cleaner-3",
-        siteId: "site-3",
-        siteName: "Skyline Towers",
-        scheduledStart: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(yesterday.setHours(22, 0, 0, 0)).toISOString(), 
-        status: "COMPLETED"
-    });
-    this.timeEvents.push({ id: "ev-d-1", userId: "cleaner-3", shiftId: "shift-dispute", type: "CLOCK_IN", timestamp: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(), source: "AUTO" });
-    this.timeEvents.push({ id: "ev-d-2", userId: "cleaner-3", shiftId: "shift-dispute", type: "CLOCK_OUT", timestamp: new Date(yesterday.setHours(22, 0, 0, 0)).toISOString(), source: "AUTO" });
-    
     this.reviewRequests.push({
         id: "req-ontario-break",
         userId: "cleaner-3",
-        cleanerName: "Cleaner 3",
+        cleanerName: "Casey Jones",
         shiftId: "shift-dispute",
         reason: "Break Correction",
-        note: "I worked 12 hours straight and couldn't find a relief to take my mandatory 30m break. Requesting adjustment.",
+        note: "I worked 12 hours straight and couldn't find a relief to take my mandatory 30m break.",
         status: "PENDING",
         createdAt: new Date().toISOString()
     });
 
-    // Seed some notifications
     this.notifications.push({
         id: "n1", userId: "cleaner-1", role: "CLEANER", category: "REMINDERS", title: "Shift Approaching",
-        body: "Your shift at Metro Hub starts in 15 minutes. Geofence is active.",
+        body: "Your shift at Metro Hub starts in 15 minutes.",
         createdAt: new Date().toISOString(), read: false
     });
   }
@@ -191,6 +135,7 @@ class MockRepository {
   getShiftsForUser(userId: string) { return this.shifts.filter(s => s.userId === userId); }
   getShift(id: string) { return this.shifts.find(s => s.id === id); }
   getReviewRequests() { return this.reviewRequests; }
+  getRewardsForUser(userId: string) { return this.rewards.filter(r => r.userId === userId).sort((a,b) => b.createdAt.localeCompare(a.createdAt)); }
   
   createTimeEvent(event: Omit<TimeEvent, 'id'>) {
     const newEvent = { ...event, id: Math.random().toString(36).substr(2, 9) };
