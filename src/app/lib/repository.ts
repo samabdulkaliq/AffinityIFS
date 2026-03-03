@@ -40,12 +40,9 @@ class MockRepository {
       "Morgan Lee", "Riley Vance", "Quinn Brooks", "Avery Lane", "Parker Gray"
     ];
 
-    const certNames = ["WHMIS 2024", "First Aid & CPR", "Site Safety Protocol", "Equipment Safety"];
-
     for (let i = 1; i <= 10; i++) {
       const cleanerId = i;
       
-      // Seed certifications with varied scenarios
       const userCerts: UserCertification[] = [
         { 
           id: `cert-${cleanerId}-1`, 
@@ -96,28 +93,25 @@ class MockRepository {
     
     // --- LIVE FEED SEEDING ---
     const eventTypes: any[] = ['CLOCK_IN', 'CLOCK_OUT', 'BREAK_START', 'BREAK_END', 'ADJUSTMENT'];
-    const sources: any[] = ['AUTO', 'MANUAL', 'ADMIN'];
-
     for (let i = 0; i < 15; i++) {
       const randomCleaner = this.users.filter(u => u.role === 'CLEANER')[Math.floor(Math.random() * 10)];
-      const randomSite = this.sites[Math.floor(Math.random() * this.sites.length)];
-      const timeOffset = i * 12; // Spread events over a few hours
-      
+      const timeOffset = i * 12;
       this.timeEvents.push({
         id: `event-${i}`,
         userId: randomCleaner.id,
         shiftId: `shift-mock-${i}`,
-        type: eventTypes[Math.floor(Math.random() * 3)], // mostly clock/break
+        type: eventTypes[Math.floor(Math.random() * 3)],
         timestamp: new Date(now.getTime() - timeOffset * 60000).toISOString(),
-        source: sources[Math.floor(Math.random() * 2)], // mostly auto/manual
+        source: 'AUTO',
         notes: i % 5 === 0 ? "Geofence verified at site entrance." : undefined
       });
     }
 
-    // --- CLEANER 1: ALEX RIVERA (Active Operational Lifecycle) ---
+    // --- SHIFT SCENARIOS FOR ALEX RIVERA ---
     const todayAt9 = new Date(now); todayAt9.setHours(9, 0, 0, 0);
     const todayAt17 = new Date(now); todayAt17.setHours(17, 0, 0, 0);
 
+    // Active
     this.shifts.push({
         id: "shift-alex-today",
         userId: "cleaner-1",
@@ -125,26 +119,51 @@ class MockRepository {
         siteName: "Metro Hub",
         scheduledStart: todayAt9.toISOString(),
         scheduledEnd: todayAt17.toISOString(),
-        status: "SCHEDULED",
-        managerNote: "South gate entry only. Security will provide keys.",
+        status: "IN_PROGRESS",
         tasks: [
-          { id: 't1', label: 'Sanitize Lobby Desks', completed: false },
-          { id: 't2', label: 'Refill Restroom Dispensers', completed: false },
-          { id: 't3', label: 'Vacuum Zone A & B', completed: false },
-          { id: 't4', label: 'Waste Disposal Audit', completed: false }
+          { id: 't1', label: 'Sanitize Lobby Desks', completed: true },
+          { id: 't2', label: 'Refill Restroom Dispensers', completed: false }
         ]
     });
 
-    // Past History
-    const yest = new Date(now); yest.setDate(now.getDate() - 1);
+    // Past: Normal (Approved)
+    const yestAt9 = new Date(now); yestAt9.setDate(now.getDate() - 1); yestAt9.setHours(9, 0);
+    const yestAt17 = new Date(now); yestAt17.setDate(now.getDate() - 1); yestAt17.setHours(17, 0);
     this.shifts.push({
         id: "shift-alex-yest",
         userId: "cleaner-1",
         siteId: "site-1",
         siteName: "Metro Hub",
-        scheduledStart: new Date(yest.setHours(9, 0)).toISOString(),
-        scheduledEnd: new Date(yest.setHours(17, 0)).toISOString(),
+        scheduledStart: yestAt9.toISOString(),
+        scheduledEnd: yestAt17.toISOString(),
         status: "COMPLETED",
+    });
+
+    // Past: Adjusted (Late Arrival)
+    const tuesAt9 = new Date(now); tuesAt9.setDate(now.getDate() - 2); tuesAt9.setHours(9, 0);
+    const tuesAt17 = new Date(now); tuesAt17.setDate(now.getDate() - 2); tuesAt17.setHours(17, 0);
+    this.shifts.push({
+        id: "shift-alex-tues",
+        userId: "cleaner-1",
+        siteId: "site-2",
+        siteName: "Crystal Plaza",
+        scheduledStart: new Date(tuesAt9.getTime() + 45 * 60000).toISOString(), // 45m late
+        scheduledEnd: tuesAt17.toISOString(),
+        status: "COMPLETED",
+        managerNote: "Clock-in adjusted to reflect actual site arrival time (verified via GPS)."
+    });
+
+    // Upcoming
+    const tomorrowAt8 = new Date(now); tomorrowAt8.setDate(now.getDate() + 1); tomorrowAt8.setHours(8, 0);
+    const tomorrowAt16 = new Date(now); tomorrowAt16.setDate(now.getDate() + 1); tomorrowAt16.setHours(16, 0);
+    this.shifts.push({
+        id: "shift-alex-tomorrow",
+        userId: "cleaner-1",
+        siteId: "site-3",
+        siteName: "Bay Street Financial",
+        scheduledStart: tomorrowAt8.toISOString(),
+        scheduledEnd: tomorrowAt16.toISOString(),
+        status: "SCHEDULED",
     });
 
     // --- REVIEW REQUESTS ---
@@ -158,53 +177,27 @@ class MockRepository {
         note: "Worked through break due to site emergency (water leak).",
         status: "PENDING",
         createdAt: new Date(now.getTime() - 24 * 3600000).toISOString()
-      },
-      {
-        id: "req-02",
-        userId: "cleaner-4",
-        cleanerName: "Casey Jones",
-        shiftId: "s-past-02",
-        reason: "Missed Clock-Out",
-        note: "Phone died before I could clock out at the end of the shift.",
-        status: "PENDING",
-        createdAt: new Date(now.getTime() - 48 * 3600000).toISOString()
       }
     );
 
     // --- NOTIFICATIONS ---
-    const cleanerIds = ['cleaner-1', 'cleaner-2'];
-    cleanerIds.forEach(id => {
-      this.notifications.push(
-        {
-          id: `n-${id}-1`,
-          userId: id,
-          role: 'CLEANER',
-          category: 'TIME',
-          title: 'Shift Confirmation',
-          body: 'Geofence verified at Metro Hub. Shift starting now.',
-          createdAt: new Date(now.getTime() - 15 * 60000).toISOString(),
-          read: true
-        },
-        {
-          id: `n-${id}-2`,
-          userId: id,
-          role: 'CLEANER',
-          category: 'APPROVALS',
-          title: 'Time Review Approved',
-          body: 'Your break adjustment for Tuesday has been approved by David Smith.',
-          createdAt: new Date(now.getTime() - 120 * 60000).toISOString(),
-          read: false
-        }
-      );
-    });
+    this.notifications.push(
+      {
+        id: `n-cleaner-1-1`,
+        userId: "cleaner-1",
+        role: 'CLEANER',
+        category: 'TIME',
+        title: 'Shift Confirmation',
+        body: 'Geofence verified at Metro Hub. Shift starting now.',
+        createdAt: new Date(now.getTime() - 15 * 60000).toISOString(),
+        read: true
+      }
+    );
 
     // --- REWARDS ---
-    cleanerIds.forEach(id => {
-      this.rewards.push(
-        { id: `r-${id}-1`, userId: id, pointsDelta: 500, reason: 'Monthly Attendance Bonus', createdAt: new Date(now.getTime() - 2 * 24 * 3600000).toISOString() },
-        { id: `r-${id}-2`, userId: id, pointsDelta: 200, reason: 'Quality Photo Audit: Metro Hub', createdAt: new Date(now.getTime() - 1 * 24 * 3600000).toISOString() }
-      );
-    });
+    this.rewards.push(
+      { id: `r-cleaner-1-1`, userId: "cleaner-1", pointsDelta: 500, reason: 'Monthly Attendance Bonus', createdAt: new Date(now.getTime() - 2 * 24 * 3600000).toISOString() }
+    );
   }
 
   getUser(id: string) { return this.users.find(u => u.id === id); }
@@ -219,10 +212,6 @@ class MockRepository {
   
   getWorkersWithExpiredCerts() {
     return this.users.filter(u => u.role === 'CLEANER' && u.certifications?.some(c => c.status === 'EXPIRED'));
-  }
-
-  getWorkersWithExpiringCerts() {
-    return this.users.filter(u => u.role === 'CLEANER' && u.certifications?.some(c => c.status === 'EXPIRING'));
   }
 
   createTimeEvent(event: Omit<TimeEvent, 'id'>) {

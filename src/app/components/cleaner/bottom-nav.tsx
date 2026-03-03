@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -13,7 +12,7 @@ export function CleanerBottomNav() {
   const navItems = [
     { label: "Home", icon: Home, href: "/cleaner" },
     { label: "Duty", icon: Clock, href: "/cleaner/clock" },
-    { label: "Cycle", icon: Calendar, href: "/cleaner/shifts" },
+    { label: "Shifts", icon: Calendar, href: "/cleaner/shifts" },
     { label: "Vault", icon: Wallet, href: "/cleaner/wallet" },
     { label: "Log", icon: Camera, href: "/cleaner/log" },
   ];
@@ -21,7 +20,7 @@ export function CleanerBottomNav() {
   return (
     <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[440px] h-20 glass-nav rounded-[2.5rem] flex justify-around items-center px-6 safe-area-bottom z-50 shadow-[0_20px_50px_rgba(0,0,0,0.1)]">
       {navItems.map((item) => {
-        const isActive = pathname === item.href || (item.href === '/cleaner' && pathname.startsWith('/cleaner/notifications'));
+        const isActive = pathname === item.href || (item.href === '/cleaner' && pathname.startsWith('/cleaner/notifications')) || (item.href === '/cleaner/shifts' && pathname.startsWith('/cleaner/shifts/'));
         return (
           <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center flex-1 relative group py-2">
             <div className={cn(
