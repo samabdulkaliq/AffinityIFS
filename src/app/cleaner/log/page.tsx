@@ -115,7 +115,7 @@ export default function WorkLogPage() {
   return (
     <div className="space-y-8 pb-32 animate-in fade-in duration-700">
       <div className="px-1">
-        <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none">My Photos 📸</h2>
+        <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Work Log 📸</h2>
         <p className="text-sm text-slate-500 font-medium mt-2">Take pictures of your work today.</p>
       </div>
 
@@ -165,7 +165,7 @@ export default function WorkLogPage() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Check Supplies 🧾</h3>
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Supplies Check 🧾</h3>
         <Card className="premium-card">
           <CardContent className="p-6 space-y-6">
             <div className="flex items-start gap-4">
@@ -174,7 +174,7 @@ export default function WorkLogPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-black text-slate-900 leading-tight">Site Supplies</p>
-                <p className="text-xs font-medium text-slate-500 leading-relaxed">Let us know if you need more cleaning soap or paper.</p>
+                <p className="text-xs font-medium text-slate-500 leading-relaxed">Let us know if you need more soap, paper, or bags.</p>
               </div>
             </div>
 
@@ -199,7 +199,7 @@ export default function WorkLogPage() {
                   className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 bg-white border-slate-50 hover:bg-slate-50 active:scale-95 transition-all"
                 >
                   <span className="text-2xl mb-1">🔴</span>
-                  <span className="text-[9px] font-black uppercase tracking-tighter">Need Now</span>
+                  <span className="text-[9px] font-black uppercase tracking-tighter">Out of Stock</span>
                 </button>
                 <button 
                   onClick={() => handleInventoryCheckStatus('DAMAGE')}

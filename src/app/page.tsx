@@ -1,15 +1,15 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "./lib/store";
-import { Mail, Lock, Loader2, User, Crown, ChevronRight } from "lucide-react";
+import { Mail, Lock, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "./lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 
 type FlowStep = "SPLASH" | "LOGIN";
 
@@ -55,8 +55,8 @@ export default function AppEntryFlow() {
       setIsLoading(false);
       toast({
         variant: "destructive",
-        title: "Authentication failed",
-        description: "Invalid credentials. Try 'cleaner1@affinity.com' or 'david@affinity.com'."
+        title: "Login failed",
+        description: "Invalid email or password. Try 'sam@affinity.com' or 'david@affinity.com'."
       });
     }
   };
@@ -92,12 +92,6 @@ export default function AppEntryFlow() {
             <div className="text-center space-y-2">
               <h1 className="text-5xl font-black tracking-tighter text-[#2F5BFF]">AFFINITY</h1>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] ml-1">Integrated Facility Solutions</p>
-            </div>
-            <div className="pt-4">
-               <p className="text-[10px] text-slate-300 font-medium tracking-widest uppercase">Reliable. Professional. Trusted.</p>
-            </div>
-            <div className="absolute bottom-[-150px] text-center">
-              <p className="text-[10px] font-medium text-slate-300 uppercase tracking-widest">Secure Workforce Platform 🔒</p>
             </div>
           </motion.div>
         )}
@@ -161,12 +155,6 @@ export default function AppEntryFlow() {
                 </div>
               </div>
 
-              <div className="flex justify-end items-center">
-                <button type="button" className="text-xs font-bold text-[#2F5BFF] hover:text-[#254EDF]">
-                  Forgot password?
-                </button>
-              </div>
-
               <Button 
                 type="submit" 
                 disabled={isLoading}
@@ -177,7 +165,7 @@ export default function AppEntryFlow() {
             </form>
 
             <div className="text-center pt-8">
-              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.3em] flex items-center justify-center gap-2">
+              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.3em]">
                 Secure Workforce Platform 🔒
               </p>
             </div>

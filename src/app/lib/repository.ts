@@ -118,7 +118,7 @@ class MockRepository {
         status: "IN_PROGRESS",
         tasks: [
           { id: 't1', label: 'Wipe Entrance Tables', completed: true },
-          { id: 't2', label: 'Refill Restroom Soap', completed: false }
+          { id: 't2', label: 'Refill Washroom Soap', completed: false }
         ]
     });
 
@@ -186,6 +186,11 @@ class MockRepository {
       const task = shift.tasks.find(t => t.id === taskId);
       if (task) task.completed = !task.completed;
     }
+  }
+
+  updateShiftStatus(id: string, status: Shift['status']) {
+    const shift = this.shifts.find(s => s.id === id);
+    if (shift) shift.status = status;
   }
 }
 

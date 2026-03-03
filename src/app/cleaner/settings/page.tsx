@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/app/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,29 +27,30 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
-/**
- * @fileOverview Redesigned Cleaner Profile.
- * Simple, friendly, and premium focus. Removes corporate/payroll jargon.
- */
-
 export default function CleanerSettingsPage() {
   const { user, logout } = useAuth();
   const { toast } = useToast();
-  const [locationEnabled, setLocationEnabled] = useState(true);
+  const [locationEnabled, setLocationEnabled] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("affinity_location_enabled");
+    if (saved === "true") setLocationEnabled(true);
+  }, []);
+
+  const handleLocationToggle = (checked: boolean) => {
+    setLocationEnabled(checked);
+    localStorage.setItem("affinity_location_enabled", checked.toString());
+    toast({
+      title: checked ? "Location Turned On 📍" : "Location Turned Off",
+      description: checked ? "We can now find your work sites automatically." : "You may need to start work manually.",
+    });
+  };
 
   const quickStats = [
     { label: "On time", value: "98%", icon: Clock, color: "text-blue-500" },
     { label: "Photos done", value: "100%", icon: Camera, color: "text-emerald-500" },
     { label: "Safety", value: "4.9", icon: ShieldCheck, color: "text-indigo-500" },
   ];
-
-  const handleLocationToggle = (checked: boolean) => {
-    setLocationEnabled(checked);
-    toast({
-      title: checked ? "Location Access Enabled" : "Location Access Disabled",
-      description: checked ? "We will now scan for geofences automatically." : "SmartClock™ features may be limited.",
-    });
-  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-32">
@@ -93,8 +95,8 @@ export default function CleanerSettingsPage() {
                             <span className="text-2xl">🧠</span>
                         </div>
                         <div>
-                            <p className="font-black text-lg tracking-tight">Help Center</p>
-                            <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest">Quick help during your shift</p>
+                            <p className="font-black text-lg tracking-tight">Support Center</p>
+                            <p className="text-[10px] text-white/50 font-bold uppercase tracking-widest">Quick help during your work</p>
                         </div>
                     </div>
                     <ChevronRight className="w-6 h-6 text-white/30 group-hover:translate-x-1 transition-all" />
@@ -103,7 +105,7 @@ export default function CleanerSettingsPage() {
         </Link>
       </div>
 
-      {/* 4. My Certifications 🎓 */}
+      {/* 4. My Training & Rules 🎓 */}
       <div className="space-y-4">
         <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">My Certifications 🎓</h4>
         <Card className="border-none shadow-sm rounded-[2rem] bg-white overflow-hidden">
@@ -137,21 +139,15 @@ export default function CleanerSettingsPage() {
                          cert.status === 'EXPIRING' ? 'EXPIRES SOON' : 'EXPIRED'}
                       </Badge>
                     </div>
-                    {cert.status === 'EXPIRED' && (
-                      <div className="flex items-center gap-2 px-3 py-2 bg-red-50/50 rounded-xl border border-red-50">
-                        <Info className="w-3 h-3 text-red-500" />
-                        <p className="text-[10px] font-medium text-red-700">Please contact your supervisor.</p>
-                      </div>
-                    )}
                   </div>
                 ))}
             </CardContent>
         </Card>
       </div>
 
-      {/* 5. Settings */}
+      {/* 5. App Settings */}
       <div className="space-y-4">
-        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Settings</h4>
+        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">App Settings</h4>
         <Card className="border-none shadow-sm overflow-hidden rounded-[2rem] bg-white">
           <CardContent className="p-0 divide-y divide-slate-50">
               <div className="p-5 flex items-center justify-between">
@@ -159,7 +155,7 @@ export default function CleanerSettingsPage() {
                   <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
                     <Bell className="w-5 h-5" />
                   </div>
-                  <p className="text-sm font-bold text-slate-700">Notifications</p>
+                  <p className="text-sm font-bold text-slate-700">Messages & Alerts</p>
                 </div>
                 <Switch defaultChecked className="data-[state=checked]:bg-blue-600" />
               </div>
@@ -168,22 +164,13 @@ export default function CleanerSettingsPage() {
                   <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
                     <MapPin className="w-5 h-5" />
                   </div>
-                  <p className="text-sm font-bold text-slate-700">Location Access</p>
+                  <p className="text-sm font-bold text-slate-700">Location (GPS)</p>
                 </div>
                 <Switch 
                   checked={locationEnabled} 
                   onCheckedChange={handleLocationToggle}
                   className="data-[state=checked]:bg-blue-600" 
                 />
-              </div>
-              <div className="p-5 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
-                    <Globe className="w-5 h-5" />
-                  </div>
-                  <p className="text-sm font-bold text-slate-700">Language</p>
-                </div>
-                <span className="text-[10px] font-black text-blue-600 uppercase">English</span>
               </div>
           </CardContent>
         </Card>

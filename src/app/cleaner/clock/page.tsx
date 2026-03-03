@@ -57,7 +57,6 @@ export default function TimeClockPage() {
   const [photoCount] = useState(2);
   const totalRequiredPhotos = 5;
   const isInventoryDone = false; 
-  const isBreakTaken = false;
 
   useEffect(() => {
     if (!user) return;
@@ -166,18 +165,22 @@ export default function TimeClockPage() {
     setStatus('IDLE');
     setShowReview(false);
     
-    if (isEverythingComplete) {
-      setShowSuccess(true);
-    } else {
-      setActiveShift(null);
+    if (activeShift && user) {
+      repository.updateShiftStatus(activeShift.id, 'COMPLETED');
       repository.createTimeEvent({
-          userId: user!.id,
-          shiftId: activeShift!.id,
+          userId: user.id,
+          shiftId: activeShift.id,
           type: 'CLOCK_OUT',
           timestamp: new Date().toISOString(),
           source: 'AUTO'
       });
-      toast({ title: "Work Finished", description: "Your time log has been saved." });
+    }
+
+    if (!isForced) {
+      setShowSuccess(true);
+    } else {
+      setActiveShift(null);
+      toast({ title: "Work Finished", description: "Your time log has been saved for review." });
     }
   };
 
@@ -559,4 +562,8 @@ export default function TimeClockPage() {
       </Dialog>
     </div>
   );
+}
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }

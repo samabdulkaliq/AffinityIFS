@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI assistant that explains how to use the Affinity app to cleaners.
@@ -37,6 +38,7 @@ Explain how to use the app in the simplest terms possible.
 - Instead of 'Inventory', use 'Supplies'.
 - Instead of 'Notifications', use 'Messages'.
 - Instead of 'Log', use 'Photos'.
+- Instead of 'In Progress', use 'Working Now'.
 
 Keep your answer to 2 short sentences. Focus on being helpful and kind.`,
 });

@@ -137,7 +137,7 @@ export default function CleanerDashboard() {
         <div className="flex justify-between items-start">
           <div className="space-y-1">
             <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">
-              {greeting}, {user.name.split(' ')[0]}!
+              {greeting}, {user.name.split(' ')[0]}! 👋
             </h1>
             <div className="flex items-center gap-2">
                <Badge variant="outline" className="bg-slate-900 text-white border-none font-black text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
