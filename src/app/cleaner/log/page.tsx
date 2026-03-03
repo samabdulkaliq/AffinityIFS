@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,30 +11,33 @@ import {
   Camera, 
   CheckCircle2, 
   Package, 
-  History,
-  Upload,
-  AlertCircle,
-  AlertTriangle,
-  Circle,
   Check,
-  ChevronRight
+  Circle,
+  ChevronRight,
+  AlertTriangle,
+  Info,
+  ChevronDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-
-/**
- * @fileOverview Redesigned Work Log 📸.
- * Focuses on purposeful verification and quick inventory reporting.
- */
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 type InventoryStatus = 'GOOD' | 'LOW' | 'EMPTY' | 'DAMAGE' | null;
+
+const INVENTORY_ITEMS = ["Paper Towels", "Toilet Paper", "Soap", "Garbage Bags", "Floor Cleaner"];
+const ISSUE_TYPES = ["Broken dispenser", "Leak", "Damage", "Safety concern", "Other"];
 
 export default function WorkLogPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [activeShift, setActiveShift] = useState<any>(null);
   const [inventoryStatus, setInventoryStatus] = useState<InventoryStatus>(null);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [selectedIssueType, setSelectedIssueType] = useState<string>("");
+  const [note, setNote] = useState("");
   
   const [logState, setLogState] = useState({
     photos: [
@@ -53,7 +57,6 @@ export default function WorkLogPage() {
   }, [user]);
 
   const handleTakePhoto = () => {
-    // Mocking logic: find first uncompleted and complete it
     const nextIdx = logState.photos.findIndex(p => !p.completed);
     if (nextIdx === -1) {
        toast({ title: "All required photos uploaded 🎉" });
@@ -70,18 +73,22 @@ export default function WorkLogPage() {
     }));
 
     toast({ title: "Photo saved ✅", description: `${updatedPhotos[nextIdx].label} verification complete.` });
-    
-    // Auto clear status
     setTimeout(() => setLogState(p => ({ ...p, lastPhotoStatus: null })), 3000);
   };
 
-  const handleInventoryCheck = (status: InventoryStatus) => {
-    setInventoryStatus(status);
-    let msg = "All Good - Synchronized with management.";
-    if (status === 'LOW' || status === 'EMPTY' || status === 'DAMAGE') {
-      msg = "Low Stock / Issue reported to supervisor.";
-    }
-    toast({ title: "Inventory check complete 🧾", description: msg });
+  const handleSubmitInventory = () => {
+    toast({ 
+      title: "Inventory Logged", 
+      description: inventoryStatus === 'GOOD' ? "Everything synced." : "Manager notified of stock issues." 
+    });
+    setInventoryStatus(null);
+    setSelectedItems([]);
+    setSelectedIssueType("");
+    setNote("");
+  };
+
+  const toggleItem = (item: string) => {
+    setSelectedItems(prev => prev.includes(item) ? prev.filter(i => i !== item) : [...prev, item]);
   };
 
   const completedCount = logState.photos.filter(p => p.completed).length;
@@ -108,11 +115,11 @@ export default function WorkLogPage() {
         <p className="text-sm text-slate-500 font-medium mt-2">Purposeful site verification.</p>
       </div>
 
-      {/* Photo Progress */}
+      {/* Required Photos Section */}
       <div className="space-y-4">
         <div className="flex justify-between items-end px-1">
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Photo Progress</h3>
-          <span className="text-xs font-black text-primary">{completedCount} of {logState.photos.length} Done</span>
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Required Photos 📸</h3>
+          <span className="text-xs font-black text-blue-600">{completedCount} of {logState.photos.length} Done</span>
         </div>
         
         <Card className="premium-card overflow-hidden">
@@ -122,34 +129,25 @@ export default function WorkLogPage() {
                 <div key={p.id} className="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
                   <div className="flex items-center gap-3">
                     <div className={cn(
-                      "w-5 h-5 rounded-full flex items-center justify-center",
+                      "w-5 h-5 rounded-full flex items-center justify-center transition-colors",
                       p.completed ? "bg-emerald-500" : "bg-slate-100"
                     )}>
                       {p.completed ? <Check className="w-3 h-3 text-white" /> : <Circle className="w-3 h-3 text-slate-300" />}
                     </div>
-                    <span className={cn("text-sm font-bold", p.completed ? "text-slate-900" : "text-slate-400")}>{p.label}</span>
+                    <div className="flex flex-col">
+                      <span className={cn("text-sm font-bold", p.completed ? "text-slate-900" : "text-slate-400")}>{p.label}</span>
+                      {p.completed && <span className="text-[8px] font-black uppercase text-emerald-500">Verified On Site</span>}
+                    </div>
                   </div>
-                  {p.completed && <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-none text-[8px] font-black">VERIFIED</Badge>}
+                  {!p.completed && (
+                    <Badge variant="outline" className="bg-amber-50 text-amber-600 border-none text-[8px] font-black">PENDING</Badge>
+                  )}
                 </div>
               ))}
             </div>
 
             <div className="space-y-4 pt-2">
               <Progress value={(completedCount / logState.photos.length) * 100} className="h-2 bg-slate-50" />
-              
-              <AnimatePresence>
-                {logState.lastPhotoStatus && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    className="flex items-center justify-center gap-2 p-2 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest"
-                  >
-                    <CheckCircle2 className="w-3 h-3" /> Photo saved ✅
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
               <Button 
                 onClick={handleTakePhoto}
                 disabled={isAllComplete}
@@ -163,7 +161,7 @@ export default function WorkLogPage() {
         </Card>
       </div>
 
-      {/* Inventory Section */}
+      {/* Inventory Check Section */}
       <div className="space-y-4">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Inventory Check 🧾</h3>
         <Card className="premium-card">
@@ -178,71 +176,123 @@ export default function WorkLogPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button 
-                onClick={() => handleInventoryCheck('GOOD')}
-                className={cn(
-                  "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all",
-                  inventoryStatus === 'GOOD' ? "bg-emerald-50 border-emerald-500" : "bg-white border-slate-50 hover:bg-slate-50"
-                )}
-              >
-                <span className="text-xl mb-1">🟢</span>
-                <span className="text-[9px] font-black uppercase tracking-tighter">All Good</span>
-              </button>
-              <button 
-                onClick={() => handleInventoryCheck('LOW')}
-                className={cn(
-                  "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all",
-                  inventoryStatus === 'LOW' ? "bg-amber-50 border-amber-500" : "bg-white border-slate-50 hover:bg-slate-50"
-                )}
-              >
-                <span className="text-xl mb-1">🟡</span>
-                <span className="text-[9px] font-black uppercase tracking-tighter">Low Stock</span>
-              </button>
-              <button 
-                onClick={() => handleInventoryCheck('EMPTY')}
-                className={cn(
-                  "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all",
-                  inventoryStatus === 'EMPTY' ? "bg-red-50 border-red-500" : "bg-white border-slate-50 hover:bg-slate-50"
-                )}
-              >
-                <span className="text-xl mb-1">🔴</span>
-                <span className="text-[9px] font-black uppercase tracking-tighter">Empty</span>
-              </button>
-              <button 
-                onClick={() => handleInventoryCheck('DAMAGE')}
-                className={cn(
-                  "flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all",
-                  inventoryStatus === 'DAMAGE' ? "bg-orange-50 border-orange-500" : "bg-white border-slate-50 hover:bg-slate-50"
-                )}
-              >
-                <span className="text-xl mb-1">⚠️</span>
-                <span className="text-[9px] font-black uppercase tracking-tighter">Report Issue</span>
-              </button>
-            </div>
+            {/* Step 1: Initial Status */}
+            {!inventoryStatus ? (
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={() => handleInventoryCheckStatus('GOOD')}
+                  className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 bg-white border-slate-50 hover:bg-slate-50 active:scale-95 transition-all"
+                >
+                  <span className="text-2xl mb-1">🟢</span>
+                  <span className="text-[9px] font-black uppercase tracking-tighter">All Good</span>
+                </button>
+                <button 
+                  onClick={() => handleInventoryCheckStatus('LOW')}
+                  className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 bg-white border-slate-50 hover:bg-slate-50 active:scale-95 transition-all"
+                >
+                  <span className="text-2xl mb-1">🟡</span>
+                  <span className="text-[9px] font-black uppercase tracking-tighter">Low Stock</span>
+                </button>
+                <button 
+                  onClick={() => handleInventoryCheckStatus('EMPTY')}
+                  className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 bg-white border-slate-50 hover:bg-slate-50 active:scale-95 transition-all"
+                >
+                  <span className="text-2xl mb-1">🔴</span>
+                  <span className="text-[9px] font-black uppercase tracking-tighter">Empty</span>
+                </button>
+                <button 
+                  onClick={() => handleInventoryCheckStatus('DAMAGE')}
+                  className="flex flex-col items-center justify-center p-5 rounded-2xl border-2 bg-white border-slate-50 hover:bg-slate-50 active:scale-95 transition-all"
+                >
+                  <span className="text-2xl mb-1">⚠️</span>
+                  <span className="text-[9px] font-black uppercase tracking-tighter">Report Issue</span>
+                </button>
+              </div>
+            ) : (
+              <AnimatePresence>
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-6"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Badge className={cn(
+                        "font-black uppercase text-[10px] tracking-widest",
+                        inventoryStatus === 'GOOD' ? "bg-emerald-500" :
+                        inventoryStatus === 'LOW' ? "bg-amber-500" :
+                        "bg-red-500"
+                      )}>
+                        {inventoryStatus === 'GOOD' ? 'GOOD' : inventoryStatus === 'LOW' ? 'LOW STOCK' : 'REPORT'}
+                      </Badge>
+                      <button onClick={() => setInventoryStatus(null)} className="text-[10px] font-black text-slate-400 uppercase underline">Change</button>
+                    </div>
+                  </div>
+
+                  {/* Step 2: Details based on status */}
+                  {(inventoryStatus === 'LOW' || inventoryStatus === 'EMPTY') && (
+                    <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Items Needed</p>
+                      <div className="grid gap-2">
+                        {INVENTORY_ITEMS.map(item => (
+                          <div key={item} className="flex items-center gap-3">
+                            <Checkbox id={item} checked={selectedItems.includes(item)} onCheckedChange={() => toggleItem(item)} />
+                            <label htmlFor={item} className="text-sm font-bold text-slate-700">{item}</label>
+                          </div>
+                        ))}
+                      </div>
+                      <Textarea placeholder="Add a note (optional)..." className="bg-white" value={note} onChange={e => setNote(e.target.value)} />
+                    </div>
+                  )}
+
+                  {inventoryStatus === 'DAMAGE' && (
+                    <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Issue Type</p>
+                      <div className="grid gap-2">
+                        {ISSUE_TYPES.map(type => (
+                          <button 
+                            key={type}
+                            onClick={() => setSelectedIssueType(type)}
+                            className={cn(
+                              "p-3 rounded-xl border text-sm font-bold text-left transition-all",
+                              selectedIssueType === type ? "bg-blue-600 text-white border-blue-600" : "bg-white border-slate-100 text-slate-700"
+                            )}
+                          >
+                            {type}
+                          </button>
+                        ))}
+                      </div>
+                      <Textarea placeholder="Describe the problem..." className="bg-white" value={note} onChange={e => setNote(e.target.value)} />
+                    </div>
+                  )}
+
+                  {inventoryStatus === 'GOOD' && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center gap-3">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                      <p className="text-sm font-medium text-emerald-700">Everything is in order. No issues to report.</p>
+                    </div>
+                  )}
+
+                  <Button onClick={handleSubmitInventory} className="w-full h-14 rounded-2xl bg-slate-900 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-slate-200">
+                    Send to Manager
+                  </Button>
+                </motion.div>
+              </AnimatePresence>
+            )}
           </CardContent>
         </Card>
       </div>
-
-      {/* Completion Warning */}
-      {!isAllComplete && (
-        <div className="px-1">
-          <div className="bg-red-50 p-4 rounded-2xl border border-red-100 flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="text-[9px] font-black text-red-600 uppercase tracking-widest">Incomplete Verification</p>
-              <p className="text-xs font-medium text-red-900/70">You still need {logState.photos.length - completedCount} photos before ending your shift.</p>
-              <button className="text-[9px] font-black text-red-600 uppercase underline mt-2 block">
-                Finish Anyway (Manager Review Required)
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
+
+  function handleInventoryCheckStatus(status: InventoryStatus) {
+    setInventoryStatus(status);
+    if (status === 'GOOD') {
+      toast({ title: "Site is stocked", description: "All Good status recorded." });
+    }
+  }
 }
 
 const Badge = ({ children, variant, className }: any) => (
-  <div className={cn("px-2 py-0.5 rounded-full", className)}>{children}</div>
+  <div className={cn("px-2 py-0.5 rounded-full flex items-center justify-center", className)}>{children}</div>
 );

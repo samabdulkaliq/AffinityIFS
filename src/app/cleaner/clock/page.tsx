@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/app/lib/store";
 import { repository } from "@/app/lib/repository";
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,26 @@ import {
   Camera, 
   Activity,
   ChevronRight,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle,
+  Clock as ClockIcon,
+  X
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Shift, ShiftTask } from "@/app/lib/models";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { OnboardingTooltip } from "@/app/components/ui/onboarding-tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function TimeClockPage() {
   const { user } = useAuth();
@@ -36,6 +47,12 @@ export default function TimeClockPage() {
   const [autoClockProgress, setAutoClockProgress] = useState(0);
   const [distance, setDistance] = useState(0.85);
   const [tasks, setTasks] = useState<ShiftTask[]>([]);
+  const [showEndSummary, setShowEndSummary] = useState(false);
+
+  // Mocked state for missing items for validation
+  const [photoCount, setPhotoCount] = useState(2);
+  const totalRequiredPhotos = 5;
+  const isInventoryDone = false;
 
   useEffect(() => {
     if (!user) return;
@@ -47,7 +64,7 @@ export default function TimeClockPage() {
         setTasks(current.tasks || []);
         if (current.status === 'IN_PROGRESS') {
           setStatus('CLOCKED_IN');
-          setTimer(14400);
+          setTimer(14400); // 4 hours in
         } else {
           setStatus('SCANNING');
         }
@@ -111,8 +128,7 @@ export default function TimeClockPage() {
     if (!activeShift) return;
     repository.updateShiftTasks(activeShift.id, taskId);
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t));
-    localStorage.setItem("affinity_tooltip_tasks_seen", "true");
-    toast({ title: "Task Updated", description: "Progress synced with management portal." });
+    toast({ title: "Task Updated", description: "Progress synced." });
   };
 
   const handleBreak = () => {
@@ -128,9 +144,14 @@ export default function TimeClockPage() {
     toast({ title: isBreaking ? "Break Started" : "Shift Resumed" });
   };
 
-  const handleClockOut = () => {
+  const initiateClockOut = () => {
+    setShowEndSummary(true);
+  };
+
+  const handleFinalClockOut = () => {
     setStatus('IDLE');
     setActiveShift(null);
+    setShowEndSummary(false);
     repository.createTimeEvent({
         userId: user!.id,
         shiftId: activeShift!.id,
@@ -148,6 +169,10 @@ export default function TimeClockPage() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
   };
 
+  const completedTasksCount = tasks.filter(t => t.completed).length;
+  const isTasksComplete = completedTasksCount === tasks.length;
+  const isPhotosComplete = photoCount === totalRequiredPhotos;
+
   if (!activeShift) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] text-center space-y-6 px-10">
@@ -164,6 +189,32 @@ export default function TimeClockPage() {
 
   return (
     <div className="space-y-6 pb-24 animate-in fade-in duration-500">
+      {/* Dynamic Status Strip */}
+      <AnimatePresence>
+        {(status === 'CLOCKED_IN' || status === 'ON_BREAK') && (
+          <motion.div 
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="px-6 grid grid-cols-2 gap-2"
+          >
+            <div className={cn(
+              "p-2 rounded-xl flex items-center gap-2 border text-[10px] font-black uppercase tracking-tight",
+              isTasksComplete ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-blue-50 border-blue-100 text-blue-600"
+            )}>
+              {isTasksComplete ? <CheckCircle2 className="w-3.5 h-3.5" /> : <ClipboardCheck className="w-3.5 h-3.5" />}
+              {completedTasksCount}/{tasks.length} Tasks
+            </div>
+            <div className={cn(
+              "p-2 rounded-xl flex items-center gap-2 border text-[10px] font-black uppercase tracking-tight",
+              isPhotosComplete ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-amber-50 border-amber-100 text-amber-600"
+            )}>
+              {isPhotosComplete ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Camera className="w-3.5 h-3.5" />}
+              {photoCount}/{totalRequiredPhotos} Photos
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="text-center px-6">
         <div className="flex justify-center mb-2">
             <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 font-black px-3">ACTIVE DEPLOYMENT</Badge>
@@ -220,7 +271,7 @@ export default function TimeClockPage() {
                     <svg className="absolute inset-0 w-full h-full -rotate-90">
                         <motion.circle 
                             cx="112" cy="112" r="104" 
-                            fill="transparent" stroke="#2563EB" strokeWidth="6" strokeLinecap="round"
+                            fill="transparent" stroke="#3A6FF7" strokeWidth="6" strokeLinecap="round"
                             strokeDasharray="653"
                             strokeDashoffset={653 - (autoClockProgress / 100) * 653}
                         />
@@ -239,16 +290,6 @@ export default function TimeClockPage() {
             </div>
         </div>
 
-        {activeShift.managerNote && (
-            <div className="bg-amber-50/50 p-4 rounded-2xl border border-amber-100 flex items-start gap-3">
-                <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                    <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Note</p>
-                    <p className="text-xs font-medium text-amber-900/80 leading-relaxed italic">"{activeShift.managerNote}"</p>
-                </div>
-            </div>
-        )}
-
         {(status === 'CLOCKED_IN' || status === 'ON_BREAK') && (
             <div className="space-y-4">
                 <div className="flex items-center justify-between px-1">
@@ -257,16 +298,10 @@ export default function TimeClockPage() {
                         Task Protocols
                     </h3>
                     <Badge variant="outline" className="text-[8px] font-black border-slate-200">
-                        {tasks.filter(t => t.completed).length}/{tasks.length} DONE
+                        {completedTasksCount}/{tasks.length} DONE
                     </Badge>
                 </div>
                 <div className="grid gap-2 relative">
-                    <OnboardingTooltip 
-                      text="Mark tasks as you complete them ✅" 
-                      storageKey="affinity_tooltip_tasks_seen" 
-                      isVisible={true}
-                      position="bottom"
-                    />
                     {tasks.map((task) => (
                         <div 
                             key={task.id} 
@@ -283,31 +318,17 @@ export default function TimeClockPage() {
                                 )}>
                                     {task.completed && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                                 </div>
-                                <span className={cn("text-xs font-bold", task.completed ? "text-slate-400 line-through" : "text-slate-700")}>
-                                    {task.label}
-                                </span>
+                                <div className="flex flex-col">
+                                    <span className={cn("text-xs font-bold", task.completed ? "text-slate-400 line-through" : "text-slate-700")}>
+                                        {task.label}
+                                    </span>
+                                    {task.completed && <span className="text-[8px] font-black uppercase text-emerald-600 mt-0.5">Verified</span>}
+                                </div>
                             </div>
                             {!task.completed && <ChevronRight className="w-4 h-4 text-slate-300" />}
                         </div>
                     ))}
                 </div>
-
-                <Card className="border-none bg-blue-600 text-white rounded-[1.5rem] overflow-hidden shadow-lg shadow-blue-200">
-                    <CardContent className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                                <Camera className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-white/70 uppercase">Visual Evidence</p>
-                                <p className="text-sm font-black">3 of 5 Photos Logged</p>
-                            </div>
-                        </div>
-                        <Button variant="ghost" size="icon" className="text-white hover:bg-white/10 rounded-full">
-                            <ChevronRight className="w-5 h-5" />
-                        </Button>
-                    </CardContent>
-                </Card>
             </div>
         )}
 
@@ -317,7 +338,7 @@ export default function TimeClockPage() {
                     <Button onClick={handleBreak} variant="outline" className="h-14 rounded-2xl border-2 font-black uppercase text-[10px] tracking-widest shadow-sm">
                         <Coffee className="w-4 h-4 mr-2" /> {status === 'ON_BREAK' ? 'Resume' : 'Take Break'}
                     </Button>
-                    <Button onClick={handleClockOut} className="h-14 rounded-2xl bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 font-black uppercase text-[10px] tracking-widest shadow-sm">
+                    <Button onClick={initiateClockOut} className="h-14 rounded-2xl bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 font-black uppercase text-[10px] tracking-widest shadow-sm">
                         <LogOut className="w-4 h-4 mr-2" /> End Duty
                     </Button>
                 </div>
@@ -329,6 +350,71 @@ export default function TimeClockPage() {
             </div>
         </div>
       </div>
+
+      {/* End Duty Summary Modal */}
+      <Dialog open={showEndSummary} onOpenChange={setShowEndSummary}>
+        <DialogContent className="max-w-[400px] rounded-[2.5rem] p-8">
+          <DialogHeader className="text-left space-y-4">
+            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mb-2">
+                <AlertTriangle className="w-7 h-7 text-red-500" />
+            </div>
+            <DialogTitle className="text-2xl font-black text-slate-900 leading-tight">Shift Summary</DialogTitle>
+            <DialogDescription className="text-slate-500 font-medium text-sm leading-relaxed">
+              We've identified some incomplete items. Please review before ending your duty.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-6 space-y-3">
+            {!isTasksComplete && (
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="flex items-center gap-3">
+                        <ClipboardCheck className="w-5 h-5 text-amber-500" />
+                        <span className="text-sm font-bold text-slate-700">Tasks Incomplete</span>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-black text-amber-600 border-amber-200">
+                      {tasks.length - completedTasksCount} Left
+                    </Badge>
+                </div>
+            )}
+            {!isPhotosComplete && (
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="flex items-center gap-3">
+                        <Camera className="w-5 h-5 text-amber-500" />
+                        <span className="text-sm font-bold text-slate-700">Photos Missing</span>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-black text-amber-600 border-amber-200">
+                      {totalRequiredPhotos - photoCount} Left
+                    </Badge>
+                </div>
+            )}
+            {!isInventoryDone && (
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                    <div className="flex items-center gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-500" />
+                        <span className="text-sm font-bold text-slate-700">Inventory Missing</span>
+                    </div>
+                    <Badge variant="destructive" className="text-[10px] font-black uppercase">Required</Badge>
+                </div>
+            )}
+          </div>
+
+          <DialogFooter className="flex flex-col gap-3">
+            <Button 
+                onClick={handleFinalClockOut} 
+                variant="outline"
+                className="w-full h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black uppercase text-[10px] tracking-widest"
+            >
+                End Anyway (Manager Review Required)
+            </Button>
+            <Button 
+                onClick={() => setShowEndSummary(false)}
+                className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-200"
+            >
+                Go Back & Finish
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
