@@ -6,33 +6,50 @@ import { CleanerBottomNav } from "../components/cleaner/bottom-nav";
 import { Bell, User } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { motion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function CleanerLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const pathname = usePathname();
 
   if (!user || user.role !== 'CLEANER') return null;
+
+  const isNotifications = pathname === "/cleaner/notifications";
+  const isSettings = pathname === "/cleaner/settings";
 
   return (
     <div className="flex flex-col flex-1 pb-32">
       <header className="flex justify-between items-center p-6 sticky top-0 bg-transparent z-40">
         <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12 border-2 border-white/20 shadow-2xl ring-2 ring-primary/20 transition-transform active:scale-90">
+          <Avatar className="h-12 w-12 border-2 border-white shadow-xl ring-2 ring-slate-100 transition-transform active:scale-90">
             <AvatarImage src={user.avatarUrl} />
-            <AvatarFallback>{user.name[0]}</AvatarFallback>
+            <AvatarFallback className="bg-slate-100 text-slate-400">{user.name[0]}</AvatarFallback>
           </Avatar>
           <div className="space-y-0.5">
-            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em]">Affinity Integrated</p>
-            <h2 className="text-lg font-black text-white leading-none">{user.name.split(' ')[0]}</h2>
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">Affinity Integrated</p>
+            <h2 className="text-lg font-black text-slate-900 leading-none">{user.name.split(' ')[0]}</h2>
           </div>
         </div>
         <div className="flex gap-3">
-          <Link href="/cleaner/notifications" className="w-12 h-12 rounded-2xl glass flex items-center justify-center relative transition-all active:scale-95">
-            <Bell className="w-5 h-5 text-white" />
-            <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-primary rounded-full border-2 border-card shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span>
+          <Link 
+            href="/cleaner/notifications" 
+            className={cn(
+              "w-11 h-11 rounded-full flex items-center justify-center relative transition-all active:scale-95 bg-white shadow-[0_6px_12px_rgba(15,23,42,0.15)] border border-slate-50",
+              isNotifications ? "text-[#2563EB]" : "text-[#334155]"
+            )}
+          >
+            <Bell className="w-5 h-5" />
+            <span className="absolute top-2.5 right-2.5 w-3 h-3 bg-[#EF4444] rounded-full border-2 border-white shadow-sm animate-pulse"></span>
           </Link>
-          <Link href="/cleaner/settings" className="w-12 h-12 rounded-2xl glass flex items-center justify-center transition-all active:scale-95">
-            <User className="w-5 h-5 text-white" />
+          <Link 
+            href="/cleaner/settings" 
+            className={cn(
+              "w-11 h-11 rounded-full flex items-center justify-center transition-all active:scale-95 bg-white shadow-[0_6px_12px_rgba(15,23,42,0.15)] border border-slate-50",
+              isSettings ? "text-[#2563EB]" : "text-[#334155]"
+            )}
+          >
+            <User className="w-5 h-5" />
           </Link>
         </div>
       </header>
