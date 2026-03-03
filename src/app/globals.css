@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Premium Neutral Scale */
+    /* Premium Neutral Scale - High Contrast */
     --background: 210 40% 96%;   /* #EEF2F7 */
     --foreground: 222 47% 11%;   /* #0F172A */
     
@@ -43,6 +43,7 @@
   }
   body {
     @apply bg-background text-foreground font-body antialiased selection:bg-primary/10;
+    /* Soft Premium Gradient */
     background: linear-gradient(135deg, #F4F7FB 0%, #E9EEF5 100%);
     background-attachment: fixed;
   }
