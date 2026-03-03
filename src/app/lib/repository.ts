@@ -2,7 +2,7 @@ import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsL
 
 /**
  * @fileOverview Mock Repository for Affinity Workforce Platform.
- * Seeded with multiple production scenarios for the Duty/Clock tab.
+ * Seeded with multiple production scenarios for the Duty/Clock and Cycle tabs.
  */
 
 class MockRepository {
@@ -33,10 +33,7 @@ class MockRepository {
       });
     }
 
-    // 2. CLEANERS (With Varied States)
-    // Cleaner 1: Approach Scenario (Scanning)
-    // Cleaner 2: Active Scenario (Clocked In)
-    // Cleaner 3: Historical Scenario (Completed)
+    // 2. CLEANERS
     for (let i = 1; i <= 20; i++) {
       this.users.push({
         id: `cleaner-${i}`,
@@ -69,31 +66,83 @@ class MockRepository {
       });
     }
 
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const now = new Date();
+    const todayAt9 = new Date(now); todayAt9.setHours(9, 0, 0, 0);
+    const todayAt17 = new Date(now); todayAt17.setHours(17, 0, 0, 0);
+    
+    const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
+    const nextDay = new Date(now); nextDay.setDate(nextDay.getDate() + 2);
+    
+    const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+    const lastWeek = new Date(now); lastWeek.setDate(lastWeek.getDate() - 7);
 
-    // --- DUTY TAB SCENARIOS ---
+    // --- CYCLE TAB SCENARIOS (Cleaner 1) ---
 
-    // Scenario A: Cleaner 1 - approaching "Metro Hub" (SCHEDULED -> SCANNING)
+    // 1. Active/Approach (Scenario A for Duty Tab)
     this.shifts.push({
         id: "shift-approach",
         userId: "cleaner-1",
         siteId: "site-1",
         siteName: "Metro Hub",
-        scheduledStart: new Date(today.setHours(9, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(today.setHours(17, 0, 0, 0)).toISOString(),
+        scheduledStart: todayAt9.toISOString(),
+        scheduledEnd: todayAt17.toISOString(),
         status: "SCHEDULED"
     });
 
+    // 2. Upcoming Shift 1
+    this.shifts.push({
+        id: "shift-tomorrow",
+        userId: "cleaner-1",
+        siteId: "site-2",
+        siteName: "Crystal Plaza",
+        scheduledStart: new Date(tomorrow.setHours(8, 0, 0, 0)).toISOString(),
+        scheduledEnd: new Date(tomorrow.setHours(16, 0, 0, 0)).toISOString(),
+        status: "SCHEDULED"
+    });
+
+    // 3. Upcoming Shift 2
+    this.shifts.push({
+        id: "shift-next-day",
+        userId: "cleaner-1",
+        siteId: "site-4",
+        siteName: "Oak Ridge School",
+        scheduledStart: new Date(nextDay.setHours(18, 0, 0, 0)).toISOString(),
+        scheduledEnd: new Date(nextDay.setHours(22, 0, 0, 0)).toISOString(),
+        status: "SCHEDULED"
+    });
+
+    // 4. Completed History 1
+    this.shifts.push({
+        id: "shift-completed-1",
+        userId: "cleaner-1",
+        siteId: "site-3",
+        siteName: "Skyline Towers",
+        scheduledStart: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(),
+        scheduledEnd: new Date(yesterday.setHours(18, 0, 0, 0)).toISOString(),
+        status: "COMPLETED"
+    });
+
+    // 5. Cancelled Shift
+    this.shifts.push({
+        id: "shift-cancelled",
+        userId: "cleaner-1",
+        siteId: "site-5",
+        siteName: "Green Valley Hospital",
+        scheduledStart: new Date(lastWeek.setHours(12, 0, 0, 0)).toISOString(),
+        scheduledEnd: new Date(lastWeek.setHours(20, 0, 0, 0)).toISOString(),
+        status: "CANCELLED"
+    });
+
+    // --- OTHER SCENARIOS ---
+    
     // Scenario B: Cleaner 2 - already at "Crystal Plaza" (IN_PROGRESS -> CLOCKED_IN)
     this.shifts.push({
         id: "shift-active",
         userId: "cleaner-2",
         siteId: "site-2",
         siteName: "Crystal Plaza",
-        scheduledStart: new Date(today.setHours(8, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(today.setHours(16, 0, 0, 0)).toISOString(),
+        scheduledStart: new Date(now.setHours(8, 0, 0, 0)).toISOString(),
+        scheduledEnd: new Date(now.setHours(16, 0, 0, 0)).toISOString(),
         status: "IN_PROGRESS"
     });
     this.timeEvents.push({
@@ -101,7 +150,7 @@ class MockRepository {
         userId: "cleaner-2",
         shiftId: "shift-active",
         type: "CLOCK_IN",
-        timestamp: new Date(today.setHours(7, 58, 0, 0)).toISOString(),
+        timestamp: new Date(now.setHours(7, 58, 0, 0)).toISOString(),
         source: "AUTO"
     });
 
@@ -112,25 +161,12 @@ class MockRepository {
         siteId: "site-3",
         siteName: "Skyline Towers",
         scheduledStart: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(yesterday.setHours(22, 0, 0, 0)).toISOString(), // 12h shift
+        scheduledEnd: new Date(yesterday.setHours(22, 0, 0, 0)).toISOString(), 
         status: "COMPLETED"
     });
-    this.timeEvents.push({
-        id: "ev-d-1",
-        userId: "cleaner-3",
-        shiftId: "shift-dispute",
-        type: "CLOCK_IN",
-        timestamp: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(),
-        source: "AUTO"
-    });
-    this.timeEvents.push({
-        id: "ev-d-2",
-        userId: "cleaner-3",
-        shiftId: "shift-dispute",
-        type: "CLOCK_OUT",
-        timestamp: new Date(yesterday.setHours(22, 0, 0, 0)).toISOString(),
-        source: "AUTO"
-    });
+    this.timeEvents.push({ id: "ev-d-1", userId: "cleaner-3", shiftId: "shift-dispute", type: "CLOCK_IN", timestamp: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(), source: "AUTO" });
+    this.timeEvents.push({ id: "ev-d-2", userId: "cleaner-3", shiftId: "shift-dispute", type: "CLOCK_OUT", timestamp: new Date(yesterday.setHours(22, 0, 0, 0)).toISOString(), source: "AUTO" });
+    
     this.reviewRequests.push({
         id: "req-ontario-break",
         userId: "cleaner-3",
@@ -144,24 +180,9 @@ class MockRepository {
 
     // Seed some notifications
     this.notifications.push({
-        id: "n1",
-        userId: "cleaner-1",
-        role: "CLEANER",
-        category: "REMINDERS",
-        title: "Shift Approaching",
+        id: "n1", userId: "cleaner-1", role: "CLEANER", category: "REMINDERS", title: "Shift Approaching",
         body: "Your shift at Metro Hub starts in 15 minutes. Geofence is active.",
-        createdAt: new Date().toISOString(),
-        read: false
-    });
-    this.notifications.push({
-        id: "n2",
-        userId: "cleaner-2",
-        role: "CLEANER",
-        category: "REWARDS",
-        title: "Bonus Points!",
-        body: "You earned 200 pts for consistent on-time arrival this week.",
-        createdAt: new Date().toISOString(),
-        read: false
+        createdAt: new Date().toISOString(), read: false
     });
   }
 
