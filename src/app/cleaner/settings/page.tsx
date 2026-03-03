@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/app/lib/store";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 /**
  * @fileOverview Redesigned Cleaner Profile.
@@ -31,12 +33,22 @@ import { cn } from "@/lib/utils";
 
 export default function CleanerSettingsPage() {
   const { user, logout } = useAuth();
+  const { toast } = useToast();
+  const [locationEnabled, setLocationEnabled] = useState(true);
 
   const quickStats = [
     { label: "On time", value: "98%", icon: Clock, color: "text-blue-500" },
     { label: "Photos done", value: "100%", icon: Camera, color: "text-emerald-500" },
     { label: "Safety", value: "4.9", icon: ShieldCheck, color: "text-indigo-500" },
   ];
+
+  const handleLocationToggle = (checked: boolean) => {
+    setLocationEnabled(checked);
+    toast({
+      title: checked ? "Location Access Enabled" : "Location Access Disabled",
+      description: checked ? "We will now scan for geofences automatically." : "SmartClock™ features may be limited.",
+    });
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-32">
@@ -158,7 +170,11 @@ export default function CleanerSettingsPage() {
                   </div>
                   <p className="text-sm font-bold text-slate-700">Location Access</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-200" />
+                <Switch 
+                  checked={locationEnabled} 
+                  onCheckedChange={handleLocationToggle}
+                  className="data-[state=checked]:bg-blue-600" 
+                />
               </div>
               <div className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
