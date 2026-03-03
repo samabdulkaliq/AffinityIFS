@@ -6,29 +6,35 @@ This is a high-fidelity prototype of the Affinity Workforce Platform, built with
 
 The app is running automatically in your preview. Use the navigation below to explore:
 
-### 1. Access Portals (Login Screen)
-- **Cleaner Portal:** For on-site workers.
-- **Admin Control:** For supervisors and payroll managers.
+### 🔐 Login Credentials
+Since this is a mock prototype, any password will work for the following emails:
 
-### 2. Cleaner Features
-- **Time Clock:** A visual geofencing UI. In a real app, this would use the browser's Geolocation API. Here, it demonstrates the "Verified" status logic.
-- **AI Support Center:** Located in **Settings > AI Support Center**. Cleaners can describe issues (e.g., "I can't find the key") and get instant guidance.
-- **Wallet & Rewards:** Workers earn points for punctuality and high ratings.
-- **Leaderboard:** A gamified view of top-performing cleaners.
+- **Cleaner Portal:** `cleaner1@affinity.com`
+- **Admin Control:** `david@affinity.com`
 
-### 3. Admin Features
-- **Dashboard:** Overview of staff health and pending items.
-- **Intelligent Time Review:** Navigate to **Approvals**, select a request, and click **"Run AI Analysis"**. This uses Genkit to analyze shift data against the **Ontario Break Rule** (30 min unpaid break after 5 hours) and suggests resolutions.
-- **User Management:** Mock view of active staff.
+### 🛠️ Key Features
 
-## 🛠️ Technical Stack
+#### 1. Cleaner Experience
+- **Simple Onboarding:** A friendly 3-step intro for first-time users.
+- **Calm Home Screen:** Action-focused dashboard with a 3-button navigation row.
+- **SmartClock™:** Visual geofencing UI with proximity detection.
+- **Shift Photos:** A simplified tool for uploading progress photos and auditing supplies.
+- **Vault & Arena:** Gamified rewards system and performance leaderboards.
+
+#### 2. Admin Experience
+- **Ops Center Dashboard:** High-level overview of staff health and compliance.
+- **Live Pulse (Feed):** A real-time audit trail of all field activity.
+- **Intelligent Time Review:** AI-powered analysis of shift discrepancies and Ontario break rule compliance.
+- **Asset Management:** Inventory tracking for equipment and supplies.
+
+## 📁 Technical Stack
 - **Framework:** Next.js 15 (App Router)
 - **Styling:** Tailwind CSS + ShadCN UI
 - **Icons:** Lucide React
 - **AI Engine:** Genkit (Gemini 2.5 Flash)
 - **State:** React Context with a Mock Repository (Simulating a database)
 
-## 📁 Key Files
+## 🏗️ Project Structure
 - `src/ai/flows/`: Genkit AI logic for the Support Assistant and Time Review tool.
-- `src/app/lib/repository.ts`: The mock database containing users, shifts, and complex payroll scenarios.
-- `src/app/cleaner/clock/page.tsx`: The visual map and proximity logic.
+- `src/app/lib/repository.ts`: The mock database containing users, shifts, and complex operational scenarios.
+- `src/app/cleaner/clock/page.tsx`: The map-based shift tracking logic.
