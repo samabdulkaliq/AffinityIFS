@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/app/lib/store";
 import { repository } from "@/app/lib/repository";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,10 @@ import {
   CheckCircle2,
   AlertTriangle,
   Clock as ClockIcon,
+  ChevronLeft,
+  Zap,
+  Star,
+  Trophy
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Shift, ShiftTask } from "@/app/lib/models";
@@ -37,6 +41,7 @@ import {
 /**
  * @fileOverview Redesigned Duty Screen.
  * High-fidelity SmartClock™ with operational validation and status tracking.
+ * Includes a multi-step Shift Completion flow.
  */
 
 export default function TimeClockPage() {
@@ -49,12 +54,16 @@ export default function TimeClockPage() {
   const [autoClockProgress, setAutoClockProgress] = useState(0);
   const [distance, setDistance] = useState(0.85);
   const [tasks, setTasks] = useState<ShiftTask[]>([]);
-  const [showEndSummary, setShowEndSummary] = useState(false);
+  
+  // Shift Completion States
+  const [showReview, setShowReview] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // Mocked state for validation scenarios
   const [photoCount] = useState(2);
   const totalRequiredPhotos = 5;
-  const isInventoryDone = false; // Mocking that inventory check hasn't been submitted
+  const isInventoryDone = false; 
+  const isBreakTaken = false;
 
   useEffect(() => {
     if (!user) return;
@@ -146,22 +155,38 @@ export default function TimeClockPage() {
     toast({ title: isBreaking ? "Break Started" : "Shift Resumed" });
   };
 
-  const initiateClockOut = () => {
-    setShowEndSummary(true);
+  const completedTasksCount = tasks.filter(t => t.completed).length;
+  const isTasksComplete = completedTasksCount === tasks.length;
+  const isPhotosComplete = photoCount === totalRequiredPhotos;
+  const isEverythingComplete = isTasksComplete && isPhotosComplete && isInventoryDone;
+
+  const handleEndDutyClick = () => {
+    setShowReview(true);
   };
 
-  const handleFinalClockOut = () => {
+  const handleFinalClockOut = (isForced = false) => {
+    if (!isEverythingComplete && !isForced) {
+      return; // Handled by UI feedback in the review screen
+    }
+
+    // Logic for ending shift
     setStatus('IDLE');
-    setActiveShift(null);
-    setShowEndSummary(false);
-    repository.createTimeEvent({
-        userId: user!.id,
-        shiftId: activeShift!.id,
-        type: 'CLOCK_OUT',
-        timestamp: new Date().toISOString(),
-        source: 'AUTO'
-    });
-    toast({ title: "Shift Completed", description: "Operational logs archived." });
+    setShowReview(false);
+    
+    if (isEverythingComplete) {
+      setShowSuccess(true);
+    } else {
+      // Direct finish for forced exit
+      setActiveShift(null);
+      repository.createTimeEvent({
+          userId: user!.id,
+          shiftId: activeShift!.id,
+          type: 'CLOCK_OUT',
+          timestamp: new Date().toISOString(),
+          source: 'AUTO'
+      });
+      toast({ title: "Shift Completed", description: "Operational logs archived." });
+    }
   };
 
   const formatTime = (s: number) => {
@@ -171,11 +196,13 @@ export default function TimeClockPage() {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${sec.toString().padStart(2, '0')}`;
   };
 
-  const completedTasksCount = tasks.filter(t => t.completed).length;
-  const isTasksComplete = completedTasksCount === tasks.length;
-  const isPhotosComplete = photoCount === totalRequiredPhotos;
+  const paidHours = useMemo(() => {
+    const hours = timer / 3600;
+    const breakDeduction = hours > 5 ? 0.5 : 0;
+    return Math.max(0, hours - breakDeduction).toFixed(2);
+  }, [timer]);
 
-  if (!activeShift) {
+  if (!activeShift && !showSuccess) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] text-center space-y-6 px-10">
         <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
@@ -186,6 +213,78 @@ export default function TimeClockPage() {
             <p className="text-sm text-slate-500 font-medium">Scanning for upcoming geofences...</p>
         </div>
       </div>
+    );
+  }
+
+  // SUCCESS SCREEN
+  if (showSuccess) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center justify-center min-h-[80vh] px-8 text-center space-y-10 py-12"
+      >
+        <div className="relative">
+          <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full" />
+          <div className="w-24 h-24 bg-blue-600 rounded-[2rem] flex items-center justify-center relative z-10 shadow-2xl shadow-blue-200">
+            <CheckCircle2 className="w-12 h-12 text-white" />
+          </div>
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            className="absolute -top-2 -right-2"
+          >
+            <Star className="w-8 h-8 text-[#F4B860] fill-[#F4B860]" />
+          </motion.div>
+        </div>
+
+        <div className="space-y-3">
+          <h2 className="text-4xl font-black text-slate-900 tracking-tight">Shift Completed 🎉</h2>
+          <p className="text-lg font-medium text-slate-500">Great work today, {user?.name.split(' ')[0]}!</p>
+        </div>
+
+        <div className="w-full grid grid-cols-2 gap-3">
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tasks</p>
+            <p className="text-lg font-black text-slate-900">✔ Done</p>
+          </div>
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Photos</p>
+            <p className="text-lg font-black text-slate-900">✔ Done</p>
+          </div>
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventory</p>
+            <p className="text-lg font-black text-slate-900">✔ Done</p>
+          </div>
+          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-1">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Break</p>
+            <p className="text-lg font-black text-slate-900">✔ Done</p>
+          </div>
+        </div>
+
+        <div className="w-full bg-blue-50 p-6 rounded-[2rem] border border-blue-100 flex items-center justify-between">
+           <div className="flex items-center gap-4">
+             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
+                <Zap className="w-6 h-6 text-[#F4B860] fill-[#F4B860]" />
+             </div>
+             <div className="text-left">
+               <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Points Earned</p>
+               <p className="text-2xl font-black text-slate-900">+450 PTS</p>
+             </div>
+           </div>
+           <Trophy className="w-8 h-8 text-blue-200" />
+        </div>
+
+        <Button 
+          onClick={() => {
+            setShowSuccess(false);
+            setActiveShift(null);
+          }}
+          className="w-full h-16 rounded-[2rem] bg-slate-900 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-slate-200"
+        >
+          Return Home
+        </Button>
+      </motion.div>
     );
   }
 
@@ -221,9 +320,9 @@ export default function TimeClockPage() {
         <div className="flex justify-center mb-2">
             <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 font-black px-3">ACTIVE DEPLOYMENT</Badge>
         </div>
-        <h2 className="text-2xl font-black text-slate-900 leading-tight">{activeShift.siteName}</h2>
+        <h2 className="text-2xl font-black text-slate-900 leading-tight">{activeShift!.siteName}</h2>
         <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1 flex items-center justify-center gap-1">
-            <MapPin className="w-3 h-3" /> {repository.getSite(activeShift.siteId)?.address}
+            <MapPin className="w-3 h-3" /> {repository.getSite(activeShift!.siteId)?.address}
         </p>
       </div>
 
@@ -340,7 +439,7 @@ export default function TimeClockPage() {
                     <Button onClick={handleBreak} variant="outline" className="h-14 rounded-2xl border-2 font-black uppercase text-[10px] tracking-widest shadow-sm">
                         <Coffee className="w-4 h-4 mr-2" /> {status === 'ON_BREAK' ? 'Resume' : 'Take Break'}
                     </Button>
-                    <Button onClick={initiateClockOut} className="h-14 rounded-2xl bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 font-black uppercase text-[10px] tracking-widest shadow-sm">
+                    <Button onClick={handleEndDutyClick} className="h-14 rounded-2xl bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 font-black uppercase text-[10px] tracking-widest shadow-sm">
                         <LogOut className="w-4 h-4 mr-2" /> End Duty
                     </Button>
                 </div>
@@ -353,68 +452,137 @@ export default function TimeClockPage() {
         </div>
       </div>
 
-      {/* End Duty Summary Modal */}
-      <Dialog open={showEndSummary} onOpenChange={setShowEndSummary}>
-        <DialogContent className="max-w-[400px] rounded-[2.5rem] p-8">
-          <DialogHeader className="text-left space-y-4">
-            <div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mb-2">
-                <AlertTriangle className="w-7 h-7 text-red-500" />
-            </div>
-            <DialogTitle className="text-2xl font-black text-slate-900 leading-tight">Shift Summary</DialogTitle>
-            <DialogDescription className="text-slate-500 font-medium text-sm leading-relaxed">
-              We've identified some incomplete items. Please review before ending your duty.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-6 space-y-3">
-            {!isTasksComplete && (
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div className="flex items-center gap-3">
-                        <ClipboardCheck className="w-5 h-5 text-amber-500" />
-                        <span className="text-sm font-bold text-slate-700">Tasks Incomplete</span>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] font-black text-amber-600 border-amber-200">
-                      {tasks.length - completedTasksCount} Left
-                    </Badge>
+      {/* SHIFT COMPLETION REVIEW DIALOG */}
+      <Dialog open={showReview} onOpenChange={setShowReview}>
+        <DialogContent className="max-w-[440px] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
+          <div className="p-8 bg-slate-50 border-b border-slate-100">
+            <DialogHeader className="text-left space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-100">
+                  <ClipboardCheck className="w-5 h-5 text-white" />
                 </div>
-            )}
-            {!isPhotosComplete && (
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div className="flex items-center gap-3">
-                        <Camera className="w-5 h-5 text-amber-500" />
-                        <span className="text-sm font-bold text-slate-700">Photos Missing</span>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] font-black text-amber-600 border-amber-200">
-                      {totalRequiredPhotos - photoCount} Left
-                    </Badge>
-                </div>
-            )}
-            {!isInventoryDone && (
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div className="flex items-center gap-3">
-                        <AlertCircle className="w-5 h-5 text-red-500" />
-                        <span className="text-sm font-bold text-slate-700">Inventory Missing</span>
-                    </div>
-                    <Badge variant="destructive" className="text-[10px] font-black uppercase">Required</Badge>
-                </div>
-            )}
+                <DialogTitle className="text-2xl font-black text-slate-900">Review Your Shift</DialogTitle>
+              </div>
+              <DialogDescription className="text-slate-500 font-medium text-sm">
+                Operational verification check before departure.
+              </DialogDescription>
+            </DialogHeader>
           </div>
 
-          <DialogFooter className="flex flex-col gap-3">
-            <Button 
-                onClick={handleFinalClockOut} 
-                variant="outline"
-                className="w-full h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black uppercase text-[10px] tracking-widest"
-            >
-                End Anyway (Manager Review Required)
-            </Button>
-            <Button 
-                onClick={() => setShowEndSummary(false)}
-                className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-200"
-            >
-                Go Back & Finish
-            </Button>
-          </DialogFooter>
+          <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto scrollbar-hide">
+            {/* Task Summary */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Task Summary</p>
+                <Badge className={cn("text-[9px] font-black uppercase", isTasksComplete ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>
+                  {completedTasksCount} / {tasks.length} DONE
+                </Badge>
+              </div>
+              {!isTasksComplete && (
+                <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  <p className="text-xs font-bold text-amber-700">You have {tasks.length - completedTasksCount} tasks remaining.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Photo Summary */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Photo Verification</p>
+                <Badge className={cn("text-[9px] font-black uppercase", isPhotosComplete ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600")}>
+                  {photoCount} / {totalRequiredPhotos} DONE
+                </Badge>
+              </div>
+              {!isPhotosComplete && (
+                <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                  <Camera className="w-5 h-5 text-amber-500" />
+                  <p className="text-xs font-bold text-amber-700">Missing {totalRequiredPhotos - photoCount} required photos.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Inventory Status */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inventory Log</p>
+                <Badge className={cn("text-[9px] font-black uppercase", isInventoryDone ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600")}>
+                  {isInventoryDone ? "SUBMITTED" : "MISSING"}
+                </Badge>
+              </div>
+              {!isInventoryDone && (
+                <Button 
+                  variant="outline" 
+                  className="w-full h-12 rounded-xl border-dashed border-red-200 text-red-500 font-black uppercase text-[10px]"
+                  onClick={() => {
+                    setShowReview(false);
+                    // Navigate to log page usually, but here we just simulate
+                    toast({ title: "Navigation", description: "Heading to Work Log..." });
+                  }}
+                >
+                  Complete Inventory Now
+                </Button>
+              )}
+            </div>
+
+            {/* Break Status */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Break Compliance</p>
+                <Badge className={cn("text-[9px] font-black uppercase", isBreakTaken ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600")}>
+                  {isBreakTaken ? "TAKEN" : "PENDING"}
+                </Badge>
+              </div>
+              {!isBreakTaken && timer > 18000 && (
+                <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                  <Info className="w-5 h-5 text-blue-500" />
+                  <p className="text-xs font-medium text-blue-700 leading-relaxed">Ontario Rule: Shifts over 5 hours require a 30min unpaid break.</p>
+                </div>
+              )}
+            </div>
+
+            {/* Shift Breakdown */}
+            <div className="space-y-4 pt-4 border-t border-slate-50">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Shift Totals</p>
+               <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Duration</p>
+                    <p className="text-lg font-black text-slate-900">{(timer/3600).toFixed(1)} hrs</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Paid Total</p>
+                    <p className="text-lg font-black text-blue-600">{paidHours} hrs</p>
+                  </div>
+               </div>
+            </div>
+          </div>
+
+          <div className="p-8 bg-white border-t border-slate-50 flex flex-col gap-3">
+            {!isEverythingComplete ? (
+              <>
+                <Button 
+                  onClick={() => handleFinalClockOut(true)} 
+                  variant="outline"
+                  className="w-full h-14 rounded-2xl border-2 border-slate-100 text-slate-400 font-black uppercase text-[10px] tracking-widest"
+                >
+                  End Anyway (Manager Review Required)
+                </Button>
+                <Button 
+                  onClick={() => setShowReview(false)}
+                  className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-200"
+                >
+                  Return to Shift
+                </Button>
+              </>
+            ) : (
+              <Button 
+                onClick={() => handleFinalClockOut(false)}
+                className="w-full h-16 rounded-2xl bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-slate-200"
+              >
+                Confirm Completion
+              </Button>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
