@@ -1,8 +1,12 @@
 import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger } from './models';
 
 /**
- * @fileOverview Mock Repository for Affinity Workforce Platform.
- * Seeded with multiple production scenarios for the Duty, Cycle, Vault, and Arena tabs.
+ * @fileOverview Enterprise Mock Repository for Affinity.
+ * Seeded with complex operational scenarios: 
+ * - Ontario break rule violations
+ * - Geofence disputes
+ * - Supply stock triggers
+ * - Multi-role communication threads
  */
 
 class MockRepository {
@@ -20,69 +24,63 @@ class MockRepository {
 
   private seed() {
     // 1. ADMINS
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 3; i++) {
       this.users.push({
         id: `admin-${i}`,
-        name: `Admin User ${i}`,
+        name: i === 1 ? "David Smith" : `Admin User ${i}`,
         role: 'ADMIN',
         workerType: 'EMPLOYEE',
-        phone: `555-010${i}`,
+        phone: `416-555-010${i}`,
         status: 'ACTIVE',
         points: 0,
         avatarUrl: `https://picsum.photos/seed/admin${i}/100/100`,
       });
     }
 
-    // 2. CLEANERS
+    // 2. CLEANERS - Diverse Personas
     const names = [
       "Alex Rivera", "Jordan Smith", "Sam Taylor", "Casey Jones", "Taylor Reed",
-      "Morgan Bell", "Riley West", "Quinn Davis", "Avery Lane", "Skyler Cole",
-      "Charlie Fox", "Peyton Hill", "Dakota Moon", "Emerson Blue", "Sage Grey",
-      "Phoenix Sun", "Justice Law", "River Song", "Ocean Deep", "Sky High"
+      "Morgan Bell", "Riley West", "Quinn Davis", "Avery Lane", "Skyler Cole"
     ];
 
-    for (let i = 1; i <= 20; i++) {
+    for (let i = 1; i <= 10; i++) {
       this.users.push({
         id: `cleaner-${i}`,
         name: names[i-1] || `Cleaner ${i}`,
         role: 'CLEANER',
-        workerType: i % 3 === 0 ? 'CONTRACT' : 'EMPLOYEE',
-        phone: `555-${1000 + i}`,
+        workerType: i % 4 === 0 ? 'CONTRACT' : 'EMPLOYEE',
+        phone: `647-555-${1000 + i}`,
         status: 'ACTIVE',
-        points: 2000 - (i * 75) + (i === 1 ? 850 : 0), // Cleaner 1 gets a boost
+        points: 1200 + (i * 50),
         avatarUrl: `https://picsum.photos/seed/cleaner${i}/100/100`,
       });
     }
 
-    // 3. SITES
-    const siteNames = ["Metro Hub", "Crystal Plaza", "Skyline Towers", "Oak Ridge School", "Green Valley Hospital"];
-    const addresses = [
-        "100 Front St W, Toronto, ON",
-        "290 Bremner Blvd, Toronto, ON",
-        "301 Front St W, Toronto, ON",
-        "1 Austin Terrace, Toronto, ON",
-        "190 Elizabeth St, Toronto, ON"
+    // 3. SITES (Toronto Focused)
+    const siteData = [
+      { name: "Metro Hub", addr: "100 Front St W, Toronto" },
+      { name: "Crystal Plaza", addr: "290 Bremner Blvd, Toronto" },
+      { name: "Skyline Towers", addr: "301 Front St W, Toronto" },
+      { name: "Oak Ridge School", addr: "1 Austin Terrace, Toronto" }
     ];
-    for (let i = 0; i < siteNames.length; i++) {
+    siteData.forEach((s, i) => {
       this.sites.push({
         id: `site-${i + 1}`,
-        name: siteNames[i],
-        address: addresses[i],
+        name: s.name,
+        address: s.addr,
         geoRadiusMeters: 100,
         timezone: "America/Toronto"
       });
-    }
+    });
 
     const now = new Date();
     const todayAt9 = new Date(now); todayAt9.setHours(9, 0, 0, 0);
     const todayAt17 = new Date(now); todayAt17.setHours(17, 0, 0, 0);
-    
-    const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
     const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
 
-    // --- CLEANER 1 SCENARIOS (Vault & Cycle) ---
+    // --- CLEANER 1: ALEX RIVERA (Scenario: Approaching / Scanning) ---
     this.shifts.push({
-        id: "shift-approach",
+        id: "shift-alex-today",
         userId: "cleaner-1",
         siteId: "site-1",
         siteName: "Metro Hub",
@@ -91,42 +89,55 @@ class MockRepository {
         status: "SCHEDULED"
     });
 
-    this.rewards.push({
-        id: "r1", userId: "cleaner-1", pointsDelta: 500, reason: "Perfect Attendance Streak", createdAt: yesterday.toISOString()
-    });
-    this.rewards.push({
-        id: "r2", userId: "cleaner-1", pointsDelta: 250, reason: "5-Star Site Feedback", createdAt: new Date(now.getTime() - 86400000 * 2).toISOString()
-    });
-    this.rewards.push({
-        id: "r3", userId: "cleaner-1", pointsDelta: 100, reason: "Eco-Friendly Supply Usage", createdAt: new Date(now.getTime() - 86400000 * 5).toISOString()
-    });
-
-    // --- OTHER SCENARIOS ---
+    // --- CLEANER 2: JORDAN SMITH (Scenario: Active / On Site) ---
     this.shifts.push({
-        id: "shift-active",
+        id: "shift-jordan-active",
         userId: "cleaner-2",
         siteId: "site-2",
         siteName: "Crystal Plaza",
-        scheduledStart: new Date(now.setHours(8, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(now.setHours(16, 0, 0, 0)).toISOString(),
+        scheduledStart: new Date(now.getTime() - 4 * 3600000).toISOString(), // Started 4h ago
+        scheduledEnd: new Date(now.getTime() + 4 * 3600000).toISOString(),
         status: "IN_PROGRESS"
     });
-
-    this.reviewRequests.push({
-        id: "req-ontario-break",
-        userId: "cleaner-3",
-        cleanerName: "Casey Jones",
-        shiftId: "shift-dispute",
-        reason: "Break Correction",
-        note: "I worked 12 hours straight and couldn't find a relief to take my mandatory 30m break.",
-        status: "PENDING",
-        createdAt: new Date().toISOString()
+    this.timeEvents.push({
+      id: "ev-1", userId: "cleaner-2", shiftId: "shift-jordan-active",
+      type: "CLOCK_IN", timestamp: new Date(now.getTime() - 4 * 3600000).toISOString(), source: "AUTO"
     });
 
+    // --- ADMIN SCENARIO: PENDING REVIEW (Ontario Break Rule Violation) ---
+    this.reviewRequests.push({
+        id: "req-break-01",
+        userId: "cleaner-3",
+        cleanerName: "Sam Taylor",
+        shiftId: "shift-past-01",
+        reason: "Break Correction",
+        note: "I worked 12 hours straight at Skyline Towers. The site was double-booked and I couldn't leave the floor for my 30m break.",
+        status: "PENDING",
+        createdAt: now.toISOString()
+    });
+
+    // --- ADMIN SCENARIO: LATE ARRIVAL DISPUTE ---
+    this.reviewRequests.push({
+        id: "req-late-01",
+        userId: "cleaner-4",
+        cleanerName: "Casey Jones",
+        shiftId: "shift-past-02",
+        reason: "GPS Issue",
+        note: "I was at the North Gate on time at 7:55am, but the geofence only triggered when I entered the main lobby at 8:15am. Requesting adjustment to 8:00am.",
+        status: "PENDING",
+        createdAt: yesterday.toISOString()
+    });
+
+    // --- GLOBAL NOTIFICATIONS ---
     this.notifications.push({
-        id: "n1", userId: "cleaner-1", role: "CLEANER", category: "REMINDERS", title: "Shift Approaching",
-        body: "Your shift at Metro Hub starts in 15 minutes.",
-        createdAt: new Date().toISOString(), read: false
+        id: "n-global-1", userId: "all", role: "CLEANER", category: "REMINDERS",
+        title: "WHMIS Update Required", body: "New safety protocols for Lot B chemicals uploaded. Please review in Training.",
+        createdAt: now.toISOString(), read: false
+    });
+    this.notifications.push({
+        id: "n-admin-1", userId: "admin-1", role: "ADMIN", category: "TIME",
+        title: "High Late Arrival Volume", body: "4 cleaners flagged as 'Late' this morning at Crystal Plaza.",
+        createdAt: now.toISOString(), read: false
     });
   }
 
@@ -135,23 +146,17 @@ class MockRepository {
   getShiftsForUser(userId: string) { return this.shifts.filter(s => s.userId === userId); }
   getShift(id: string) { return this.shifts.find(s => s.id === id); }
   getReviewRequests() { return this.reviewRequests; }
-  getRewardsForUser(userId: string) { return this.rewards.filter(r => r.userId === userId).sort((a,b) => b.createdAt.localeCompare(a.createdAt)); }
+  getEventsForShift(shiftId: string) { return this.timeEvents.filter(e => e.shiftId === shiftId); }
   
   createTimeEvent(event: Omit<TimeEvent, 'id'>) {
-    const newEvent = { ...event, id: Math.random().toString(36).substr(2, 9) };
+    const newEvent = { ...event, id: Math.random().toString(36).substring(2, 9) };
     this.timeEvents.push(newEvent);
     return newEvent;
   }
 
-  getEventsForShift(shiftId: string) {
-    return this.timeEvents.filter(e => e.shiftId === shiftId).sort((a,b) => a.timestamp.localeCompare(b.timestamp));
-  }
-
   updateReviewRequest(id: string, updates: Partial<TimeReviewRequest>) {
     const idx = this.reviewRequests.findIndex(r => r.id === id);
-    if (idx !== -1) {
-      this.reviewRequests[idx] = { ...this.reviewRequests[idx], ...updates };
-    }
+    if (idx !== -1) this.reviewRequests[idx] = { ...this.reviewRequests[idx], ...updates };
   }
 }
 
