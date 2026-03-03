@@ -2,7 +2,7 @@ import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsL
 
 /**
  * @fileOverview Enterprise Mock Repository for Affinity.
- * Seeded with complex operational scenarios based on PRD requirements.
+ * Seeded with complex operational scenarios for production testing.
  */
 
 class MockRepository {
@@ -72,7 +72,7 @@ class MockRepository {
       });
     }
 
-    // 2b. Add SAM for testing
+    // Sam Tester for focused UI testing
     this.users.push({
       id: "cleaner-sam",
       name: "Sam Tester",
@@ -85,7 +85,7 @@ class MockRepository {
       avatarUrl: "https://picsum.photos/seed/samtester/100/100",
       certifications: [
         { id: "cert-sam-1", name: "WHMIS 2024", status: 'VALID', expiryDate: '2025-12-31' },
-        { id: "cert-sam-2", name: "Site Protocol", status: 'VALID', expiryDate: '2025-08-15' }
+        { id: "cert-sam-2", name: "Site Rules", status: 'VALID', expiryDate: '2025-08-15' }
       ]
     });
 
@@ -108,27 +108,10 @@ class MockRepository {
 
     const now = new Date();
     
-    // --- LIVE FEED SEEDING ---
-    const eventTypes: any[] = ['CLOCK_IN', 'CLOCK_OUT', 'BREAK_START', 'BREAK_END', 'ADJUSTMENT'];
-    for (let i = 0; i < 15; i++) {
-      const randomCleaner = this.users.filter(u => u.role === 'CLEANER')[Math.floor(Math.random() * 10)];
-      const timeOffset = i * 12;
-      this.timeEvents.push({
-        id: `event-${i}`,
-        userId: randomCleaner.id,
-        shiftId: `shift-mock-${i}`,
-        type: eventTypes[Math.floor(Math.random() * 3)],
-        timestamp: new Date(now.getTime() - timeOffset * 60000).toISOString(),
-        source: 'AUTO',
-        notes: i % 5 === 0 ? "Geofence verified at site entrance." : undefined
-      });
-    }
-
     // --- SHIFT SCENARIOS FOR ALEX RIVERA ---
     const todayAt9 = new Date(now); todayAt9.setHours(9, 0, 0, 0);
     const todayAt17 = new Date(now); todayAt17.setHours(17, 0, 0, 0);
 
-    // Active
     this.shifts.push({
         id: "shift-alex-today",
         userId: "cleaner-1",
@@ -138,8 +121,8 @@ class MockRepository {
         scheduledEnd: todayAt17.toISOString(),
         status: "IN_PROGRESS",
         tasks: [
-          { id: 't1', label: 'Sanitize Lobby Desks', completed: true },
-          { id: 't2', label: 'Refill Restroom Dispensers', completed: false }
+          { id: 't1', label: 'Wipe Lobby Tables', completed: true },
+          { id: 't2', label: 'Refill Restroom Soap', completed: false }
         ]
     });
 
@@ -155,13 +138,13 @@ class MockRepository {
       scheduledEnd: samTodayEnd.toISOString(),
       status: "SCHEDULED",
       tasks: [
-        { id: 's1', label: 'Check Floor Scrubber', completed: false },
-        { id: 's2', label: 'Restock Paper Towels', completed: false },
-        { id: 's3', label: 'Surface Disinfection', completed: false }
+        { id: 's1', label: 'Mop Lobby', completed: false },
+        { id: 's2', label: 'Refill Towels', completed: false },
+        { id: 's3', label: 'Sanitize Desk Surfaces', completed: false }
       ]
     });
 
-    // Past: Normal (Approved)
+    // Past Shifts
     const yestAt9 = new Date(now); yestAt9.setDate(now.getDate() - 1); yestAt9.setHours(9, 0);
     const yestAt17 = new Date(now); yestAt17.setDate(now.getDate() - 1); yestAt17.setHours(17, 0);
     this.shifts.push({
@@ -174,47 +157,6 @@ class MockRepository {
         status: "COMPLETED",
     });
 
-    // Past: Adjusted (Late Arrival)
-    const tuesAt9 = new Date(now); tuesAt9.setDate(now.getDate() - 2); tuesAt9.setHours(9, 0);
-    const tuesAt17 = new Date(now); tuesAt17.setDate(now.getDate() - 2); tuesAt17.setHours(17, 0);
-    this.shifts.push({
-        id: "shift-alex-tues",
-        userId: "cleaner-1",
-        siteId: "site-2",
-        siteName: "Crystal Plaza",
-        scheduledStart: new Date(tuesAt9.getTime() + 45 * 60000).toISOString(), // 45m late
-        scheduledEnd: tuesAt17.toISOString(),
-        status: "COMPLETED",
-        managerNote: "Clock-in adjusted to reflect actual site arrival time (verified via GPS)."
-    });
-
-    // Upcoming
-    const tomorrowAt8 = new Date(now); tomorrowAt8.setDate(now.getDate() + 1); tomorrowAt8.setHours(8, 0);
-    const tomorrowAt16 = new Date(now); tomorrowAt16.setDate(now.getDate() + 1); tomorrowAt16.setHours(16, 0);
-    this.shifts.push({
-        id: "shift-alex-tomorrow",
-        userId: "cleaner-1",
-        siteId: "site-3",
-        siteName: "Bay Street Financial",
-        scheduledStart: tomorrowAt8.toISOString(),
-        scheduledEnd: tomorrowAt16.toISOString(),
-        status: "SCHEDULED",
-    });
-
-    // --- REVIEW REQUESTS ---
-    this.reviewRequests.push(
-      {
-        id: "req-01",
-        userId: "cleaner-3",
-        cleanerName: "Sam Taylor",
-        shiftId: "s-past-01",
-        reason: "Break Correction",
-        note: "Worked through break due to site emergency (water leak).",
-        status: "PENDING",
-        createdAt: new Date(now.getTime() - 24 * 3600000).toISOString()
-      }
-    );
-
     // --- NOTIFICATIONS ---
     this.notifications.push(
       {
@@ -222,16 +164,11 @@ class MockRepository {
         userId: "cleaner-1",
         role: 'CLEANER',
         category: 'TIME',
-        title: 'Shift Confirmation',
-        body: 'Geofence verified at Metro Hub. Shift starting now.',
+        title: 'Work Verified',
+        body: 'You arrived at Metro Hub. Work clock started.',
         createdAt: new Date(now.getTime() - 15 * 60000).toISOString(),
         read: true
       }
-    );
-
-    // --- REWARDS ---
-    this.rewards.push(
-      { id: `r-cleaner-1-1`, userId: "cleaner-1", pointsDelta: 500, reason: 'Monthly Attendance Bonus', createdAt: new Date(now.getTime() - 2 * 24 * 3600000).toISOString() }
     );
   }
 

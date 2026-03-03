@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -21,11 +20,21 @@ import {
   Phone,
   HelpCircle,
   Navigation,
-  Info
+  Info,
+  BookOpen,
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { appTutorialAssistant, AppTutorialOutput } from "@/ai/flows/app-tutorial-flow";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const container = {
   hidden: { opacity: 0 },
@@ -45,6 +54,9 @@ const item = {
 export default function CleanerDashboard() {
   const { user } = useAuth();
   const [greeting, setGreeting] = useState("Hello");
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialLoading, setTutorialLoading] = useState(false);
+  const [tutorialResponse, setTutorialResponse] = useState<AppTutorialOutput | null>(null);
 
   // Mocking some operational state for the prototype
   const [photoCount] = useState(2);
@@ -70,31 +82,44 @@ export default function CleanerDashboard() {
   const isTasksComplete = tasks.length > 0 && completedTasksCount === tasks.length;
   const isPhotosComplete = photoCount === totalRequiredPhotos;
 
-  // 2) Dynamic Smart Assistant Messaging
   const aiMessage = useMemo(() => {
-    if (!isOnShift) return "Ready for your next work day? Being on time earns extra points! ⏰";
-    if (!isTasksComplete) return `You have ${tasks.length - completedTasksCount} things left to do. Keep going! 💪`;
-    if (!isPhotosComplete) return "Don't forget to take your final photos of the site. 📸";
+    if (!isOnShift) return "Ready for work today? Being early helps everyone! ⏰";
+    if (!isTasksComplete) return `You have ${tasks.length - completedTasksCount} tasks left. You're doing great! 💪`;
+    if (!isPhotosComplete) return "Don't forget to take your shift photos. 📸";
     if (!isInventoryDone) return "Almost done! Please check the supplies. 🧾";
-    return "Great job today! You're doing a perfect job. ⭐";
+    return "Excellent work today! You're a star. ⭐";
   }, [isOnShift, isTasksComplete, isPhotosComplete, isInventoryDone, tasks.length, completedTasksCount]);
 
-  // 4) Needs Attention Logic
   const needsAttentionItems = useMemo(() => {
     const items = [];
     if (isOnShift) {
       if (!isTasksComplete) items.push({ label: "Tasks not finished", icon: CheckCircle2, color: "text-blue-500", href: "/cleaner/clock" });
       if (!isPhotosComplete) items.push({ label: "Photos missing", icon: Camera, color: "text-amber-500", href: "/cleaner/log" });
       if (!isInventoryDone) items.push({ label: "Supplies not checked", icon: Info, color: "text-red-500", href: "/cleaner/log" });
-      if (todayShift?.managerNote) items.push({ label: "New note from manager", icon: MessageSquare, color: "text-purple-500", href: "/cleaner/shifts/" + todayShift.id });
     }
     return items;
-  }, [isOnShift, isTasksComplete, isPhotosComplete, isInventoryDone, todayShift]);
+  }, [isOnShift, isTasksComplete, isPhotosComplete, isInventoryDone]);
+
+  const handleAskGuide = async (q: string) => {
+    setShowTutorial(true);
+    setTutorialLoading(true);
+    try {
+      const res = await appTutorialAssistant({
+        cleanerName: user?.name || "Cleaner",
+        question: q
+      });
+      setTutorialResponse(res);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setTutorialLoading(false);
+    }
+  };
 
   if (!user) return null;
 
   const shortcuts = [
-    { label: "Clock", icon: Clock, href: "/cleaner/clock", color: "text-blue-500", bg: "bg-blue-50" },
+    { label: "My Work", icon: Clock, href: "/cleaner/clock", color: "text-blue-500", bg: "bg-blue-50" },
     { label: "Photos", icon: Camera, href: "/cleaner/log", color: "text-emerald-500", bg: "bg-emerald-50" },
     { label: "History", icon: Calendar, href: "/cleaner/shifts", color: "text-amber-500", bg: "bg-amber-50" },
   ];
@@ -106,7 +131,6 @@ export default function CleanerDashboard() {
       animate="show"
       className="space-y-8 pb-32 max-w-md mx-auto"
     >
-      {/* Dynamic Header Greeting */}
       <motion.div variants={item} className="px-1 space-y-3">
         <div className="flex justify-between items-start">
           <div className="space-y-1">
@@ -115,14 +139,13 @@ export default function CleanerDashboard() {
             </h1>
             <div className="flex items-center gap-2">
                <Badge variant="outline" className="bg-slate-900 text-white border-none font-black text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
-                 <Flame className="w-2.5 h-2.5 text-orange-400 fill-orange-400" /> {user.points > 1500 ? 'STAR CLEANER' : 'LEVEL 1'}
+                 <Flame className="w-2.5 h-2.5 text-orange-400 fill-orange-400" /> {user.points > 1500 ? 'STAR CLEANER' : 'NEW WORKER'}
                </Badge>
                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{user.points} points 🏆</p>
             </div>
           </div>
         </div>
 
-        {/* 1) Mini Status Strip */}
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           <Badge variant="outline" className={cn(
             "whitespace-nowrap font-black text-[8px] uppercase tracking-widest py-1 px-3",
@@ -130,38 +153,32 @@ export default function CleanerDashboard() {
           )}>
             {isOnShift ? "● Working Now" : "○ Not Working"}
           </Badge>
-          {isOnShift && (
-            <>
-              <Badge variant="outline" className="whitespace-nowrap bg-blue-50 text-blue-600 border-blue-100 font-black text-[8px] uppercase tracking-widest py-1 px-3">
-                {completedTasksCount}/{tasks.length} Done
-              </Badge>
-              <Badge variant="outline" className="whitespace-nowrap bg-amber-50 text-amber-600 border-amber-100 font-black text-[8px] uppercase tracking-widest py-1 px-3">
-                {photoCount}/{totalRequiredPhotos} Photos
-              </Badge>
-            </>
-          )}
         </div>
       </motion.div>
 
-      {/* 2) Dynamic Smart Assistant Card */}
       <motion.div variants={item} className="px-1">
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2rem] p-6 shadow-xl shadow-blue-200 relative overflow-hidden group">
+        <div 
+          onClick={() => handleAskGuide("How do I use this app?")}
+          className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] p-6 shadow-2xl shadow-blue-200 relative overflow-hidden group cursor-pointer active:scale-95 transition-all"
+        >
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-110 transition-transform" />
           <div className="flex items-start gap-4 relative z-10">
-            <div className="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
-              <Sparkles className="w-5 h-5 text-blue-100" />
+            <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+              <Sparkles className="w-6 h-6 text-blue-100" />
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Helpful Tip 🧠</p>
+              <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Smart Guide 🧠</p>
               <p className="text-sm font-bold text-white leading-relaxed">
                 "{aiMessage}"
+              </p>
+              <p className="text-[10px] text-white/50 font-black uppercase tracking-widest pt-1 flex items-center gap-1">
+                Tap for help <ChevronRight className="w-3 h-3" />
               </p>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* 4) Needs Attention Section (Conditional) */}
       <AnimatePresence>
         {needsAttentionItems.length > 0 && (
           <motion.div 
@@ -171,15 +188,17 @@ export default function CleanerDashboard() {
             className="px-1 space-y-3"
           >
             <h3 className="text-[10px] font-black text-red-500 uppercase tracking-widest px-1 flex items-center gap-2">
-              <AlertTriangle className="w-3.5 h-3.5" /> Needs Attention
+              <AlertTriangle className="w-3.5 h-3.5" /> Things to Finish
             </h3>
             <div className="grid gap-2">
               {needsAttentionItems.map((attn, i) => (
                 <Link key={i} href={attn.href}>
-                  <div className="bg-white p-4 rounded-2xl border border-red-50 shadow-sm flex items-center justify-between group active:scale-[0.98] transition-all">
-                    <div className="flex items-center gap-3">
-                      <attn.icon className={cn("w-5 h-5", attn.color)} />
-                      <span className="text-sm font-bold text-slate-700">{attn.label}</span>
+                  <div className="bg-white p-5 rounded-3xl border border-red-50 shadow-sm flex items-center justify-between group active:scale-[0.98] transition-all">
+                    <div className="flex items-center gap-4">
+                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center bg-slate-50", attn.color)}>
+                        <attn.icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-sm font-black text-slate-700">{attn.label}</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-red-500 transition-colors" />
                   </div>
@@ -190,66 +209,57 @@ export default function CleanerDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Quick Action Hub */}
       <motion.div variants={item} className="grid grid-cols-3 gap-4 px-1">
         {shortcuts.map((s) => (
           <Link 
             key={s.label} href={s.href} 
-            className="flex flex-col items-center justify-center p-5 premium-card space-y-3 group active:scale-95 transition-all"
+            className="flex flex-col items-center justify-center p-6 premium-card space-y-3 group active:scale-95 transition-all"
           >
-            <div className={cn("w-12 h-12 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform", s.bg)}>
-              <s.icon className={cn("w-6 h-6", s.color)} />
+            <div className={cn("w-14 h-14 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-inner", s.bg)}>
+              <s.icon className={cn("w-7 h-7", s.color)} />
             </div>
-            <span className="text-xs font-black text-slate-600 uppercase tracking-tighter">{s.label}</span>
+            <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{s.label}</span>
           </Link>
         ))}
       </motion.div>
 
-      {/* 3) Today's Mission Card */}
       <motion.div variants={item} className="px-1">
         {todayShift && site ? (
           <div className="premium-card overflow-hidden">
             <div className="p-8 space-y-8">
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                   <p className="text-[10px] font-black text-[#3A6FF7] uppercase tracking-widest">Today&apos;s Work 📍</p>
+                   <p className="text-[10px] font-black text-[#3A6FF7] uppercase tracking-widest">Today&apos;s Job 📍</p>
                    <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">{site.name}</h2>
                 </div>
                 <Badge className={cn(
                   "border-none font-black text-[9px] uppercase tracking-widest px-3 py-1",
                   isOnShift ? "bg-blue-600 text-white animate-pulse" : "bg-emerald-50 text-emerald-600"
                 )}>
-                  {isOnShift ? "Working Now" : "Ready"}
+                  {isOnShift ? "Working" : "Ready"}
                 </Badge>
               </div>
 
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase">Work Hours</p>
-                    <p className="text-xs font-bold text-slate-700">{formatTime(todayShift.scheduledStart)} - {formatTime(todayShift.scheduledEnd)}</p>
+                  <div className="space-y-1 bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Time</p>
+                    <p className="text-sm font-black text-slate-700">{formatTime(todayShift.scheduledStart)}</p>
                   </div>
-                  <div className="space-y-1 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                    <p className="text-[9px] font-black text-slate-400 uppercase">My Time</p>
-                    <p className="text-xs font-bold text-slate-700">{isOnShift ? formatTime(todayShift.scheduledStart) : "--:--"}</p>
+                  <div className="space-y-1 bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Location</p>
+                    <p className="text-sm font-black text-slate-700">{isOnShift ? "Verified" : "Nearby"}</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
-                    <MapPin className="w-5 h-5 text-slate-400" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-black text-slate-700 leading-snug">{site.address}</p>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight mt-1">
-                      {isOnShift ? "Verified at site ✅" : "Almost there 📍"}
-                    </p>
-                  </div>
+                <div className="flex items-start gap-4 p-4 bg-slate-50 rounded-3xl">
+                  <MapPin className="w-5 h-5 text-blue-500 shrink-0 mt-1" />
+                  <p className="text-sm font-black text-slate-700 leading-snug">{site.address}</p>
                 </div>
 
                 {!isOnShift && (
-                  <Button variant="outline" className="w-full h-12 rounded-xl border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50">
-                    <Navigation className="w-4 h-4 mr-2" /> Show on Maps
+                  <Button variant="outline" className="w-full h-14 rounded-2xl border-slate-200 text-slate-600 font-black uppercase text-[10px] tracking-widest hover:bg-slate-50">
+                    <Navigation className="w-4 h-4 mr-2" /> Open Maps
                   </Button>
                 )}
               </div>
@@ -257,58 +267,130 @@ export default function CleanerDashboard() {
               <div className="pt-6 border-t border-slate-50 space-y-6">
                 <div className="space-y-2">
                   <h3 className="text-2xl font-black text-slate-900 tracking-tight">
-                    {isOnShift ? "Great work! 💪" : "Ready to start? 🚀"}
+                    {isOnShift ? "You're at work! 💪" : "Ready to start? 🚀"}
                   </h3>
                   <p className="text-sm text-slate-500 font-medium leading-relaxed">
                     {isOnShift 
-                      ? "Keep it up! Take some photos of your progress." 
-                      : `Go to ${site.name}. We’ll start your clock when you get there.`}
+                      ? "Great work! Remember to check off your tasks." 
+                      : `Go to ${site.name}. We’ll start your clock when you arrive.`}
                   </p>
                 </div>
 
-                <Button asChild className="w-full h-16 rounded-[2rem] btn-gradient text-lg font-black border-none">
-                  <Link href="/cleaner/clock">{isOnShift ? "Check My Shift" : "Go to My Shift"}</Link>
+                <Button asChild className="w-full h-18 rounded-[2.5rem] btn-gradient text-xl font-black border-none shadow-2xl">
+                  <Link href="/cleaner/clock">{isOnShift ? "See My Tasks" : "Go to Work"}</Link>
                 </Button>
               </div>
             </div>
           </div>
         ) : (
-          <div className="premium-card border-dashed border-2 p-12 text-center space-y-6 flex flex-col items-center">
+          <div className="premium-card border-dashed border-2 p-12 text-center space-y-6 flex flex-col items-center bg-slate-50/30">
             <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center">
               <Coffee className="w-10 h-10 text-amber-500" />
             </div>
             <div className="space-y-2">
               <p className="text-xl font-black text-slate-700">Rest & Recharge ☕</p>
-              <p className="text-sm text-slate-400 font-medium">No shifts scheduled for the rest of today. Enjoy your break!</p>
+              <p className="text-sm text-slate-400 font-medium">No work scheduled for the rest of today.</p>
             </div>
-            <Button asChild variant="outline" className="rounded-xl font-black uppercase text-[10px] tracking-widest px-8">
+            <Button asChild variant="outline" className="rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 h-12 border-slate-200">
                <Link href="/cleaner/shifts">See Schedule</Link>
             </Button>
           </div>
         )}
       </motion.div>
 
-      {/* 5) Support Access Section */}
       <motion.div variants={item} className="px-1 space-y-4">
         <div className="flex items-center gap-2 px-1">
-          <HelpCircle className="w-4 h-4 text-slate-400" />
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Need help?</h3>
+          <BookOpen className="w-4 h-4 text-slate-400" />
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Help & Support</h3>
         </div>
         <div className="grid grid-cols-3 gap-3">
-          <Link href="/cleaner/help" className="bg-white p-4 rounded-3xl border border-slate-100 flex flex-col items-center gap-2 text-center active:scale-95 transition-all shadow-sm">
-            <MessageSquare className="w-5 h-5 text-blue-500" />
-            <span className="text-[9px] font-black text-slate-600 uppercase">Chat</span>
-          </Link>
-          <a href="tel:4165550101" className="bg-white p-4 rounded-3xl border border-slate-100 flex flex-col items-center gap-2 text-center active:scale-95 transition-all shadow-sm">
+          <button 
+            onClick={() => handleAskGuide("How do I take photos?")}
+            className="bg-white p-5 rounded-[2rem] border border-slate-100 flex flex-col items-center gap-2 text-center active:scale-95 transition-all shadow-sm"
+          >
+            <Camera className="w-5 h-5 text-blue-500" />
+            <span className="text-[9px] font-black text-slate-600 uppercase">Photos</span>
+          </button>
+          <a href="tel:4165550101" className="bg-white p-5 rounded-[2rem] border border-slate-100 flex flex-col items-center gap-2 text-center active:scale-95 transition-all shadow-sm">
             <Phone className="w-5 h-5 text-emerald-500" />
             <span className="text-[9px] font-black text-slate-600 uppercase">Call</span>
           </a>
-          <Link href="/cleaner/help" className="bg-white p-4 rounded-3xl border border-slate-100 flex flex-col items-center gap-2 text-center active:scale-95 transition-all shadow-sm">
-            <AlertTriangle className="w-5 h-5 text-amber-500" />
-            <span className="text-[9px] font-black text-slate-600 uppercase">Report</span>
-          </Link>
+          <button 
+            onClick={() => handleAskGuide("How does the clock work?")}
+            className="bg-white p-5 rounded-[2rem] border border-slate-100 flex flex-col items-center gap-2 text-center active:scale-95 transition-all shadow-sm"
+          >
+            <Clock className="w-5 h-5 text-amber-500" />
+            <span className="text-[9px] font-black text-slate-600 uppercase">Clock</span>
+          </button>
         </div>
       </motion.div>
+
+      {/* AI SMART GUIDE DIALOG */}
+      <Dialog open={showTutorial} onOpenChange={setShowTutorial}>
+        <DialogContent className="max-w-[400px] rounded-[3rem] p-0 overflow-hidden border-none shadow-3xl">
+          <div className="p-8 bg-blue-600 text-white">
+            <DialogHeader className="text-left space-y-2">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <DialogTitle className="text-2xl font-black text-white">Smart Guide</DialogTitle>
+              </div>
+              <DialogDescription className="text-blue-100 font-medium text-sm">
+                Your personal assistant for the Affinity app.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          <div className="p-10 space-y-8 bg-white min-h-[300px] flex flex-col justify-center">
+            {tutorialLoading ? (
+              <div className="flex flex-col items-center space-y-4">
+                <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Thinking...</p>
+              </div>
+            ) : tutorialResponse ? (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
+                <div className="text-5xl text-center mb-4">{tutorialResponse.emoji}</div>
+                <div className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
+                  <p className="text-lg font-bold text-slate-800 leading-relaxed">
+                    {tutorialResponse.answer}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center shrink-0">
+                    <ChevronRight className="w-4 h-4 text-white" />
+                  </div>
+                  <p className="text-xs font-black text-slate-500 uppercase tracking-tight">
+                    {tutorialResponse.actionStep}
+                  </p>
+                </div>
+              </motion.div>
+            ) : (
+              <div className="text-center space-y-4">
+                <p className="text-slate-500 font-medium">How can I help you today?</p>
+                <div className="grid gap-2">
+                  <Button onClick={() => handleAskGuide("How do I start work?")} variant="outline" className="rounded-xl h-12 text-xs font-bold">How do I start work?</Button>
+                  <Button onClick={() => handleAskGuide("How do I take photos?")} variant="outline" className="rounded-xl h-12 text-xs font-bold">How do I take photos?</Button>
+                  <Button onClick={() => handleAskGuide("How do I earn points?")} variant="outline" className="rounded-xl h-12 text-xs font-bold">How do I earn points?</Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="p-8 bg-slate-50 border-t border-slate-100">
+            <Button 
+              onClick={() => setShowTutorial(false)}
+              className="w-full h-16 rounded-[2rem] bg-slate-900 text-white font-black uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all"
+            >
+              Got it, thanks!
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }
