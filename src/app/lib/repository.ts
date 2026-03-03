@@ -72,6 +72,23 @@ class MockRepository {
       });
     }
 
+    // 2b. Add SAM for testing
+    this.users.push({
+      id: "cleaner-sam",
+      name: "Sam Tester",
+      email: "sam@affinity.com",
+      role: 'CLEANER',
+      workerType: 'EMPLOYEE',
+      phone: "416-555-9999",
+      status: 'ACTIVE',
+      points: 2500,
+      avatarUrl: "https://picsum.photos/seed/samtester/100/100",
+      certifications: [
+        { id: "cert-sam-1", name: "WHMIS 2024", status: 'VALID', expiryDate: '2025-12-31' },
+        { id: "cert-sam-2", name: "Site Protocol", status: 'VALID', expiryDate: '2025-08-15' }
+      ]
+    });
+
     // 3. SITES
     const siteData = [
       { id: "site-1", name: "Metro Hub", addr: "100 Front St W, Toronto" },
@@ -124,6 +141,24 @@ class MockRepository {
           { id: 't1', label: 'Sanitize Lobby Desks', completed: true },
           { id: 't2', label: 'Refill Restroom Dispensers', completed: false }
         ]
+    });
+
+    // --- SHIFT SCENARIOS FOR SAM ---
+    const samTodayStart = new Date(now); samTodayStart.setHours(10, 0, 0, 0);
+    const samTodayEnd = new Date(now); samTodayEnd.setHours(18, 0, 0, 0);
+    this.shifts.push({
+      id: "shift-sam-today",
+      userId: "cleaner-sam",
+      siteId: "site-3",
+      siteName: "Bay Street Financial",
+      scheduledStart: samTodayStart.toISOString(),
+      scheduledEnd: samTodayEnd.toISOString(),
+      status: "SCHEDULED",
+      tasks: [
+        { id: 's1', label: 'Check Floor Scrubber', completed: false },
+        { id: 's2', label: 'Restock Paper Towels', completed: false },
+        { id: 's3', label: 'Surface Disinfection', completed: false }
+      ]
     });
 
     // Past: Normal (Approved)
