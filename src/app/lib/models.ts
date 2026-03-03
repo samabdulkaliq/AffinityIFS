@@ -25,6 +25,12 @@ export interface Site {
   timezone: string;
 }
 
+export interface ShiftTask {
+  id: string;
+  label: string;
+  completed: boolean;
+}
+
 export interface Shift {
   id: string;
   userId: string;
@@ -33,6 +39,8 @@ export interface Shift {
   scheduledEnd: string;   // ISO
   status: ShiftStatus;
   siteName?: string; // Denormalized for ease
+  managerNote?: string;
+  tasks?: ShiftTask[];
 }
 
 export interface TimeEvent {
