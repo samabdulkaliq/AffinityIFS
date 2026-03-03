@@ -1,5 +1,10 @@
 import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger } from './models';
 
+/**
+ * @fileOverview Mock Repository for Affinity Workforce Platform.
+ * Seeded with multiple production scenarios for the Duty/Clock tab.
+ */
+
 class MockRepository {
   users: User[] = [];
   sites: Site[] = [];
@@ -14,7 +19,7 @@ class MockRepository {
   }
 
   private seed() {
-    // Admins
+    // 1. ADMiNS
     for (let i = 1; i <= 5; i++) {
       this.users.push({
         id: `admin-${i}`,
@@ -28,7 +33,10 @@ class MockRepository {
       });
     }
 
-    // Cleaners
+    // 2. CLEANERS (With Varied States)
+    // Cleaner 1: Approach Scenario (Scanning)
+    // Cleaner 2: Active Scenario (Clocked In)
+    // Cleaner 3: Historical Scenario (Completed)
     for (let i = 1; i <= 20; i++) {
       this.users.push({
         id: `cleaner-${i}`,
@@ -37,18 +45,25 @@ class MockRepository {
         workerType: i % 3 === 0 ? 'CONTRACT' : 'EMPLOYEE',
         phone: `555-${1000 + i}`,
         status: 'ACTIVE',
-        points: Math.floor(Math.random() * 500),
+        points: 1250 + (i * 50),
         avatarUrl: `https://picsum.photos/seed/cleaner${i}/100/100`,
       });
     }
 
-    // Sites
-    const siteNames = ["Skyline Towers", "Crystal Plaza", "Green Valley Hospital", "Metro Hub", "Oak Ridge School"];
+    // 3. SITES
+    const siteNames = ["Metro Hub", "Crystal Plaza", "Skyline Towers", "Oak Ridge School", "Green Valley Hospital"];
+    const addresses = [
+        "100 Front St W, Toronto, ON",
+        "290 Bremner Blvd, Toronto, ON",
+        "301 Front St W, Toronto, ON",
+        "1 Austin Terrace, Toronto, ON",
+        "190 Elizabeth St, Toronto, ON"
+    ];
     for (let i = 0; i < siteNames.length; i++) {
       this.sites.push({
         id: `site-${i + 1}`,
         name: siteNames[i],
-        address: `${100 + i} Main St, Toronto, ON`,
+        address: addresses[i],
         geoRadiusMeters: 100,
         timezone: "America/Toronto"
       });
@@ -58,100 +73,95 @@ class MockRepository {
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
-    // Scenario 1: Missing Clock-Out (Admin Challenge)
+    // --- DUTY TAB SCENARIOS ---
+
+    // Scenario A: Cleaner 1 - approaching "Metro Hub" (SCHEDULED -> SCANNING)
     this.shifts.push({
-      id: "shift-1",
-      userId: "cleaner-1",
-      siteId: "site-1",
-      siteName: "Skyline Towers",
-      scheduledStart: new Date(yesterday.setHours(9, 0, 0, 0)).toISOString(),
-      scheduledEnd: new Date(yesterday.setHours(17, 0, 0, 0)).toISOString(),
-      status: "IN_PROGRESS" 
-    });
-    this.timeEvents.push({
-        id: "ev-1",
+        id: "shift-approach",
         userId: "cleaner-1",
-        shiftId: "shift-1",
-        type: "CLOCK_IN",
-        timestamp: new Date(yesterday.setHours(8, 55, 0, 0)).toISOString(),
-        source: "AUTO"
+        siteId: "site-1",
+        siteName: "Metro Hub",
+        scheduledStart: new Date(today.setHours(9, 0, 0, 0)).toISOString(),
+        scheduledEnd: new Date(today.setHours(17, 0, 0, 0)).toISOString(),
+        status: "SCHEDULED"
     });
 
-    // Scenario 2: Late Arrival Review Request
+    // Scenario B: Cleaner 2 - already at "Crystal Plaza" (IN_PROGRESS -> CLOCKED_IN)
     this.shifts.push({
-      id: "shift-2",
-      userId: "cleaner-2",
-      siteId: "site-2",
-      siteName: "Crystal Plaza",
-      scheduledStart: new Date(yesterday.setHours(8, 0, 0, 0)).toISOString(),
-      scheduledEnd: new Date(yesterday.setHours(16, 0, 0, 0)).toISOString(),
-      status: "COMPLETED"
+        id: "shift-active",
+        userId: "cleaner-2",
+        siteId: "site-2",
+        siteName: "Crystal Plaza",
+        scheduledStart: new Date(today.setHours(8, 0, 0, 0)).toISOString(),
+        scheduledEnd: new Date(today.setHours(16, 0, 0, 0)).toISOString(),
+        status: "IN_PROGRESS"
     });
     this.timeEvents.push({
-        id: "ev-2",
+        id: "ev-active-start",
         userId: "cleaner-2",
-        shiftId: "shift-2",
+        shiftId: "shift-active",
         type: "CLOCK_IN",
-        timestamp: new Date(yesterday.setHours(8, 45, 0, 0)).toISOString(),
+        timestamp: new Date(today.setHours(7, 58, 0, 0)).toISOString(),
         source: "AUTO"
     });
-    this.reviewRequests.push({
-      id: "req-1",
-      userId: "cleaner-2",
-      cleanerName: "Cleaner 2",
-      shiftId: "shift-2",
-      reason: "Late Arrival",
-      note: "Traffic on the 401 was backed up for miles due to an accident. Tried my best to get here!",
-      status: "PENDING",
-      createdAt: new Date().toISOString()
-    });
 
-    // Scenario 3: Missing break (Ontario Rule Challenge)
+    // Scenario C: Admin Challenge - Missing Break at "Skyline Towers"
     this.shifts.push({
-        id: "shift-3",
+        id: "shift-dispute",
         userId: "cleaner-3",
         siteId: "site-3",
-        siteName: "Green Valley Hospital",
+        siteName: "Skyline Towers",
         scheduledStart: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(yesterday.setHours(20, 0, 0, 0)).toISOString(), // 10 hour shift
+        scheduledEnd: new Date(yesterday.setHours(22, 0, 0, 0)).toISOString(), // 12h shift
         status: "COMPLETED"
     });
     this.timeEvents.push({
-        id: "ev-3",
+        id: "ev-d-1",
         userId: "cleaner-3",
-        shiftId: "shift-3",
+        shiftId: "shift-dispute",
         type: "CLOCK_IN",
         timestamp: new Date(yesterday.setHours(10, 0, 0, 0)).toISOString(),
         source: "AUTO"
     });
     this.timeEvents.push({
-        id: "ev-4",
+        id: "ev-d-2",
         userId: "cleaner-3",
-        shiftId: "shift-3",
+        shiftId: "shift-dispute",
         type: "CLOCK_OUT",
-        timestamp: new Date(yesterday.setHours(20, 0, 0, 0)).toISOString(),
+        timestamp: new Date(yesterday.setHours(22, 0, 0, 0)).toISOString(),
         source: "AUTO"
     });
     this.reviewRequests.push({
-        id: "req-2",
+        id: "req-ontario-break",
         userId: "cleaner-3",
         cleanerName: "Cleaner 3",
-        shiftId: "shift-3",
+        shiftId: "shift-dispute",
         reason: "Break Correction",
-        note: "I was so busy I never took my 30 min break. Can you verify this?",
+        note: "I worked 12 hours straight and couldn't find a relief to take my mandatory 30m break. Requesting adjustment.",
         status: "PENDING",
         createdAt: new Date().toISOString()
-      });
+    });
 
-    // Today's Shift for Cleaner 1
-    this.shifts.push({
-        id: "shift-today-1",
+    // Seed some notifications
+    this.notifications.push({
+        id: "n1",
         userId: "cleaner-1",
-        siteId: "site-4",
-        siteName: "Metro Hub",
-        scheduledStart: new Date(today.setHours(9, 0, 0, 0)).toISOString(),
-        scheduledEnd: new Date(today.setHours(15, 0, 0, 0)).toISOString(),
-        status: "SCHEDULED"
+        role: "CLEANER",
+        category: "REMINDERS",
+        title: "Shift Approaching",
+        body: "Your shift at Metro Hub starts in 15 minutes. Geofence is active.",
+        createdAt: new Date().toISOString(),
+        read: false
+    });
+    this.notifications.push({
+        id: "n2",
+        userId: "cleaner-2",
+        role: "CLEANER",
+        category: "REWARDS",
+        title: "Bonus Points!",
+        body: "You earned 200 pts for consistent on-time arrival this week.",
+        createdAt: new Date().toISOString(),
+        read: false
     });
   }
 
