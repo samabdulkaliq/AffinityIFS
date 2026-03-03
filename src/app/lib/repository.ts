@@ -1,4 +1,3 @@
-
 import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger, UserCertification } from './models';
 
 class MockRepository {
@@ -116,10 +115,47 @@ class MockRepository {
         scheduledStart: todayAt9.toISOString(),
         scheduledEnd: todayAt17.toISOString(),
         status: "IN_PROGRESS",
+        photosRequired: 5,
+        photosUploaded: 2,
+        inventoryChecked: false,
         tasks: [
           { id: 't1', label: 'Wipe Entrance Tables', completed: true },
           { id: 't2', label: 'Refill Washroom Soap', completed: false }
         ]
+    });
+
+    // --- PAST SHIFTS (HISTORY) ---
+    const yesterdayStart = new Date(now); yesterdayStart.setDate(now.getDate() - 1); yesterdayStart.setHours(8, 0, 0, 0);
+    const yesterdayEnd = new Date(now); yesterdayEnd.setDate(now.getDate() - 1); yesterdayEnd.setHours(16, 0, 0, 0);
+    this.shifts.push({
+      id: "shift-past-1",
+      userId: "cleaner-1",
+      siteId: "site-2",
+      siteName: "Crystal Plaza",
+      scheduledStart: yesterdayStart.toISOString(),
+      scheduledEnd: yesterdayEnd.toISOString(),
+      status: "COMPLETED",
+      photosRequired: 5,
+      photosUploaded: 5,
+      inventoryChecked: true,
+      tasks: [{ id: 'pt1', label: 'Floor Polishing', completed: true }],
+    });
+
+    const lastWeekStart = new Date(now); lastWeekStart.setDate(now.getDate() - 7); lastWeekStart.setHours(20, 0, 0, 0);
+    const lastWeekEnd = new Date(now); lastWeekEnd.setDate(now.getDate() - 7); lastWeekEnd.setHours(4, 0, 0, 0); lastWeekEnd.setDate(lastWeekEnd.getDate() + 1);
+    this.shifts.push({
+      id: "shift-past-2",
+      userId: "cleaner-1",
+      siteId: "site-4",
+      siteName: "Yorkville Tech",
+      scheduledStart: lastWeekStart.toISOString(),
+      scheduledEnd: lastWeekEnd.toISOString(),
+      status: "COMPLETED",
+      photosRequired: 5,
+      photosUploaded: 3,
+      inventoryChecked: true,
+      issues: ['MISSING_PHOTOS'],
+      tasks: [{ id: 'pt2', label: 'Garbage Disposal', completed: true }],
     });
 
     // --- SHIFT SCENARIOS FOR SAM ---
@@ -133,6 +169,9 @@ class MockRepository {
       scheduledStart: samTodayStart.toISOString(),
       scheduledEnd: samTodayEnd.toISOString(),
       status: "SCHEDULED",
+      photosRequired: 5,
+      photosUploaded: 0,
+      inventoryChecked: false,
       tasks: [
         { id: 's1', label: 'Mop Entrance Hall', completed: false },
         { id: 's2', label: 'Refill Hand Towels', completed: false },

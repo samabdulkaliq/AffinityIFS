@@ -52,6 +52,10 @@ export interface Shift {
   siteName?: string; // Denormalized for ease
   managerNote?: string;
   tasks?: ShiftTask[];
+  photosRequired?: number;
+  photosUploaded?: number;
+  inventoryChecked?: boolean;
+  issues?: string[]; // e.g., ['LATE', 'MISSING_PHOTOS', 'INCOMPLETE_TASKS']
 }
 
 export interface TimeEvent {
