@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 /**
  * @fileOverview Premium SmartClock™ Interface.
  * Implements hands-free geofencing logic with production-ready state transitions.
+ * Fixed state update concurrency issues with Toaster.
  */
 
 export default function TimeClockPage() {
@@ -26,6 +27,7 @@ export default function TimeClockPage() {
   const [autoClockProgress, setAutoClockProgress] = useState(0);
   const [distance, setDistance] = useState(0.85);
 
+  // Load initial shift state
   useEffect(() => {
     if (!user) return;
     const shifts = repository.getShiftsForUser(user.id);
@@ -42,6 +44,7 @@ export default function TimeClockPage() {
     }
   }, [user]);
 
+  // Timer logic for active shifts
   useEffect(() => {
     let interval: any;
     if (status === 'CLOCKED_IN') {
@@ -50,6 +53,7 @@ export default function TimeClockPage() {
     return () => clearInterval(interval);
   }, [status]);
 
+  // Simulation: Proximity/Distance tracking
   useEffect(() => {
     if (status === 'SCANNING') {
       const interval = setInterval(() => {
@@ -67,6 +71,26 @@ export default function TimeClockPage() {
     }
   }, [status]);
 
+  // Simulation: Auto-Clock Progress
+  useEffect(() => {
+    if (status === 'ON_SITE') {
+      const interval = setInterval(() => {
+        setAutoClockProgress(p => (p >= 100 ? 100 : p + 4));
+      }, 100);
+      return () => clearInterval(interval);
+    } else {
+      setAutoClockProgress(0);
+    }
+  }, [status]);
+
+  // Side Effect Trigger: Perform clock-in when progress hits 100%
+  // This is separated from the state updater to avoid React hydration errors
+  useEffect(() => {
+    if (status === 'ON_SITE' && autoClockProgress >= 100) {
+      handleAutoClockIn();
+    }
+  }, [autoClockProgress, status]);
+
   const handleAutoClockIn = useCallback(() => {
     if (!activeShift || !user) return;
     setStatus('CLOCKED_IN');
@@ -79,22 +103,6 @@ export default function TimeClockPage() {
     });
     toast({ title: "SmartClock™ Verified", description: `Clocked into ${activeShift.siteName}.` });
   }, [activeShift, user, toast]);
-
-  useEffect(() => {
-    if (status === 'ON_SITE') {
-      const interval = setInterval(() => {
-        setAutoClockProgress(p => {
-          if (p >= 100) {
-            clearInterval(interval);
-            handleAutoClockIn();
-            return 100;
-          }
-          return p + 4;
-        });
-      }, 100);
-      return () => clearInterval(interval);
-    }
-  }, [status, handleAutoClockIn]);
 
   const handleBreak = () => {
     const isBreaking = status === 'CLOCKED_IN';

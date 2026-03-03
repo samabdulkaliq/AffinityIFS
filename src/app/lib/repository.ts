@@ -58,14 +58,14 @@ class MockRepository {
 
     // 3. SITES (Toronto Focused)
     const siteData = [
-      { name: "Metro Hub", addr: "100 Front St W, Toronto" },
-      { name: "Crystal Plaza", addr: "290 Bremner Blvd, Toronto" },
-      { name: "Skyline Towers", addr: "301 Front St W, Toronto" },
-      { name: "Oak Ridge School", addr: "1 Austin Terrace, Toronto" }
+      { id: "site-1", name: "Metro Hub", addr: "100 Front St W, Toronto" },
+      { id: "site-2", name: "Crystal Plaza", addr: "290 Bremner Blvd, Toronto" },
+      { id: "site-3", name: "Skyline Towers", addr: "301 Front St W, Toronto" },
+      { id: "site-4", name: "Oak Ridge School", addr: "1 Austin Terrace, Toronto" }
     ];
-    siteData.forEach((s, i) => {
+    siteData.forEach((s) => {
       this.sites.push({
-        id: `site-${i + 1}`,
+        id: s.id,
         name: s.name,
         address: s.addr,
         geoRadiusMeters: 100,
@@ -77,6 +77,7 @@ class MockRepository {
     const todayAt9 = new Date(now); todayAt9.setHours(9, 0, 0, 0);
     const todayAt17 = new Date(now); todayAt17.setHours(17, 0, 0, 0);
     const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
+    const twoDaysAgo = new Date(now); twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
     // --- CLEANER 1: ALEX RIVERA (Scenario: Approaching / Scanning) ---
     this.shifts.push({
@@ -104,6 +105,33 @@ class MockRepository {
       type: "CLOCK_IN", timestamp: new Date(now.getTime() - 4 * 3600000).toISOString(), source: "AUTO"
     });
 
+    // Past shifts for history display
+    this.shifts.push({
+        id: "shift-alex-past-1",
+        userId: "cleaner-1",
+        siteId: "site-3",
+        siteName: "Skyline Towers",
+        scheduledStart: yesterday.toISOString(),
+        scheduledEnd: yesterday.toISOString(),
+        status: "COMPLETED"
+    });
+    this.shifts.push({
+        id: "shift-alex-past-2",
+        userId: "cleaner-1",
+        siteId: "site-4",
+        siteName: "Oak Ridge School",
+        scheduledStart: twoDaysAgo.toISOString(),
+        scheduledEnd: twoDaysAgo.toISOString(),
+        status: "COMPLETED"
+    });
+
+    // --- REWARDS LOG ---
+    this.rewards.push(
+      { id: 'r1', userId: 'cleaner-1', pointsDelta: 500, reason: 'Perfect Attendance Week 8', createdAt: yesterday.toISOString() },
+      { id: 'r2', userId: 'cleaner-1', pointsDelta: 150, reason: 'High Efficiency Rating @ Metro Hub', createdAt: twoDaysAgo.toISOString() },
+      { id: 'r3', userId: 'cleaner-1', pointsDelta: 100, reason: 'First Log of the Day Bonus', createdAt: now.toISOString() }
+    );
+
     // --- ADMIN SCENARIO: PENDING REVIEW (Ontario Break Rule Violation) ---
     this.reviewRequests.push({
         id: "req-break-01",
@@ -128,6 +156,17 @@ class MockRepository {
         createdAt: yesterday.toISOString()
     });
 
+    this.reviewRequests.push({
+        id: "req-missing-01",
+        userId: "cleaner-5",
+        cleanerName: "Taylor Reed",
+        shiftId: "shift-past-03",
+        reason: "Missed Clock-Out",
+        note: "My phone battery died while finishing the final sweep. I left at exactly 6:00 PM.",
+        status: "PENDING",
+        createdAt: twoDaysAgo.toISOString()
+    });
+
     // --- GLOBAL NOTIFICATIONS ---
     this.notifications.push({
         id: "n-global-1", userId: "all", role: "CLEANER", category: "REMINDERS",
@@ -147,6 +186,7 @@ class MockRepository {
   getShift(id: string) { return this.shifts.find(s => s.id === id); }
   getReviewRequests() { return this.reviewRequests; }
   getEventsForShift(shiftId: string) { return this.timeEvents.filter(e => e.shiftId === shiftId); }
+  getRewardsForUser(userId: string) { return this.rewards.filter(r => r.userId === userId); }
   
   createTimeEvent(event: Omit<TimeEvent, 'id'>) {
     const newEvent = { ...event, id: Math.random().toString(36).substring(2, 9) };
