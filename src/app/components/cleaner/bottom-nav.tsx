@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -20,7 +21,12 @@ export function CleanerBottomNav() {
   return (
     <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[440px] h-20 glass-nav rounded-[2.5rem] flex justify-around items-center px-6 safe-area-bottom z-50 shadow-[0_20px_50px_rgba(58,111,247,0.15)]">
       {navItems.map((item) => {
-        const isActive = pathname === item.href || (item.href === '/cleaner' && pathname.startsWith('/cleaner/notifications')) || (item.href === '/cleaner/shifts' && pathname.startsWith('/cleaner/shifts/'));
+        // Updated active logic to catch sub-routes like /cleaner/shifts/[id]
+        const isActive = pathname === item.href || 
+                         (item.href === '/cleaner' && pathname.startsWith('/cleaner/notifications')) || 
+                         (item.href === '/cleaner/shifts' && pathname.startsWith('/cleaner/shifts/')) ||
+                         (item.href === '/cleaner/clock' && pathname.startsWith('/cleaner/clock'));
+
         return (
           <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center flex-1 relative group py-2">
             <div className={cn(

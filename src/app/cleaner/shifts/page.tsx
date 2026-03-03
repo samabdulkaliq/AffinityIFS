@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "@/app/lib/store";
@@ -6,17 +7,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Calendar, 
-  MapPin, 
   Clock, 
   ChevronRight, 
   CheckCircle2, 
-  AlertCircle, 
   XCircle,
   Timer,
-  ArrowRight
+  LayoutGrid
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 import Link from "next/link";
 
 /**
@@ -28,6 +26,7 @@ export default function CleanerShiftsPage() {
   const { user } = useAuth();
   if (!user) return null;
 
+  // Sorting shifts chronologically, descending
   const shifts = repository.getShiftsForUser(user.id).sort((a, b) => 
     new Date(b.scheduledStart).getTime() - new Date(a.scheduledStart).getTime()
   );
@@ -64,35 +63,41 @@ export default function CleanerShiftsPage() {
 
   const calculatePaidHours = (start: string, end: string) => {
     const hours = parseFloat(calculateHours(start, end));
+    // Apply Ontario 30min deduction for shifts > 5 hours
     if (hours > 5) return (hours - 0.5).toFixed(1);
     return hours.toFixed(1);
   };
 
   return (
     <div className="space-y-8 pb-32 animate-in fade-in duration-700">
-      <div className="px-1">
-        <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none">My Shifts</h2>
-        <p className="text-sm text-slate-500 font-medium mt-2">Manage your time and schedule.</p>
+      <div className="px-1 flex justify-between items-end">
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Schedule 📅</h2>
+          <p className="text-sm text-slate-500 font-medium mt-2">Manage your work and history.</p>
+        </div>
+        <Badge variant="outline" className="font-black border-slate-200">
+          {shifts.length} TOTAL
+        </Badge>
       </div>
 
       {/* Active Today */}
       {activeShift && (
         <div className="space-y-4">
-          <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-widest px-2">Active now</h3>
+          <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-widest px-2">Active now 🔥</h3>
           <Link href={`/cleaner/shifts/${activeShift.id}`}>
             <Card className="border-none shadow-xl shadow-blue-100 rounded-[2rem] bg-white group active:scale-[0.98] transition-all overflow-hidden border-l-4 border-l-blue-500">
               <CardContent className="p-6 space-y-4">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
-                    <h4 className="text-2xl font-black text-slate-900">{activeShift.siteName}</h4>
+                    <h4 className="text-2xl font-black text-slate-900 leading-tight">{activeShift.siteName}</h4>
                     <p className="text-xs text-slate-500 font-bold">{formatDate(activeShift.scheduledStart)}</p>
                   </div>
-                  <Badge className="bg-blue-600 text-white font-black uppercase text-[10px] px-3">Working</Badge>
+                  <Badge className="bg-blue-600 text-white font-black uppercase text-[10px] px-3">Live</Badge>
                 </div>
                 <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                   <div className="flex items-center gap-2 text-slate-600 font-bold text-sm">
                     <Clock className="w-4 h-4 text-blue-500" />
-                    Started {formatTime(activeShift.scheduledStart)}
+                    Working since {formatTime(activeShift.scheduledStart)}
                   </div>
                   <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-blue-500 transition-colors" />
                 </div>
@@ -105,7 +110,7 @@ export default function CleanerShiftsPage() {
       {/* Upcoming Pipeline */}
       {upcomingShifts.length > 0 && (
         <div className="space-y-4">
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Upcoming</h3>
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Upcoming 🗓️</h3>
           <div className="space-y-3">
             {upcomingShifts.map((shift) => (
               <Link key={shift.id} href={`/cleaner/shifts/${shift.id}`}>
@@ -134,7 +139,7 @@ export default function CleanerShiftsPage() {
 
       {/* Past Verified History */}
       <div className="space-y-4">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">History</h3>
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">History 📂</h3>
         <div className="space-y-3">
           {pastShifts.map((shift) => (
             <Link key={shift.id} href={`/cleaner/shifts/${shift.id}`}>
@@ -172,6 +177,15 @@ export default function CleanerShiftsPage() {
           ))}
         </div>
       </div>
+
+      {shifts.length === 0 && (
+        <div className="py-24 text-center space-y-4 flex flex-col items-center">
+          <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center">
+            <LayoutGrid className="w-10 h-10 text-slate-200" />
+          </div>
+          <p className="text-slate-400 font-black text-xs uppercase tracking-widest">No Shift History</p>
+        </div>
+      )}
     </div>
   );
 }
