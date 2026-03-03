@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../lib/store";
 import { repository } from "../lib/repository";
 import { Button } from "@/components/ui/button";
@@ -12,16 +11,18 @@ import {
   Calendar, 
   CheckCircle2, 
   ChevronRight, 
-  Sun, 
-  Navigation, 
-  Map as MapIcon,
   Sparkles,
-  Zap,
   Flame,
-  Star,
-  Coffee
+  Coffee,
+  AlertTriangle,
+  Camera,
+  MessageSquare,
+  Phone,
+  HelpCircle,
+  Navigation,
+  Info
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -43,34 +44,53 @@ const item = {
 export default function CleanerDashboard() {
   const { user } = useAuth();
   const [greeting, setGreeting] = useState("Hello");
-  const [aiTip, setAiTip] = useState("");
 
-  const tips = [
-    "Taking clear photos helps with point bonuses! 📸",
-    "Arriving 5 mins early counts towards your Punctuality Badge! ⏰",
-    "Don't forget to report low stock so we can restock for you! 🧾",
-    "You're only 2 shifts away from a 5-day streak! 🔥",
-    "Great job on your last shift at Metro Hub! ⭐"
-  ];
+  // Mocking some operational state for the prototype
+  const [photoCount] = useState(2);
+  const totalRequiredPhotos = 5;
+  const [isInventoryDone] = useState(false);
 
   useEffect(() => {
     const hour = new Date().getHours();
     if (hour < 12) setGreeting("Good morning");
     else if (hour < 17) setGreeting("Good afternoon");
     else setGreeting("Good evening");
-
-    setAiTip(tips[Math.floor(Math.random() * tips.length)]);
   }, []);
 
-  if (!user) return null;
-
-  const userShifts = repository.getShiftsForUser(user.id);
+  const userShifts = useMemo(() => user ? repository.getShiftsForUser(user.id) : [], [user]);
   const activeShift = userShifts.find(s => s.status === 'IN_PROGRESS');
   const upcomingShift = userShifts.find(s => s.status === 'SCHEDULED');
   const todayShift = activeShift || upcomingShift;
-  
   const site = todayShift ? repository.getSite(todayShift.siteId) : null;
   const isOnShift = activeShift !== undefined;
+
+  const tasks = activeShift?.tasks || [];
+  const completedTasksCount = tasks.filter(t => t.completed).length;
+  const isTasksComplete = tasks.length > 0 && completedTasksCount === tasks.length;
+  const isPhotosComplete = photoCount === totalRequiredPhotos;
+
+  // 2) Dynamic Smart Assistant Messaging
+  const aiMessage = useMemo(() => {
+    if (!isOnShift) return "Ready for your next deployment? Punctuality adds 100 points! ⏰";
+    if (!isTasksComplete) return `You have ${tasks.length - completedTasksCount} tasks remaining. Keep pushing! 💪`;
+    if (!isPhotosComplete) return "Don't forget to take your final site verification photos. 📸";
+    if (!isInventoryDone) return "Almost done! Please submit your inventory check. 🧾";
+    return "Great job today! You're on track for a perfect shift. ⭐";
+  }, [isOnShift, isTasksComplete, isPhotosComplete, isInventoryDone, tasks.length, completedTasksCount]);
+
+  // 4) Needs Attention Logic
+  const needsAttentionItems = useMemo(() => {
+    const items = [];
+    if (isOnShift) {
+      if (!isTasksComplete) items.push({ label: "Tasks Incomplete", icon: CheckCircle2, color: "text-blue-500", href: "/cleaner/clock" });
+      if (!isPhotosComplete) items.push({ label: "Photos Missing", icon: Camera, color: "text-amber-500", href: "/cleaner/log" });
+      if (!isInventoryDone) items.push({ label: "Inventory Missing", icon: Info, color: "text-red-500", href: "/cleaner/log" });
+      if (todayShift?.managerNote) items.push({ label: "New Manager Note", icon: MessageSquare, color: "text-purple-500", href: "/cleaner/shifts/" + todayShift.id });
+    }
+    return items;
+  }, [isOnShift, isTasksComplete, isPhotosComplete, isInventoryDone, todayShift]);
+
+  if (!user) return null;
 
   const shortcuts = [
     { label: "Duty", icon: Clock, href: "/cleaner/clock", color: "text-blue-500", bg: "bg-blue-50" },
@@ -83,22 +103,46 @@ export default function CleanerDashboard() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="space-y-8 pb-24 max-w-md mx-auto"
+      className="space-y-8 pb-32 max-w-md mx-auto"
     >
       {/* Dynamic Header Greeting */}
-      <motion.div variants={item} className="px-1 space-y-1">
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">
-          {greeting}, {user.name.split(' ')[0]}! {new Date().getHours() < 12 ? '☀️' : '🌙'}
-        </h1>
-        <div className="flex items-center gap-2">
-           <Badge variant="outline" className="bg-slate-900 text-white border-none font-black text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
-             <Flame className="w-2.5 h-2.5 text-orange-400 fill-orange-400" /> {user.points > 1500 ? 'HOT STREAK' : 'LEVEL 1'}
-           </Badge>
-           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">You have {user.points} points 🏆</p>
+      <motion.div variants={item} className="px-1 space-y-3">
+        <div className="flex justify-between items-start">
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">
+              {greeting}, {user.name.split(' ')[0]}!
+            </h1>
+            <div className="flex items-center gap-2">
+               <Badge variant="outline" className="bg-slate-900 text-white border-none font-black text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                 <Flame className="w-2.5 h-2.5 text-orange-400 fill-orange-400" /> {user.points > 1500 ? 'HOT STREAK' : 'LEVEL 1'}
+               </Badge>
+               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{user.points} points 🏆</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 1) Mini Status Strip */}
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          <Badge variant="outline" className={cn(
+            "whitespace-nowrap font-black text-[8px] uppercase tracking-widest py-1 px-3",
+            isOnShift ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
+          )}>
+            {isOnShift ? "● Active Duty" : "○ Not Started"}
+          </Badge>
+          {isOnShift && (
+            <>
+              <Badge variant="outline" className="whitespace-nowrap bg-blue-50 text-blue-600 border-blue-100 font-black text-[8px] uppercase tracking-widest py-1 px-3">
+                {completedTasksCount}/{tasks.length} Tasks
+              </Badge>
+              <Badge variant="outline" className="whitespace-nowrap bg-amber-50 text-amber-600 border-amber-100 font-black text-[8px] uppercase tracking-widest py-1 px-3">
+                {photoCount}/{totalRequiredPhotos} Photos
+              </Badge>
+            </>
+          )}
         </div>
       </motion.div>
 
-      {/* AI Assistant Tip Card */}
+      {/* 2) Dynamic Smart Assistant Card */}
       <motion.div variants={item} className="px-1">
         <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2rem] p-6 shadow-xl shadow-blue-200 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-110 transition-transform" />
@@ -109,12 +153,41 @@ export default function CleanerDashboard() {
             <div className="space-y-1">
               <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Smart Assistant 🧠</p>
               <p className="text-sm font-bold text-white leading-relaxed">
-                "{aiTip}"
+                "{aiMessage}"
               </p>
             </div>
           </div>
         </div>
       </motion.div>
+
+      {/* 4) Needs Attention Section (Conditional) */}
+      <AnimatePresence>
+        {needsAttentionItems.length > 0 && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="px-1 space-y-3"
+          >
+            <h3 className="text-[10px] font-black text-red-500 uppercase tracking-widest px-1 flex items-center gap-2">
+              <AlertTriangle className="w-3.5 h-3.5" /> Needs Attention
+            </h3>
+            <div className="grid gap-2">
+              {needsAttentionItems.map((attn, i) => (
+                <Link key={i} href={attn.href}>
+                  <div className="bg-white p-4 rounded-2xl border border-red-50 shadow-sm flex items-center justify-between group active:scale-[0.98] transition-all">
+                    <div className="flex items-center gap-3">
+                      <attn.icon className={cn("w-5 h-5", attn.color)} />
+                      <span className="text-sm font-bold text-slate-700">{attn.label}</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-red-500 transition-colors" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Quick Action Hub */}
       <motion.div variants={item} className="grid grid-cols-3 gap-4 px-1">
@@ -131,7 +204,7 @@ export default function CleanerDashboard() {
         ))}
       </motion.div>
 
-      {/* Today's Mission Card */}
+      {/* 3) Today's Mission Card */}
       <motion.div variants={item} className="px-1">
         {todayShift && site ? (
           <div className="premium-card overflow-hidden">
@@ -150,6 +223,17 @@ export default function CleanerDashboard() {
               </div>
 
               <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Scheduled</p>
+                    <p className="text-xs font-bold text-slate-700">{formatTime(todayShift.scheduledStart)} - {formatTime(todayShift.scheduledEnd)}</p>
+                  </div>
+                  <div className="space-y-1 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <p className="text-[9px] font-black text-slate-400 uppercase">Clock-in</p>
+                    <p className="text-xs font-bold text-slate-700">{isOnShift ? formatTime(todayShift.scheduledStart) : "--:--"}</p>
+                  </div>
+                </div>
+
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center shrink-0">
                     <MapPin className="w-5 h-5 text-slate-400" />
@@ -157,7 +241,7 @@ export default function CleanerDashboard() {
                   <div className="flex-1">
                     <p className="text-sm font-black text-slate-700 leading-snug">{site.address}</p>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-tight mt-1">
-                      {isOnShift ? "You are verified on-site" : "0.12 km away"}
+                      {isOnShift ? "Verified at site ✅" : "0.12 km away 📍"}
                     </p>
                   </div>
                 </div>
@@ -176,8 +260,8 @@ export default function CleanerDashboard() {
                   </h3>
                   <p className="text-sm text-slate-500 font-medium leading-relaxed">
                     {isOnShift 
-                      ? "You've completed 1/2 of your tasks. Keep it up!" 
-                      : `Head over to ${site.name}. We'll automatically start when you arrive.`}
+                      ? "Keep it up! Check your log to upload required photos." 
+                      : `Go to ${site.name}. We’ll start your time when you arrive.`}
                   </p>
                 </div>
 
@@ -202,6 +286,32 @@ export default function CleanerDashboard() {
           </div>
         )}
       </motion.div>
+
+      {/* 5) Support Access Section */}
+      <motion.div variants={item} className="px-1 space-y-4">
+        <div className="flex items-center gap-2 px-1">
+          <HelpCircle className="w-4 h-4 text-slate-400" />
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Need help?</h3>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <Link href="/cleaner/help" className="bg-white p-4 rounded-3xl border border-slate-100 flex flex-col items-center gap-2 text-center active:scale-95 transition-all shadow-sm">
+            <MessageSquare className="w-5 h-5 text-blue-500" />
+            <span className="text-[9px] font-black text-slate-600 uppercase">Chat</span>
+          </Link>
+          <a href="tel:4165550101" className="bg-white p-4 rounded-3xl border border-slate-100 flex flex-col items-center gap-2 text-center active:scale-95 transition-all shadow-sm">
+            <Phone className="w-5 h-5 text-emerald-500" />
+            <span className="text-[9px] font-black text-slate-600 uppercase">Call</span>
+          </a>
+          <Link href="/cleaner/help" className="bg-white p-4 rounded-3xl border border-slate-100 flex flex-col items-center gap-2 text-center active:scale-95 transition-all shadow-sm">
+            <AlertTriangle className="w-5 h-5 text-amber-500" />
+            <span className="text-[9px] font-black text-slate-600 uppercase">Report</span>
+          </Link>
+        </div>
+      </motion.div>
     </motion.div>
   );
+}
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
