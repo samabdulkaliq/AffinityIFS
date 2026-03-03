@@ -9,6 +9,7 @@ import { MapPin, Clock, Calendar, CheckCircle2, ChevronRight, Sun, Navigation, M
 import { motion } from "framer-motion";
 import { OnboardingTooltip } from "../components/ui/onboarding-tooltip";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const item = {
   hidden: { y: 10, opacity: 0 },
@@ -122,5 +123,3 @@ export default function CleanerDashboard() {
     </motion.div>
   );
 }
-
-const cn = (...classes: any[]) => classes.filter(Boolean).join(" ");

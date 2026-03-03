@@ -34,6 +34,7 @@ import {
   DialogTrigger 
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 /**
  * @fileOverview Redesigned Rewards 🏆 Page.
@@ -66,7 +67,6 @@ export default function CleanerRewardsPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isRedeeming, setIsRedeeming] = useState(false);
-  const transactions = repository.getRewardsForUser(user?.id || "");
 
   const handleRedeemItem = (item: typeof MARKETPLACE[0]) => {
     if ((user?.points || 0) < item.cost) {
@@ -141,7 +141,7 @@ export default function CleanerRewardsPage() {
                         className="w-full bg-white p-5 rounded-2xl border border-slate-100 flex items-center justify-between hover:border-[#3A6FF7] group"
                       >
                         <div className="flex items-center gap-4">
-                          <div className={`w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center ${item.color}`}>
+                          <div className={cn("w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center", item.color)}>
                             <item.icon className="w-6 h-6" />
                           </div>
                           <div className="text-left">
