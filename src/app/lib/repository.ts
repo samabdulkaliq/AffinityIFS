@@ -36,10 +36,11 @@ class MockRepository {
 
     // 2. CLEANERS
     const names = [
-      "Alex Rivera", "Jordan Smith", "Sam Taylor", "Casey Jones", "Taylor Reed"
+      "Alex Rivera", "Jordan Smith", "Sam Taylor", "Casey Jones", "Taylor Reed",
+      "Morgan Lee", "Riley Vance", "Quinn Brooks", "Avery Lane", "Parker Gray"
     ];
 
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 10; i++) {
       const cleanerId = i;
       this.users.push({
         id: `cleaner-${cleanerId}`,
@@ -58,7 +59,8 @@ class MockRepository {
     const siteData = [
       { id: "site-1", name: "Metro Hub", addr: "100 Front St W, Toronto" },
       { id: "site-2", name: "Crystal Plaza", addr: "290 Bremner Blvd, Toronto" },
-      { id: "site-3", name: "Bay Street Financial", addr: "161 Bay St, Toronto" }
+      { id: "site-3", name: "Bay Street Financial", addr: "161 Bay St, Toronto" },
+      { id: "site-4", name: "Yorkville Tech Center", addr: "1240 Bay St, Toronto" }
     ];
     siteData.forEach((s) => {
       this.sites.push({
@@ -71,11 +73,31 @@ class MockRepository {
     });
 
     const now = new Date();
+    
+    // --- LIVE FEED SEEDING ---
+    const eventTypes: any[] = ['CLOCK_IN', 'CLOCK_OUT', 'BREAK_START', 'BREAK_END', 'ADJUSTMENT'];
+    const sources: any[] = ['AUTO', 'MANUAL', 'ADMIN'];
+
+    for (let i = 0; i < 15; i++) {
+      const randomCleaner = this.users.filter(u => u.role === 'CLEANER')[Math.floor(Math.random() * 10)];
+      const randomSite = this.sites[Math.floor(Math.random() * this.sites.length)];
+      const timeOffset = i * 12; // Spread events over a few hours
+      
+      this.timeEvents.push({
+        id: `event-${i}`,
+        userId: randomCleaner.id,
+        shiftId: `shift-mock-${i}`,
+        type: eventTypes[Math.floor(Math.random() * 3)], // mostly clock/break
+        timestamp: new Date(now.getTime() - timeOffset * 60000).toISOString(),
+        source: sources[Math.floor(Math.random() * 2)], // mostly auto/manual
+        notes: i % 5 === 0 ? "Geofence verified at site entrance." : undefined
+      });
+    }
+
+    // --- CLEANER 1: ALEX RIVERA (Active Operational Lifecycle) ---
     const todayAt9 = new Date(now); todayAt9.setHours(9, 0, 0, 0);
     const todayAt17 = new Date(now); todayAt17.setHours(17, 0, 0, 0);
 
-    // --- CLEANER 1: ALEX RIVERA (Active Operational Lifecycle) ---
-    // Active Today
     this.shifts.push({
         id: "shift-alex-today",
         userId: "cleaner-1",
@@ -93,20 +115,7 @@ class MockRepository {
         ]
     });
 
-    // Upcoming Tomorrow
-    const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
-    this.shifts.push({
-        id: "shift-alex-tomorrow",
-        userId: "cleaner-1",
-        siteId: "site-2",
-        siteName: "Crystal Plaza",
-        scheduledStart: new Date(tomorrow.setHours(8, 0)).toISOString(),
-        scheduledEnd: new Date(tomorrow.setHours(16, 0)).toISOString(),
-        status: "SCHEDULED",
-        tasks: []
-    });
-
-    // Past History (Successful)
+    // Past History
     const yest = new Date(now); yest.setDate(now.getDate() - 1);
     this.shifts.push({
         id: "shift-alex-yest",
@@ -118,19 +127,31 @@ class MockRepository {
         status: "COMPLETED",
     });
 
-    // Past History (Cancelled)
-    const lastWeek = new Date(now); lastWeek.setDate(now.getDate() - 7);
-    this.shifts.push({
-        id: "shift-alex-cancelled",
-        userId: "cleaner-1",
-        siteId: "site-3",
-        siteName: "Bay Street Financial",
-        scheduledStart: new Date(lastWeek.setHours(20, 0)).toISOString(),
-        scheduledEnd: new Date(lastWeek.setHours(4, 0)).toISOString(),
-        status: "CANCELLED",
-    });
+    // --- REVIEW REQUESTS ---
+    this.reviewRequests.push(
+      {
+        id: "req-01",
+        userId: "cleaner-3",
+        cleanerName: "Sam Taylor",
+        shiftId: "s-past-01",
+        reason: "Break Correction",
+        note: "Worked through break due to site emergency (water leak).",
+        status: "PENDING",
+        createdAt: new Date(now.getTime() - 24 * 3600000).toISOString()
+      },
+      {
+        id: "req-02",
+        userId: "cleaner-4",
+        cleanerName: "Casey Jones",
+        shiftId: "s-past-02",
+        reason: "Missed Clock-Out",
+        note: "Phone died before I could clock out at the end of the shift.",
+        status: "PENDING",
+        createdAt: new Date(now.getTime() - 48 * 3600000).toISOString()
+      }
+    );
 
-    // --- NOTIFICATIONS SCENARIOS ---
+    // --- NOTIFICATIONS ---
     const cleanerIds = ['cleaner-1', 'cleaner-2'];
     cleanerIds.forEach(id => {
       this.notifications.push(
@@ -153,49 +174,16 @@ class MockRepository {
           body: 'Your break adjustment for Tuesday has been approved by David Smith.',
           createdAt: new Date(now.getTime() - 120 * 60000).toISOString(),
           read: false
-        },
-        {
-          id: `n-${id}-3`,
-          userId: id,
-          role: 'CLEANER',
-          category: 'REMINDERS',
-          title: 'WHMIS Certification',
-          body: 'Your WHMIS safety training expires in 5 days. Please renew in the Profile tab.',
-          createdAt: new Date(now.getTime() - 360 * 60000).toISOString(),
-          read: false
-        },
-        {
-          id: `n-${id}-4`,
-          userId: id,
-          role: 'CLEANER',
-          category: 'REWARDS',
-          title: 'Achievement Unlocked',
-          body: 'Earned 200 PTS for "Perfect Documentation" during your Metro Hub shift.',
-          createdAt: new Date(now.getTime() - 24 * 3600000).toISOString(),
-          read: true
         }
       );
     });
 
-    // --- REWARDS SCENARIOS ---
+    // --- REWARDS ---
     cleanerIds.forEach(id => {
       this.rewards.push(
         { id: `r-${id}-1`, userId: id, pointsDelta: 500, reason: 'Monthly Attendance Bonus', createdAt: new Date(now.getTime() - 2 * 24 * 3600000).toISOString() },
-        { id: `r-${id}-2`, userId: id, pointsDelta: 200, reason: 'Quality Photo Audit: Metro Hub', createdAt: new Date(now.getTime() - 1 * 24 * 3600000).toISOString() },
-        { id: `r-${id}-3`, userId: id, pointsDelta: 150, reason: 'Safe Motion Compliance', createdAt: new Date(now.getTime() - 5 * 3600000).toISOString() }
+        { id: `r-${id}-2`, userId: id, pointsDelta: 200, reason: 'Quality Photo Audit: Metro Hub', createdAt: new Date(now.getTime() - 1 * 24 * 3600000).toISOString() }
       );
-    });
-
-    // --- GLOBAL DATA ---
-    this.reviewRequests.push({
-        id: "req-01",
-        userId: "cleaner-3",
-        cleanerName: "Sam Taylor",
-        shiftId: "s-past-01",
-        reason: "Break Correction",
-        note: "Worked through break due to site emergency.",
-        status: "PENDING",
-        createdAt: now.toISOString()
     });
   }
 
@@ -205,6 +193,7 @@ class MockRepository {
   getShift(id: string) { return this.shifts.find(s => s.id === id); }
   getReviewRequests() { return this.reviewRequests; }
   getEventsForShift(shiftId: string) { return this.timeEvents.filter(e => e.shiftId === shiftId); }
+  getAllEvents() { return [...this.timeEvents].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); }
   getRewardsForUser(userId: string) { return this.rewards.filter(r => r.userId === userId); }
   getNotificationsForUser(userId: string) { return this.notifications.filter(n => n.userId === userId); }
   
