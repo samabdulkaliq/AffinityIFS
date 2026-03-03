@@ -1,8 +1,9 @@
+
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Clock, Calendar, Wallet, Camera } from "lucide-react";
+import { Home, Clock, Calendar, Trophy, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -13,7 +14,7 @@ export function CleanerBottomNav() {
     { label: "Home", icon: Home, href: "/cleaner" },
     { label: "Duty", icon: Clock, href: "/cleaner/clock" },
     { label: "Shifts", icon: Calendar, href: "/cleaner/shifts" },
-    { label: "Vault", icon: Wallet, href: "/cleaner/wallet" },
+    { label: "Rewards", icon: Trophy, href: "/cleaner/wallet" },
     { label: "Log", icon: Camera, href: "/cleaner/log" },
   ];
 
