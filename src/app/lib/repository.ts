@@ -54,7 +54,8 @@ class MockRepository {
     // 3. SITES
     const siteData = [
       { id: "site-1", name: "Metro Hub", addr: "100 Front St W, Toronto" },
-      { id: "site-2", name: "Crystal Plaza", addr: "290 Bremner Blvd, Toronto" }
+      { id: "site-2", name: "Crystal Plaza", addr: "290 Bremner Blvd, Toronto" },
+      { id: "site-3", name: "Bay Street Financial", addr: "161 Bay St, Toronto" }
     ];
     siteData.forEach((s) => {
       this.sites.push({
@@ -70,7 +71,8 @@ class MockRepository {
     const todayAt9 = new Date(now); todayAt9.setHours(9, 0, 0, 0);
     const todayAt17 = new Date(now); todayAt17.setHours(17, 0, 0, 0);
 
-    // --- CLEANER 1: ALEX RIVERA (Scenario: Approaching Site) ---
+    // --- CLEANER 1: ALEX RIVERA (Active Operational Lifecycle) ---
+    // Active Today
     this.shifts.push({
         id: "shift-alex-today",
         userId: "cleaner-1",
@@ -86,6 +88,43 @@ class MockRepository {
           { id: 't3', label: 'Vacuum Zone A & B', completed: false },
           { id: 't4', label: 'Waste Disposal Audit', completed: false }
         ]
+    });
+
+    // Upcoming Tomorrow
+    const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+    this.shifts.push({
+        id: "shift-alex-tomorrow",
+        userId: "cleaner-1",
+        siteId: "site-2",
+        siteName: "Crystal Plaza",
+        scheduledStart: new Date(tomorrow.setHours(8, 0)).toISOString(),
+        scheduledEnd: new Date(tomorrow.setHours(16, 0)).toISOString(),
+        status: "SCHEDULED",
+        tasks: []
+    });
+
+    // Past History (Successful)
+    const yest = new Date(now); yest.setDate(now.getDate() - 1);
+    this.shifts.push({
+        id: "shift-alex-yest",
+        userId: "cleaner-1",
+        siteId: "site-1",
+        siteName: "Metro Hub",
+        scheduledStart: new Date(yest.setHours(9, 0)).toISOString(),
+        scheduledEnd: new Date(yest.setHours(17, 0)).toISOString(),
+        status: "COMPLETED",
+    });
+
+    // Past History (Cancelled)
+    const lastWeek = new Date(now); lastWeek.setDate(now.getDate() - 7);
+    this.shifts.push({
+        id: "shift-alex-cancelled",
+        userId: "cleaner-1",
+        siteId: "site-3",
+        siteName: "Bay Street Financial",
+        scheduledStart: new Date(lastWeek.setHours(20, 0)).toISOString(),
+        scheduledEnd: new Date(lastWeek.setHours(4, 0)).toISOString(),
+        status: "CANCELLED",
     });
 
     // --- NOTIFICATIONS SCENARIOS ---
