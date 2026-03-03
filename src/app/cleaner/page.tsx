@@ -5,7 +5,7 @@ import { useAuth } from "../lib/store";
 import { repository } from "../lib/repository";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { MapPin, Clock, Shield, Zap, ChevronRight, LayoutGrid, Camera } from "lucide-react";
+import { MapPin, Clock, Calendar, CheckCircle2, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -20,13 +20,23 @@ const container = {
 };
 
 const item = {
-  hidden: { y: 20, opacity: 0 },
+  hidden: { y: 10, opacity: 0 },
   show: { y: 0, opacity: 1 }
 };
 
 export default function CleanerDashboard() {
   const { user } = useAuth();
-  const todayShift = repository.getShiftsForUser(user!.id).find(s => s.status === 'SCHEDULED' || s.status === 'IN_PROGRESS');
+  const todayShift = repository.getShiftsForUser(user!.id).find(
+    s => s.status === 'SCHEDULED' || s.status === 'IN_PROGRESS'
+  );
+
+  const isOnShift = todayShift?.status === 'IN_PROGRESS';
+
+  const shortcuts = [
+    { label: "Shift", icon: Clock, href: "/cleaner/clock" },
+    { label: "Tasks", icon: CheckCircle2, href: "/cleaner/log" },
+    { label: "Schedule", icon: Calendar, href: "/cleaner/shifts" },
+  ];
 
   return (
     <motion.div 
@@ -35,104 +45,74 @@ export default function CleanerDashboard() {
       animate="show"
       className="space-y-8 pb-20"
     >
-      {/* Operational Summary Section */}
-      <motion.div variants={item} className="grid grid-cols-2 gap-4">
-        <div className="stat-card">
-          <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
-            <Shield className="w-5 h-5 text-blue-600" />
-          </div>
-          <p className="text-muted-label">Compliance</p>
-          <p className="text-3xl font-black text-[#0F172A] mt-1">100%</p>
-        </div>
-        <div className="stat-card">
-          <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center mb-4">
-            <Camera className="w-5 h-5 text-amber-500" />
-          </div>
-          <p className="text-muted-label">Documentation</p>
-          <p className="text-3xl font-black text-[#0F172A] mt-1">4/5</p>
-        </div>
+      {/* Simplified Top Shortcuts */}
+      <motion.div variants={item} className="grid grid-cols-3 gap-4">
+        {shortcuts.map((s) => (
+          <Link 
+            key={s.label} 
+            href={s.href} 
+            className="flex flex-col items-center justify-center p-4 bg-white rounded-3xl border border-slate-100 shadow-sm active:scale-95 transition-all space-y-2 group"
+          >
+            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+              <s.icon className="w-5 h-5 text-blue-600" />
+            </div>
+            <span className="text-xs font-bold text-slate-600">{s.label}</span>
+          </Link>
+        ))}
       </motion.div>
 
-      {/* Hero Shift Card - PRD 4.2 Focus */}
-      <motion.div variants={item} className="space-y-4">
-        <div className="flex justify-between items-end px-2">
-          <h3 className="text-2xl font-black text-[#0F172A] tracking-tight">Deployment</h3>
-          <Link href="/cleaner/shifts" className="text-xs font-bold text-blue-600 flex items-center gap-1 group">
-            History <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-
+      {/* Action-Focused Shift Card */}
+      <motion.div variants={item}>
         {todayShift ? (
-          <div className="premium-card bg-white overflow-hidden relative group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -mr-16 -mt-16 blur-3xl opacity-60"></div>
-            <div className="p-8 space-y-6">
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <span className="text-muted-label text-blue-600">Active Site</span>
-                  <h4 className="text-3xl font-black text-[#0F172A] leading-none">{todayShift.siteName}</h4>
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+            <div className="p-8 space-y-8">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                  {isOnShift ? "You’re on shift." : "Ready to start your shift?"}
+                </h2>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                  {isOnShift 
+                    ? "Your time is being tracked." 
+                    : "We’ll clock you in when you arrive on site."}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-4 p-5 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                  <MapPin className="w-5 h-5 text-blue-500" />
                 </div>
-                <div className="px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-600 text-[10px] font-black uppercase tracking-widest">
-                   {todayShift.status}
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Current Location</p>
+                  <p className="text-sm font-bold text-slate-700">{todayShift.siteName}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                    <MapPin className="w-5 h-5 text-slate-400" />
+              <div className="space-y-3">
+                {isOnShift ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button asChild variant="outline" className="h-16 rounded-2xl border-2 border-slate-100 font-bold text-slate-600 hover:bg-slate-50">
+                      <Link href="/cleaner/clock">Take Break</Link>
+                    </Button>
+                    <Button asChild className="h-16 rounded-2xl bg-slate-900 text-white font-bold hover:bg-red-600">
+                      <Link href="/cleaner/clock">End Shift</Link>
+                    </Button>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">Proximity</p>
-                    <p className="text-xs text-[#475569] font-black">0.12 KM</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
-                    <Clock className="w-5 h-5 text-slate-400" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">EOD</p>
-                    <p className="text-xs text-[#475569] font-black">
-                      {new Date(todayShift.scheduledEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </p>
-                  </div>
-                </div>
+                ) : (
+                  <Button asChild className="w-full h-16 rounded-2xl bg-blue-600 text-white text-lg font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95">
+                    <Link href="/cleaner/clock" className="flex items-center justify-center gap-2">
+                      Start Shift <ChevronRight className="w-5 h-5" />
+                    </Link>
+                  </Button>
+                )}
               </div>
-
-              <Button asChild className="w-full h-14 btn-premium hover:shadow-blue-200">
-                <Link href="/cleaner/clock" className="flex items-center justify-center gap-2">
-                  Launch SmartClock™ <ChevronRight className="w-5 h-5" />
-                </Link>
-              </Button>
             </div>
           </div>
         ) : (
-          <div className="premium-card py-16 px-6 text-center border-dashed bg-slate-50/50">
-            <LayoutGrid className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-            <p className="text-slate-500 font-medium italic">No active deployment scheduled</p>
+          <div className="py-16 px-6 text-center bg-white rounded-[2.5rem] border-2 border-dashed border-slate-100">
+            <Calendar className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+            <p className="text-slate-400 font-medium italic">No shift scheduled for today</p>
           </div>
         )}
-      </motion.div>
-
-      {/* PRD 9.2: Compliance / Training Quick Access */}
-      <motion.div variants={item} className="space-y-4">
-        <h3 className="text-lg font-bold text-[#0F172A] px-2">Operational Protocol</h3>
-        <Link href="/cleaner/log" className="block">
-          <div className="premium-card bg-white border-l-4 border-indigo-500 hover:shadow-lg transition-all active:scale-[0.98]">
-            <div className="p-6 flex gap-4">
-              <div className="w-14 h-14 rounded-[1.25rem] bg-indigo-50 flex items-center justify-center shrink-0">
-                <Shield className="w-7 h-7 text-indigo-500" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-black text-[#0F172A] uppercase tracking-tight">Archive Field Log</p>
-                <p className="text-xs text-[#475569] leading-relaxed font-medium">
-                  Submit hourly documentation and inventory photos to ensure compliance.
-                </p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-slate-300 ml-auto self-center" />
-            </div>
-          </div>
-        </Link>
       </motion.div>
     </motion.div>
   );
