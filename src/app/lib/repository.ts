@@ -7,6 +7,7 @@ import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsL
  * - Geofence disputes
  * - Supply stock triggers
  * - Multi-role communication threads
+ * - Diverse Rewards and Points scenarios
  */
 
 class MockRepository {
@@ -51,7 +52,7 @@ class MockRepository {
         workerType: i % 4 === 0 ? 'CONTRACT' : 'EMPLOYEE',
         phone: `647-555-${1000 + i}`,
         status: 'ACTIVE',
-        points: 1200 + (i * 50),
+        points: i === 1 ? 4850 : 1200 + (i * 50),
         avatarUrl: `https://picsum.photos/seed/cleaner${i}/100/100`,
       });
     }
@@ -78,8 +79,9 @@ class MockRepository {
     const todayAt17 = new Date(now); todayAt17.setHours(17, 0, 0, 0);
     const yesterday = new Date(now); yesterday.setDate(yesterday.getDate() - 1);
     const twoDaysAgo = new Date(now); twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const lastWeek = new Date(now); lastWeek.setDate(lastWeek.getDate() - 7);
 
-    // --- CLEANER 1: ALEX RIVERA (Scenario: Approaching / Scanning) ---
+    // --- CLEANER 1: ALEX RIVERA (Scenario: Active Vault & High Points) ---
     this.shifts.push({
         id: "shift-alex-today",
         userId: "cleaner-1",
@@ -90,13 +92,23 @@ class MockRepository {
         status: "SCHEDULED"
     });
 
+    // REWARDS HISTORY for Alex (Cleaner 1)
+    this.rewards.push(
+      { id: 'r1', userId: 'cleaner-1', pointsDelta: 1000, reason: 'Safety Compliance Milestone (Quarterly)', createdAt: now.toISOString() },
+      { id: 'r2', userId: 'cleaner-1', pointsDelta: 500, reason: 'Perfect Attendance Week 8', createdAt: yesterday.toISOString() },
+      { id: 'r3', userId: 'cleaner-1', pointsDelta: 750, reason: 'WHMIS Certification Completion', createdAt: twoDaysAgo.toISOString() },
+      { id: 'r4', userId: 'cleaner-1', pointsDelta: 250, reason: 'Client Excellence - 5 Star Site Review', createdAt: lastWeek.toISOString() },
+      { id: 'r5', userId: 'cleaner-1', pointsDelta: 100, reason: 'First Log of the Day Bonus', createdAt: now.toISOString() },
+      { id: 'r6', userId: 'cleaner-1', pointsDelta: 2250, reason: 'Regional Top Performer Award', createdAt: lastWeek.toISOString() }
+    );
+
     // --- CLEANER 2: JORDAN SMITH (Scenario: Active / On Site) ---
     this.shifts.push({
         id: "shift-jordan-active",
         userId: "cleaner-2",
         siteId: "site-2",
         siteName: "Crystal Plaza",
-        scheduledStart: new Date(now.getTime() - 4 * 3600000).toISOString(), // Started 4h ago
+        scheduledStart: new Date(now.getTime() - 4 * 3600000).toISOString(),
         scheduledEnd: new Date(now.getTime() + 4 * 3600000).toISOString(),
         status: "IN_PROGRESS"
     });
@@ -105,34 +117,7 @@ class MockRepository {
       type: "CLOCK_IN", timestamp: new Date(now.getTime() - 4 * 3600000).toISOString(), source: "AUTO"
     });
 
-    // Past shifts for history display
-    this.shifts.push({
-        id: "shift-alex-past-1",
-        userId: "cleaner-1",
-        siteId: "site-3",
-        siteName: "Skyline Towers",
-        scheduledStart: yesterday.toISOString(),
-        scheduledEnd: yesterday.toISOString(),
-        status: "COMPLETED"
-    });
-    this.shifts.push({
-        id: "shift-alex-past-2",
-        userId: "cleaner-1",
-        siteId: "site-4",
-        siteName: "Oak Ridge School",
-        scheduledStart: twoDaysAgo.toISOString(),
-        scheduledEnd: twoDaysAgo.toISOString(),
-        status: "COMPLETED"
-    });
-
-    // --- REWARDS LOG ---
-    this.rewards.push(
-      { id: 'r1', userId: 'cleaner-1', pointsDelta: 500, reason: 'Perfect Attendance Week 8', createdAt: yesterday.toISOString() },
-      { id: 'r2', userId: 'cleaner-1', pointsDelta: 150, reason: 'High Efficiency Rating @ Metro Hub', createdAt: twoDaysAgo.toISOString() },
-      { id: 'r3', userId: 'cleaner-1', pointsDelta: 100, reason: 'First Log of the Day Bonus', createdAt: now.toISOString() }
-    );
-
-    // --- ADMIN SCENARIO: PENDING REVIEW (Ontario Break Rule Violation) ---
+    // --- ADMIN SCENARIO: PENDING REVIEW ---
     this.reviewRequests.push({
         id: "req-break-01",
         userId: "cleaner-3",
@@ -144,38 +129,21 @@ class MockRepository {
         createdAt: now.toISOString()
     });
 
-    // --- ADMIN SCENARIO: LATE ARRIVAL DISPUTE ---
     this.reviewRequests.push({
         id: "req-late-01",
         userId: "cleaner-4",
         cleanerName: "Casey Jones",
         shiftId: "shift-past-02",
         reason: "GPS Issue",
-        note: "I was at the North Gate on time at 7:55am, but the geofence only triggered when I entered the main lobby at 8:15am. Requesting adjustment to 8:00am.",
+        note: "I was at the North Gate on time at 7:55am, but the geofence only triggered when I entered the main lobby at 8:15am.",
         status: "PENDING",
         createdAt: yesterday.toISOString()
-    });
-
-    this.reviewRequests.push({
-        id: "req-missing-01",
-        userId: "cleaner-5",
-        cleanerName: "Taylor Reed",
-        shiftId: "shift-past-03",
-        reason: "Missed Clock-Out",
-        note: "My phone battery died while finishing the final sweep. I left at exactly 6:00 PM.",
-        status: "PENDING",
-        createdAt: twoDaysAgo.toISOString()
     });
 
     // --- GLOBAL NOTIFICATIONS ---
     this.notifications.push({
         id: "n-global-1", userId: "all", role: "CLEANER", category: "REMINDERS",
         title: "WHMIS Update Required", body: "New safety protocols for Lot B chemicals uploaded. Please review in Training.",
-        createdAt: now.toISOString(), read: false
-    });
-    this.notifications.push({
-        id: "n-admin-1", userId: "admin-1", role: "ADMIN", category: "TIME",
-        title: "High Late Arrival Volume", body: "4 cleaners flagged as 'Late' this morning at Crystal Plaza.",
         createdAt: now.toISOString(), read: false
     });
   }
@@ -186,7 +154,7 @@ class MockRepository {
   getShift(id: string) { return this.shifts.find(s => s.id === id); }
   getReviewRequests() { return this.reviewRequests; }
   getEventsForShift(shiftId: string) { return this.timeEvents.filter(e => e.shiftId === shiftId); }
-  getRewardsForUser(userId: string) { return this.rewards.filter(r => r.userId === userId); }
+  getRewardsForUser(userId: string) { return this.rewards.filter(r => r.userId === userId).sort((a,b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()); }
   
   createTimeEvent(event: Omit<TimeEvent, 'id'>) {
     const newEvent = { ...event, id: Math.random().toString(36).substring(2, 9) };
