@@ -6,7 +6,7 @@ import { intelligentTimeReviewAssistant, TimeReviewAssistantOutput } from "@/ai/
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Sparkles, AlertTriangle, CheckCircle2, XCircle, Info, Calendar, Clock, MapPin } from "lucide-react";
+import { Loader2, Sparkles, AlertTriangle, CheckCircle2, XCircle, Info, Clock, MapPin, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
