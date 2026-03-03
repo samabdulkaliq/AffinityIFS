@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -83,7 +82,7 @@ export default function WorkLogPage() {
   const handleSubmitInventory = () => {
     toast({ 
       title: "Inventory Logged", 
-      description: inventoryStatus === 'GOOD' ? "Everything synced." : "Manager notified of stock issues." 
+      description: inventoryStatus === 'GOOD' ? "Everything synced." : "Report submitted to manager." 
     });
     setInventoryStatus(null);
     setSelectedItems([]);
@@ -278,7 +277,7 @@ export default function WorkLogPage() {
                   )}
 
                   <Button onClick={handleSubmitInventory} className="w-full h-14 rounded-2xl bg-slate-900 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-slate-200">
-                    Send to Manager
+                    Submit Report
                   </Button>
                 </motion.div>
               </AnimatePresence>

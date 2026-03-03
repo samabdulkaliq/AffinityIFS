@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -12,23 +11,21 @@ import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-type FlowStep = "SPLASH" | "ROLE_SELECTION" | "LOGIN";
-type SelectedRole = "CLEANER" | "ADMIN";
+type FlowStep = "SPLASH" | "LOGIN";
 
 export default function AppEntryFlow() {
   const { login } = useAuth();
   const { toast } = useToast();
   
   const [step, setStep] = useState<FlowStep>("SPLASH");
-  const [selectedRole, setSelectedRole] = useState<SelectedRole | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Transition from Splash to Role Selection
+  // Transition from Splash to Login
   useEffect(() => {
     const timer = setTimeout(() => {
-      setStep("ROLE_SELECTION");
+      setStep("LOGIN");
     }, 2500);
     return () => clearTimeout(timer);
   }, []);
@@ -105,92 +102,6 @@ export default function AppEntryFlow() {
           </motion.div>
         )}
 
-        {step === "ROLE_SELECTION" && (
-          <motion.div 
-            key="role-selection"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="w-full max-w-sm px-8 space-y-10"
-          >
-            <div className="flex flex-col items-center space-y-6">
-              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-slate-100 overflow-hidden">
-                {logo ? (
-                  <Image 
-                    src={logo.imageUrl} 
-                    alt={logo.description} 
-                    width={64} 
-                    height={64} 
-                    className="object-cover"
-                    data-ai-hint={logo.imageHint}
-                  />
-                ) : (
-                  <div className="text-2xl font-black text-[#2F5BFF]">A</div>
-                )}
-              </div>
-              <div className="text-center space-y-2">
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Choose how you&apos;re signing in</h2>
-              </div>
-            </div>
-
-            <div className="grid gap-4">
-              <button
-                onClick={() => setSelectedRole("CLEANER")}
-                className={cn(
-                  "p-6 rounded-3xl border-2 text-left transition-all active:scale-[0.98]",
-                  selectedRole === "CLEANER" 
-                    ? "bg-white border-[#2F5BFF] shadow-lg shadow-blue-500/5" 
-                    : "bg-white border-transparent shadow-sm hover:border-slate-200"
-                )}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
-                    selectedRole === "CLEANER" ? "bg-[#2F5BFF] text-white" : "bg-slate-50 text-slate-400"
-                  )}>
-                    <User className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-black text-slate-900 leading-none">Cleaner</h4>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Clock in and manage your shift</p>
-                  </div>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setSelectedRole("ADMIN")}
-                className={cn(
-                  "p-6 rounded-3xl border-2 text-left transition-all active:scale-[0.98]",
-                  selectedRole === "ADMIN" 
-                    ? "bg-white border-[#2F5BFF] shadow-lg shadow-blue-500/5" 
-                    : "bg-white border-transparent shadow-sm hover:border-slate-200"
-                )}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
-                    selectedRole === "ADMIN" ? "bg-[#2F5BFF] text-white" : "bg-slate-50 text-slate-400"
-                  )}>
-                    <Crown className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-black text-slate-900 leading-none">Admin</h4>
-                    <p className="text-xs text-slate-500 font-medium mt-1">Manage team and approvals</p>
-                  </div>
-                </div>
-              </button>
-            </div>
-
-            <Button 
-              onClick={() => setStep("LOGIN")}
-              disabled={!selectedRole}
-              className="w-full h-14 bg-[#2F5BFF] hover:bg-[#254EDF] text-white rounded-2xl shadow-xl shadow-blue-500/10 font-black uppercase text-xs tracking-widest transition-all active:scale-95 disabled:opacity-50"
-            >
-              Continue <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </motion.div>
-        )}
-
         {step === "LOGIN" && (
           <motion.div 
             key="login"
@@ -216,9 +127,9 @@ export default function AppEntryFlow() {
               </div>
               <div className="text-center space-y-2">
                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                  Sign in as {selectedRole === "CLEANER" ? "Cleaner" : "Admin"}
+                  Sign In
                 </h2>
-                <p className="text-sm text-slate-500 font-medium">Please enter your credentials</p>
+                <p className="text-sm text-slate-500 font-medium">Welcome back to Affinity</p>
               </div>
             </div>
 
@@ -250,10 +161,7 @@ export default function AppEntryFlow() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center">
-                <button type="button" onClick={() => setStep("ROLE_SELECTION")} className="text-xs font-bold text-slate-400 hover:text-slate-600">
-                  ← Change role
-                </button>
+              <div className="flex justify-end items-center">
                 <button type="button" className="text-xs font-bold text-[#2F5BFF] hover:text-[#254EDF]">
                   Forgot password?
                 </button>
@@ -268,7 +176,7 @@ export default function AppEntryFlow() {
               </Button>
             </form>
 
-            <div className="text-center">
+            <div className="text-center pt-8">
               <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.3em] flex items-center justify-center gap-2">
                 Secure Workforce Platform 🔒
               </p>

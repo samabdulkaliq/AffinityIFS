@@ -13,13 +13,13 @@ import {
   ChevronRight, 
   Gift, 
   ShoppingBag, 
-  CheckCircle2,
-  Clock,
-  Camera,
-  ShieldCheck,
-  Star,
-  Flame,
-  Diamond,
+  CheckCircle2, 
+  Clock, 
+  Camera, 
+  ShieldCheck, 
+  Star, 
+  Flame, 
+  Diamond, 
   CalendarCheck
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -108,7 +108,7 @@ export default function CleanerRewardsPage() {
             <div className="space-y-1">
               <span className="text-[10px] font-black text-[#F4B860] uppercase tracking-[0.4em]">Current Balance</span>
               <div className="flex items-baseline gap-2">
-                <h2 className="text-6xl font-black text-white tracking-tighter">{user?.points?.toLocaleString()}</h2>
+                <h2 className="text-6xl font-black text-white tracking-tighter">{(user?.points ?? 0).toLocaleString()}</h2>
                 <span className="text-[#F4B860] text-xs font-black uppercase tracking-widest">PTS</span>
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function CleanerRewardsPage() {
                    <DialogHeader className="text-left">
                      <DialogTitle className="text-2xl font-black text-white">Marketplace</DialogTitle>
                      <DialogDescription className="text-[#F4B860] font-black uppercase text-[9px] mt-1">
-                       Available: {user?.points} PTS
+                       Available: {user?.points ?? 0} PTS
                      </DialogDescription>
                    </DialogHeader>
                  </div>
