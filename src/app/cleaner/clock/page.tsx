@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/app/lib/store";
 import { repository } from "@/app/lib/repository";
 import { Button } from "@/components/ui/button";
@@ -13,14 +13,13 @@ import { motion, AnimatePresence } from "framer-motion";
 
 /**
  * @fileOverview Premium Duty (Time Clock) page.
- * Implements "Hands-Free" Auto-Clock logic with simulated geofencing scenarios.
+ * Implements "Hands-Free" Auto-Clock logic with functional Break and End Duty actions.
  */
 
 export default function TimeClockPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Scenarios: IDLE -> SCANNING -> ON_SITE (Syncing) -> CLOCKED_IN -> ON_BREAK
   const [activeShift, setActiveShift] = useState<Shift | null>(null);
   const [status, setStatus] = useState<'IDLE' | 'SCANNING' | 'ON_SITE' | 'CLOCKED_IN' | 'ON_BREAK'>('IDLE');
   const [timer, setTimer] = useState(0);
@@ -31,18 +30,14 @@ export default function TimeClockPage() {
   useEffect(() => {
     if (!user) return;
     const shifts = repository.getShiftsForUser(user.id);
-    
-    // Find a shift to work on
     const shift = shifts.find(s => s.status === 'SCHEDULED' || s.status === 'IN_PROGRESS');
     
     if (shift) {
         setActiveShift(shift);
         if (shift.status === 'IN_PROGRESS') {
           setStatus('CLOCKED_IN');
-          // Mock timer start (e.g., 2 hours in)
-          setTimer(7200); 
+          setTimer(7200); // Start with 2 hours already elapsed for demo
         } else {
-          // If scheduled, we start in "Scanning" mode as they approach the site
           setStatus('SCANNING');
         }
     }
@@ -119,36 +114,61 @@ export default function TimeClockPage() {
   const handleToggleBreak = () => {
     if (status === 'CLOCKED_IN') {
       setStatus('ON_BREAK');
-      toast({ title: "Break Started", description: "Enjoy your rest." });
-    } else {
+      repository.createTimeEvent({
+          userId: user!.id,
+          shiftId: activeShift!.id,
+          type: 'BREAK_START',
+          timestamp: new Date().toISOString(),
+          source: 'MANUAL'
+      });
+      toast({ title: "Break Started ☕", description: "Your status is now set to 'On Break'." });
+    } else if (status === 'ON_BREAK') {
       setStatus('CLOCKED_IN');
-      toast({ title: "Welcome Back", description: "Break ended. Shift resumed." });
+      repository.createTimeEvent({
+          userId: user!.id,
+          shiftId: activeShift!.id,
+          type: 'BREAK_END',
+          timestamp: new Date().toISOString(),
+          source: 'MANUAL'
+      });
+      toast({ title: "Welcome Back 🛠️", description: "Break ended. Shift timer resumed." });
     }
   };
 
   const handleClockOut = () => {
+    if (!activeShift || !user) return;
+    
+    // Finalize state
     setStatus('IDLE');
+    setActiveShift(null);
+
+    // Save event
     repository.createTimeEvent({
-        userId: user!.id,
-        shiftId: activeShift!.id,
+        userId: user.id,
+        shiftId: activeShift.id,
         type: 'CLOCK_OUT',
         timestamp: new Date().toISOString(),
         source: 'AUTO'
     });
-    toast({ title: "Shift Finalized", description: "Duty cycle complete. Logs archived." });
+
+    toast({ title: "Shift Finalized ✅", description: "Duty cycle complete. Logs archived." });
   };
 
   if (!activeShift) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-4 px-8">
-        <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center">
+      <div className="flex flex-col items-center justify-center h-[70vh] text-center space-y-6 px-10 animate-in fade-in duration-500">
+        <div className="w-24 h-24 rounded-[2rem] bg-white shadow-xl flex items-center justify-center border border-slate-100">
             <AlertCircle className="w-10 h-10 text-slate-300" />
         </div>
-        <div>
-            <h3 className="text-xl font-black text-slate-900">No Duty Cycle</h3>
-            <p className="text-sm text-slate-500 font-medium mt-1">Check your schedule for upcoming shifts.</p>
+        <div className="space-y-2">
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">No Duty Cycle</h3>
+            <p className="text-sm text-slate-500 font-medium leading-relaxed">
+              You are currently off-duty. Proximity detection will start 30 minutes before your next scheduled shift.
+            </p>
         </div>
-        <Button variant="outline" className="rounded-2xl border-2 font-bold px-8">View Schedule</Button>
+        <Button variant="outline" className="h-14 rounded-2xl border-2 font-black uppercase text-[10px] tracking-widest px-8 border-slate-200 text-slate-600 hover:bg-slate-50">
+            View Schedule
+        </Button>
       </div>
     );
   }
@@ -174,12 +194,10 @@ export default function TimeClockPage() {
       {/* Visual HUD Interface */}
       <div className="px-4">
         <div className="premium-card aspect-[4/3] relative overflow-hidden bg-white border-none shadow-xl shadow-slate-200/50 rounded-[2.5rem]">
-          {/* Map Grid Pattern */}
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
                style={{ backgroundImage: 'radial-gradient(circle, #0F172A 1px, transparent 1px)', backgroundSize: '32px 32px' }}>
           </div>
           
-          {/* Geofence Radar Pulse */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
              <motion.div 
                animate={{ scale: [1, 1.8, 1], opacity: [0.1, 0.2, 0.1] }}
@@ -191,7 +209,6 @@ export default function TimeClockPage() {
              </div>
           </div>
 
-          {/* User Tracking Marker */}
           <motion.div 
             animate={status === 'SCANNING' ? { top: '30%', left: '30%' } : { top: '55%', left: '55%' }}
             transition={{ duration: 3, ease: "circOut" }}
@@ -208,7 +225,6 @@ export default function TimeClockPage() {
             </div>
           </motion.div>
 
-          {/* Status HUD Overlays */}
           <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
             <div className="bg-white/90 backdrop-blur-md p-4 rounded-3xl border border-white shadow-xl flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-blue-50 flex items-center justify-center">
@@ -236,10 +252,8 @@ export default function TimeClockPage() {
       {/* Main Timer Display */}
       <div className="flex flex-col items-center space-y-6 pt-4">
         <div className="relative w-72 h-72 flex items-center justify-center">
-          {/* Static Ring */}
           <div className="absolute inset-0 rounded-full border-[10px] border-white shadow-xl"></div>
           
-          {/* Progress Ring (Auto-Clock Sync) */}
           <AnimatePresence>
             {status === 'ON_SITE' && (
               <svg className="absolute inset-0 w-full h-full -rotate-90">
@@ -262,16 +276,16 @@ export default function TimeClockPage() {
               {status === 'ON_SITE' ? 'Syncing...' : 'Shift Duration'}
             </p>
             <h3 className={cn(
-                "text-5xl font-black text-[#0F172A] tracking-tighter tabular-nums",
-                status === 'ON_BREAK' && "text-amber-500"
+                "text-5xl font-black text-[#0F172A] tracking-tighter tabular-nums transition-colors duration-500",
+                status === 'ON_BREAK' ? "text-amber-500 scale-110" : "text-slate-900"
             )}>
               {status === 'ON_SITE' ? `${autoClockProgress}%` : formatTime(timer)}
             </h3>
             <div className="mt-4 flex items-center justify-center gap-2">
               <div className={cn(
-                "w-2.5 h-2.5 rounded-full", 
+                "w-2.5 h-2.5 rounded-full transition-all duration-300", 
                 status === 'CLOCKED_IN' ? "bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]" : 
-                status === 'ON_BREAK' ? "bg-amber-500" : "bg-slate-200"
+                status === 'ON_BREAK' ? "bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]" : "bg-slate-200"
               )} />
               <p className="text-[10px] font-black text-[#475569] uppercase tracking-[0.2em]">
                 {status.replace('_', ' ')}
@@ -287,7 +301,8 @@ export default function TimeClockPage() {
           <div className="space-y-1 relative z-10">
             <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Affinity SmartClock™</p>
             <p className="text-[12px] font-semibold text-slate-300 leading-relaxed">
-              {status === 'CLOCKED_IN' ? "Active monitoring verified your presence. You're set for your 8-hour shift." : 
+              {status === 'CLOCKED_IN' ? "Active monitoring verified your presence. You're set for your shift." : 
+               status === 'ON_BREAK' ? "Timer paused. Remember to resume when returning to active duty." :
                status === 'ON_SITE' ? "Entering geofence... hold tight while we synchronize your arrival." :
                "GPS tracking active. Proximity detection will trigger automatically within 100m."}
             </p>
@@ -297,7 +312,7 @@ export default function TimeClockPage() {
 
       {/* Actions */}
       <div className="px-6 space-y-4">
-        {status === 'CLOCKED_IN' || status === 'ON_BREAK' ? (
+        {(status === 'CLOCKED_IN' || status === 'ON_BREAK') && (
           <div className="grid grid-cols-2 gap-4">
             <Button 
                 onClick={handleToggleBreak}
@@ -309,16 +324,21 @@ export default function TimeClockPage() {
             >
               <Coffee className="w-5 h-5 mr-2" /> {status === 'ON_BREAK' ? 'End Break' : 'Take Break'}
             </Button>
-            <Button onClick={handleClockOut} className="h-16 bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 rounded-[1.5rem] font-black uppercase text-[11px] tracking-widest transition-all active:scale-95">
+            <Button 
+                onClick={handleClockOut} 
+                className="h-16 bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 rounded-[1.5rem] font-black uppercase text-[11px] tracking-widest transition-all active:scale-95 shadow-lg shadow-red-100"
+            >
                End Duty
             </Button>
           </div>
-        ) : status === 'SCANNING' ? (
+        )}
+        
+        {status === 'SCANNING' && (
             <div className="p-6 text-center bg-slate-100/50 rounded-[2rem] border-2 border-dashed border-slate-200">
                 <Loader2 className="w-6 h-6 text-blue-600 animate-spin mx-auto mb-2" />
                 <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest">Approaching {activeShift.siteName}...</p>
             </div>
-        ) : null}
+        )}
         
         <div className="flex items-center justify-center gap-6 pt-2">
             <button className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5 hover:text-blue-600">
