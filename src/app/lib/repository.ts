@@ -88,22 +88,60 @@ class MockRepository {
         ]
     });
 
-    // --- CLEANER 2: JORDAN SMITH (Scenario: Active Duty) ---
-    this.shifts.push({
-        id: "shift-jordan-active",
-        userId: "cleaner-2",
-        siteId: "site-2",
-        siteName: "Crystal Plaza",
-        scheduledStart: new Date(now.getTime() - 4 * 3600000).toISOString(),
-        scheduledEnd: new Date(now.getTime() + 4 * 3600000).toISOString(),
-        status: "IN_PROGRESS",
-        managerNote: "Attention: Floor scrubber on floor 4 is leaking. Use manual mop for zone 4B.",
-        tasks: [
-          { id: 'j1', label: 'Floor 4 Mopping', completed: true },
-          { id: 'j2', label: 'Elevator Glass Polish', completed: false },
-          { id: 'j3', label: 'Kitchen Area Deep Clean', completed: true },
-          { id: 'j4', label: 'Security Log Update', completed: false }
-        ]
+    // --- NOTIFICATIONS SCENARIOS ---
+    const cleanerIds = ['cleaner-1', 'cleaner-2'];
+    cleanerIds.forEach(id => {
+      this.notifications.push(
+        {
+          id: `n-${id}-1`,
+          userId: id,
+          role: 'CLEANER',
+          category: 'TIME',
+          title: 'Shift Confirmation',
+          body: 'Geofence verified at Metro Hub. Shift starting now.',
+          createdAt: new Date(now.getTime() - 15 * 60000).toISOString(),
+          read: true
+        },
+        {
+          id: `n-${id}-2`,
+          userId: id,
+          role: 'CLEANER',
+          category: 'APPROVALS',
+          title: 'Time Review Approved',
+          body: 'Your break adjustment for Tuesday has been approved by David Smith.',
+          createdAt: new Date(now.getTime() - 120 * 60000).toISOString(),
+          read: false
+        },
+        {
+          id: `n-${id}-3`,
+          userId: id,
+          role: 'CLEANER',
+          category: 'REMINDERS',
+          title: 'WHMIS Certification',
+          body: 'Your WHMIS safety training expires in 5 days. Please renew in the Profile tab.',
+          createdAt: new Date(now.getTime() - 360 * 60000).toISOString(),
+          read: false
+        },
+        {
+          id: `n-${id}-4`,
+          userId: id,
+          role: 'CLEANER',
+          category: 'REWARDS',
+          title: 'Achievement Unlocked',
+          body: 'Earned 200 PTS for "Perfect Documentation" during your Metro Hub shift.',
+          createdAt: new Date(now.getTime() - 24 * 3600000).toISOString(),
+          read: true
+        }
+      );
+    });
+
+    // --- REWARDS SCENARIOS ---
+    cleanerIds.forEach(id => {
+      this.rewards.push(
+        { id: `r-${id}-1`, userId: id, pointsDelta: 500, reason: 'Monthly Attendance Bonus', createdAt: new Date(now.getTime() - 2 * 24 * 3600000).toISOString() },
+        { id: `r-${id}-2`, userId: id, pointsDelta: 200, reason: 'Quality Photo Audit: Metro Hub', createdAt: new Date(now.getTime() - 1 * 24 * 3600000).toISOString() },
+        { id: `r-${id}-3`, userId: id, pointsDelta: 150, reason: 'Safe Motion Compliance', createdAt: new Date(now.getTime() - 5 * 3600000).toISOString() }
+      );
     });
 
     // --- GLOBAL DATA ---
@@ -126,6 +164,7 @@ class MockRepository {
   getReviewRequests() { return this.reviewRequests; }
   getEventsForShift(shiftId: string) { return this.timeEvents.filter(e => e.shiftId === shiftId); }
   getRewardsForUser(userId: string) { return this.rewards.filter(r => r.userId === userId); }
+  getNotificationsForUser(userId: string) { return this.notifications.filter(n => n.userId === userId); }
   
   createTimeEvent(event: Omit<TimeEvent, 'id'>) {
     const newEvent = { ...event, id: Math.random().toString(36).substring(2, 9) };
