@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { repository } from "../lib/repository";
 import { 
@@ -12,30 +14,49 @@ import {
   Activity as ActivityIcon, 
   ChevronRight, 
   MapPin,
-  Users
+  Users,
+  CheckCircle2,
+  Zap,
+  ClipboardCheck,
+  Building
 } from "lucide-react";
 import Link from "next/link";
-import { 
-  Area, 
-  AreaChart, 
-  ResponsiveContainer, 
-  XAxis, 
-  YAxis, 
-  Tooltip 
-} from "recharts";
 import { Badge } from "@/components/ui/badge";
-
-const activityData = [
-  { date: "06:00", count: 88 },
-  { date: "07:00", count: 92 },
-  { date: "08:00", count: 98 },
-  { date: "09:00", count: 95 },
-  { date: "10:00", count: 97 },
-];
+import { cn } from "@/lib/utils";
 
 export default function AdminDashboard() {
   const pendingRequests = repository.getReviewRequests().filter(r => r.status === 'PENDING');
   const expiredCerts = repository.getWorkersWithExpiredCerts();
+  const allShifts = repository.shifts;
+  const activeShifts = allShifts.filter(s => s.status === 'IN_PROGRESS');
+
+  // Calculate Operational Metrics
+  const metrics = useMemo(() => {
+    const activeStaffCount = new Set(activeShifts.map(s => s.userId)).size;
+    const activeSitesCount = new Set(activeShifts.map(s => s.siteId)).size;
+    
+    let totalTasks = 0;
+    let completedTasks = 0;
+    let totalPhotosReq = 0;
+    let totalPhotosUp = 0;
+
+    activeShifts.forEach(s => {
+      totalTasks += s.tasks?.length || 0;
+      completedTasks += s.tasks?.filter(t => t.completed).length || 0;
+      totalPhotosReq += s.photosRequired || 0;
+      totalPhotosUp += s.photosUploaded || 0;
+    });
+
+    const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const photoProgress = totalPhotosReq > 0 ? Math.round((totalPhotosUp / totalPhotosReq) * 100) : 0;
+
+    return {
+      activeStaffCount,
+      activeSitesCount,
+      taskProgress,
+      photoProgress
+    };
+  }, [activeShifts]);
   
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-24">
@@ -44,10 +65,12 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Ops Center</h1>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Live Operational Summary</p>
         </div>
-        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-black">14 STAFF LIVE</Badge>
+        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-black">
+          {metrics.activeStaffCount} STAFF LIVE
+        </Badge>
       </div>
 
-      {/* Staff Compliance Alert - NEW */}
+      {/* Staff Compliance Alert */}
       {expiredCerts.length > 0 && (
         <Link href="/admin/workers?filter=EXPIRED">
           <Card className="border-none bg-red-600 text-white shadow-xl shadow-red-200 rounded-3xl overflow-hidden group active:scale-[0.98] transition-all">
@@ -67,37 +90,76 @@ export default function AdminDashboard() {
         </Link>
       )}
 
-      {/* Attendance Chart - PRD 14.0 */}
+      {/* Operations Overview Panel - REPLACED CHART */}
       <Card className="border-none bg-slate-900 shadow-2xl rounded-[2.5rem] overflow-hidden">
-        <CardContent className="p-8">
-          <div className="flex justify-between items-start mb-8">
+        <CardContent className="p-8 space-y-8">
+          <div className="flex justify-between items-start">
             <div>
-                <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Compliance Index</p>
-                <h3 className="text-white text-4xl font-black mt-1">98.4%</h3>
+              <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Operations Overview</p>
+              <h3 className="text-white text-2xl font-black mt-1">Field Summary</h3>
             </div>
-            <div className="bg-blue-500/10 p-3 rounded-2xl border border-blue-500/20">
-                <Shield className="w-6 h-6 text-blue-400" />
+            <div className="bg-blue-500/20 p-3 rounded-2xl border border-blue-500/30">
+              <Zap className="w-5 h-5 text-blue-400 fill-blue-400/20" />
             </div>
           </div>
-          <div className="h-44 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={activityData}>
-                <defs>
-                  <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Area type="monotone" dataKey="count" stroke="#3B82F6" strokeWidth={4} fill="url(#chartGradient)" />
-                <XAxis dataKey="date" hide />
-                <YAxis hide domain={[80, 100]} />
-              </AreaChart>
-            </ResponsiveContainer>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-white/40 mb-1">
+                  <Users className="w-3.5 h-3.5" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Live Staff</span>
+                </div>
+                <p className="text-3xl font-black text-white">{metrics.activeStaffCount}</p>
+              </div>
+              
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-white/40 mb-1">
+                  <Building className="w-3.5 h-3.5" />
+                  <span className="text-[9px] font-black uppercase tracking-widest">Active Sites</span>
+                </div>
+                <p className="text-3xl font-black text-white">{metrics.activeSitesCount}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-end text-white/40">
+                  <div className="flex items-center gap-2">
+                    <ClipboardCheck className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase tracking-widest">Tasks</span>
+                  </div>
+                  <span className="text-xs font-black text-blue-400">{metrics.taskProgress}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 transition-all duration-1000" 
+                    style={{ width: `${metrics.taskProgress}%` }} 
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between items-end text-white/40">
+                  <div className="flex items-center gap-2">
+                    <Camera className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-black uppercase tracking-widest">Evidence</span>
+                  </div>
+                  <span className="text-xs font-black text-emerald-400">{metrics.photoProgress}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-emerald-500 transition-all duration-1000" 
+                    style={{ width: `${metrics.photoProgress}%` }} 
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Critical Exceptions - PRD 4.3 */}
+      {/* Critical Exceptions */}
       <div className="grid grid-cols-2 gap-4 px-1">
         <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-50 space-y-3">
             <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
