@@ -36,7 +36,7 @@ interface Asset {
 const MOCK_ASSETS: Asset[] = [
   { id: '1', name: 'Industrial Floor Scrubber X1', category: 'EQUIPMENT', status: 'IN_USE', assignedTo: 'Alex Rivera', lastChecked: '2024-03-01', serialNumber: 'EQ-9928-XP' },
   { id: '2', name: 'Service Van - Fleet #04', category: 'VEHICLE', status: 'AVAILABLE', lastChecked: '2024-03-02', serialNumber: 'VAN-TOR-04' },
-  { id: '3', name: 'Field iPad Pro - 12.9"', category: 'TECH', status: 'IN_USE', assignedTo: 'David Smith', lastChecked: '2024-02-28', serialNumber: 'APL-PAD-112' },
+  { id: '3', name: 'Field iPad Pro - 12.9"', category: 'TECH', status: 'IN_USE', assignedTo: 'Abraham Wellman', lastChecked: '2024-02-28', serialNumber: 'APL-PAD-112' },
   { id: '4', name: 'HEPA Vacuum - Grade A', category: 'EQUIPMENT', status: 'MAINTENANCE', lastChecked: '2024-02-15', serialNumber: 'EQ-1102-H' },
   { id: '5', name: 'Chemical Inventory - Lot B', category: 'SUPPLIES', status: 'AVAILABLE', lastChecked: '2024-03-03', serialNumber: 'SUP-991-CHEM' },
   { id: '6', name: 'Service Van - Fleet #01', category: 'VEHICLE', status: 'IN_USE', assignedTo: 'Sam Tester', lastChecked: '2024-03-01', serialNumber: 'VAN-TOR-01' },

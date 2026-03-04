@@ -18,8 +18,8 @@ class MockRepository {
     for (let i = 1; i <= 3; i++) {
       this.users.push({
         id: `admin-${i}`,
-        name: i === 1 ? "David Smith" : `Admin User ${i}`,
-        email: i === 1 ? "david@affinity.com" : `admin${i}@affinity.com`,
+        name: i === 1 ? "Abraham Wellman" : `Admin User ${i}`,
+        email: i === 1 ? "abraham@affinity.com" : `admin${i}@affinity.com`,
         role: 'ADMIN',
         workerType: 'EMPLOYEE',
         phone: `416-555-010${i}`,

@@ -12,7 +12,7 @@ This is a high-fidelity prototype of the Affinity Workforce Platform, built for 
 
 ### 🔐 Multi-Scenario Testing
 - **New Cleaner:** Log in as `sam@affinity.com` (any password) to test the fresh onboarding and scheduling experience.
-- **Admin Portal:** Log in as `david@affinity.com` to review shift exceptions and staff training status.
+- **Admin Portal:** Log in as `abraham@affinity.com` to review shift exceptions and staff training status.
 
 ### 🛠️ Key Modules
 - **Duty Verification:** Real-time geofence scanning and task tracking.
