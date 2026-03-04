@@ -27,8 +27,10 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminDashboard() {
+  const { toast } = useToast();
   const pendingRequests = repository.getReviewRequests().filter(r => r.status === 'PENDING');
   const expiredCerts = repository.getWorkersWithExpiredCerts();
   const allShifts = repository.shifts;
@@ -59,6 +61,13 @@ export default function AdminDashboard() {
     { text: `${expiredCerts.length} certification expires this week`, icon: Shield },
     { text: "Sam Tester is currently on a break", icon: Coffee }
   ];
+
+  const handleAction = (label: string) => {
+    toast({
+      title: "Quick Action",
+      description: `Opening ${label} interface...`
+    });
+  };
   
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-28">
@@ -209,15 +218,24 @@ export default function AdminDashboard() {
       <div className="space-y-4">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Quick Actions</h3>
         <div className="grid grid-cols-2 gap-3 px-1">
-          <button className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95">
+          <button 
+            onClick={() => handleAction('Add Staff')}
+            className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95"
+          >
             <PlusCircle className="w-6 h-6 text-blue-600 mb-2" />
             <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Add Staff</span>
           </button>
-          <button className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95">
+          <button 
+            onClick={() => handleAction('Schedule')}
+            className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95"
+          >
             <CalendarPlus className="w-6 h-6 text-indigo-600 mb-2" />
             <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Schedule</span>
           </button>
-          <button className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95">
+          <button 
+            onClick={() => handleAction('Run Report')}
+            className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95"
+          >
             <FileBarChart className="w-6 h-6 text-emerald-600 mb-2" />
             <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Run Report</span>
           </button>
@@ -230,4 +248,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-
