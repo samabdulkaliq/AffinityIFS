@@ -1,6 +1,8 @@
+
 export type UserRole = 'CLEANER' | 'ADMIN';
 export type WorkerType = 'EMPLOYEE' | 'CONTRACT';
 export type ShiftStatus = 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+export type ReviewStatus = 'NEEDS_REVIEW' | 'APPROVED' | 'FLAGGED';
 export type TimeEventType = 'CLOCK_IN' | 'CLOCK_OUT' | 'BREAK_START' | 'BREAK_END' | 'ADJUSTMENT';
 export type EventSource = 'AUTO' | 'MANUAL' | 'ADMIN';
 export type RequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -25,7 +27,7 @@ export interface User {
   status: 'ACTIVE' | 'INACTIVE';
   points: number;
   avatarUrl: string;
-  createdAt: string; // Added for production tracking
+  createdAt: string;
   certifications?: UserCertification[];
 }
 
@@ -50,13 +52,14 @@ export interface Shift {
   scheduledStart: string; // ISO
   scheduledEnd: string;   // ISO
   status: ShiftStatus;
-  siteName?: string; // Denormalized for ease
+  reviewStatus?: ReviewStatus;
+  siteName?: string;
   managerNote?: string;
   tasks?: ShiftTask[];
   photosRequired?: number;
   photosUploaded?: number;
   inventoryChecked?: boolean;
-  issues?: string[]; // e.g., ['LATE', 'MISSING_PHOTOS', 'INCOMPLETE_TASKS']
+  issues?: string[]; // e.g., ['LATE', 'MISSING_PHOTOS', 'EARLY_LEAVE']
 }
 
 export interface TimeEvent {
@@ -78,7 +81,7 @@ export interface TimeReviewRequest {
   status: RequestStatus;
   createdAt: string; // ISO
   adminNote?: string;
-  cleanerName?: string; // Denormalized
+  cleanerName?: string;
 }
 
 export interface Notification {

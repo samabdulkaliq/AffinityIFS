@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { repository } from "../lib/repository";
 import { 
@@ -9,26 +9,17 @@ import {
   AlertTriangle, 
   Camera, 
   Package, 
-  Activity as ActivityIcon, 
   ChevronRight, 
   MapPin,
   Users,
-  CheckCircle2,
-  Zap,
-  PlusCircle,
-  CalendarPlus,
-  FileBarChart,
   Coffee,
   Sparkles,
   Building2,
-  Clock,
-  Search,
-  Plus,
-  ArrowRight,
   UserPlus,
   CalendarDays,
   FileText,
-  Briefcase
+  Clock,
+  CheckCircle2
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -56,10 +47,10 @@ export default function AdminDashboard() {
   const [newWorker, setNewWorker] = useState({ name: '', email: '', type: 'EMPLOYEE' as const });
   const [newShift, setNewShift] = useState({ siteId: '', userId: '', startTime: '', endTime: '' });
 
-  const pendingRequests = repository.getReviewRequests().filter(r => r.status === 'PENDING');
   const expiredCerts = repository.getWorkersWithExpiredCerts();
   const allShifts = repository.shifts;
   const activeShifts = allShifts.filter(s => s.status === 'IN_PROGRESS');
+  const shiftsNeedingReview = allShifts.filter(s => s.status === 'COMPLETED' && s.reviewStatus === 'NEEDS_REVIEW');
 
   const metrics = useMemo(() => {
     const activeStaffCount = new Set(activeShifts.map(s => s.userId)).size;
@@ -103,6 +94,7 @@ export default function AdminDashboard() {
       status: 'ACTIVE',
       points: 1000,
       avatarUrl: `https://picsum.photos/seed/${newWorker.name}/100/100`,
+      createdAt: new Date().toISOString(),
       certifications: [{ id: 'c1', name: 'Standard Training', status: 'VALID', expiryDate: '2025-12-01' }]
     });
     setRefreshKey(prev => prev + 1);
@@ -125,6 +117,7 @@ export default function AdminDashboard() {
       scheduledStart: new Date().toISOString(),
       scheduledEnd: new Date(Date.now() + 8 * 3600000).toISOString(),
       status: 'SCHEDULED',
+      reviewStatus: 'NEEDS_REVIEW',
       tasks: [
         { id: 't1', label: 'Entrance Cleaning', completed: false },
         { id: 't2', label: 'Restroom Sanitization', completed: false }
@@ -141,8 +134,8 @@ export default function AdminDashboard() {
     <div className="space-y-8 animate-in fade-in duration-700 pb-28">
       <div className="flex justify-between items-end px-1">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Operations Dashboard</h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Live Field Command</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Control Center</h1>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Today's Summary</p>
         </div>
         <div className="flex items-center gap-2">
            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -151,10 +144,30 @@ export default function AdminDashboard() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Certification & Payroll Alerts</h3>
         <div className="grid grid-cols-1 gap-3">
-          {expiredCerts.length > 0 && (
+          {shiftsNeedingReview.length > 0 && (
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+              <Link href="/admin/time-review">
+                <Card className="border-none bg-blue-50 hover:bg-blue-100 transition-colors rounded-[2rem] overflow-hidden group border border-blue-100/50 shadow-sm">
+                  <CardContent className="p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
+                        <Clock className="w-6 h-6 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-blue-600/60 uppercase tracking-widest">Payroll Action</p>
+                        <p className="text-sm font-black text-blue-900">{shiftsNeedingReview.length} Shifts Need Review</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-blue-300 group-hover:translate-x-1 transition-all" />
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
+          )}
+
+          {expiredCerts.length > 0 && (
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }}>
               <Link href="/admin/workers?filter=EXPIRED">
                 <Card className="border-none bg-red-50 hover:bg-red-100 transition-colors rounded-[2rem] overflow-hidden group border border-red-100/50 shadow-sm">
                   <CardContent className="p-5 flex items-center justify-between">
@@ -163,8 +176,8 @@ export default function AdminDashboard() {
                         <Shield className="w-6 h-6 text-red-500" />
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-red-600/60 uppercase tracking-widest">Certification Alert</p>
-                        <p className="text-sm font-black text-red-900">{expiredCerts.length} Staff Certifications Expired</p>
+                        <p className="text-[10px] font-black text-red-600/60 uppercase tracking-widest">Compliance Alert</p>
+                        <p className="text-sm font-black text-red-900">{expiredCerts.length} Expired Certifications</p>
                       </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-red-300 group-hover:translate-x-1 transition-all" />
@@ -173,27 +186,6 @@ export default function AdminDashboard() {
               </Link>
             </motion.div>
           )}
-
-          {metrics.issuesDetected > 0 && (
-             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }}>
-                <Link href="/admin/approvals">
-                  <Card className="border-none bg-amber-50 hover:bg-amber-100 transition-colors rounded-[2rem] overflow-hidden group border border-amber-100/50 shadow-sm">
-                    <CardContent className="p-5 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
-                          <AlertTriangle className="w-6 h-6 text-amber-500" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-black text-amber-600/60 uppercase tracking-widest">Payroll Exceptions</p>
-                          <p className="text-sm font-black text-amber-900">{metrics.issuesDetected} Site Exceptions Detected</p>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-amber-300 group-hover:translate-x-1 transition-all" />
-                    </CardContent>
-                  </Card>
-                </Link>
-             </motion.div>
-          )}
         </div>
       </div>
 
@@ -201,13 +193,13 @@ export default function AdminDashboard() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] -mr-32 -mt-32" />
         <CardContent className="p-8 space-y-8 relative z-10">
           <div>
-            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Operations Snapshot</p>
+            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Snapshot</p>
             <h3 className="text-white text-2xl font-black mt-1">Live Performance</h3>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             {[
-              { label: "Members Active", value: metrics.activeStaffCount, icon: Users, color: "text-blue-400" },
+              { label: "Staff Active", value: metrics.activeStaffCount, icon: Users, color: "text-blue-400" },
               { label: "Sites Running", value: metrics.activeSitesCount, icon: Building2, color: "text-emerald-400" },
               { label: "On Break", value: metrics.workersOnBreak, icon: Coffee, color: "text-amber-400" },
               { label: "Issues", value: metrics.issuesDetected, icon: AlertTriangle, color: "text-red-400" },
@@ -230,7 +222,7 @@ export default function AdminDashboard() {
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <p className="text-xs font-black text-white uppercase tracking-widest">AI Operations Assistant</p>
+              <p className="text-xs font-black text-white uppercase tracking-widest">AI Insights</p>
             </div>
             <div className="space-y-3">
               {aiInsights.map((insight, i) => (
@@ -245,41 +237,6 @@ export default function AdminDashboard() {
       </div>
 
       <div className="space-y-4">
-        <div className="flex justify-between items-center px-2">
-          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Site Activity Pulse</h3>
-          <Link href="/admin/feed">
-            <Badge variant="outline" className="border-slate-200 text-slate-400 font-black cursor-pointer hover:bg-slate-100">VIEW ALL</Badge>
-          </Link>
-        </div>
-        <div className="space-y-3">
-          {repository.sites.slice(0, 3).map((site) => {
-            const siteActiveStaff = repository.shifts.filter(s => s.siteId === site.id && s.status === 'IN_PROGRESS').length;
-            return (
-              <Link key={site.id} href="/admin/feed">
-                <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-[1.8rem] bg-white overflow-hidden group">
-                  <CardContent className="p-5 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
-                        <MapPin className="w-6 h-6 text-slate-400 group-hover:text-blue-500" />
-                      </div>
-                      <div>
-                        <h4 className="font-black text-slate-900 text-sm">{site.name}</h4>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Users className="w-3 h-3 text-blue-500" />
-                          <span className="text-[10px] font-bold text-slate-400 uppercase">{siteActiveStaff} Workers On Site</span>
-                        </div>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-blue-500" />
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="space-y-4">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Workforce Management</h3>
         <div className="grid grid-cols-2 gap-3 px-1">
           <button 
@@ -287,14 +244,14 @@ export default function AdminDashboard() {
             className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95"
           >
             <UserPlus className="w-6 h-6 text-blue-600 mb-2" />
-            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Add Member</span>
+            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Register Staff</span>
           </button>
           <button 
             onClick={() => handleQuickAction('SCHEDULE')}
             className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95"
           >
             <CalendarDays className="w-6 h-6 text-indigo-600 mb-2" />
-            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Schedule</span>
+            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Schedule Shift</span>
           </button>
           <button 
             onClick={() => handleQuickAction('REPORT')}
@@ -318,10 +275,10 @@ export default function AdminDashboard() {
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg">
                   <UserPlus className="w-5 h-5 text-white" />
                 </div>
-                <DialogTitle className="text-2xl font-black text-white">Register Member</DialogTitle>
+                <DialogTitle className="text-2xl font-black text-white">Register Staff</DialogTitle>
               </div>
               <DialogDescription className="text-blue-100 font-medium text-sm">
-                Add a new field worker to your operational roster.
+                Add a new team member to the system.
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -340,7 +297,7 @@ export default function AdminDashboard() {
               <Input 
                 value={newWorker.email}
                 onChange={(e) => setNewWorker({ ...newWorker, email: e.target.value })}
-                placeholder="maria@affinity.com" 
+                placeholder="maria@gmail.com" 
                 className="h-12 rounded-xl border-slate-100 bg-slate-50 focus-visible:ring-blue-600 font-bold" 
               />
             </div>
@@ -373,10 +330,10 @@ export default function AdminDashboard() {
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg">
                   <CalendarDays className="w-5 h-5 text-white" />
                 </div>
-                <DialogTitle className="text-2xl font-black text-white">Assign Shift</DialogTitle>
+                <DialogTitle className="text-2xl font-black text-white">Schedule Shift</DialogTitle>
               </div>
               <DialogDescription className="text-indigo-100 font-medium text-sm">
-                Deploy staff to a specific site and time slot.
+                Assign a site and time slot to a staff member.
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -395,10 +352,10 @@ export default function AdminDashboard() {
                 </Select>
              </div>
              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Assign Worker</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Assign Staff</Label>
                 <Select onValueChange={(val) => setNewShift({ ...newShift, userId: val })}>
                   <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-100 font-bold">
-                    <SelectValue placeholder="Search staff" />
+                    <SelectValue placeholder="Search team" />
                   </SelectTrigger>
                   <SelectContent>
                     {repository.users.filter(u => u.role === 'CLEANER').map(u => (
@@ -432,12 +389,12 @@ export default function AdminDashboard() {
             <DialogHeader className="text-left space-y-2">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg">
-                  <FileBarChart className="w-5 h-5 text-white" />
+                  <FileText className="w-5 h-5 text-white" />
                 </div>
                 <DialogTitle className="text-2xl font-black text-white">Operational Reports</DialogTitle>
               </div>
               <DialogDescription className="text-emerald-100 font-medium text-sm">
-                Generate data exports for payroll and site audits.
+                Generate payroll and performance exports.
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -446,38 +403,28 @@ export default function AdminDashboard() {
                 <div onClick={() => { setActiveModal(null); toast({ title: "Processing Payroll Export 📊", description: "CSV file is being generated." }); }} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
-                        <p className="text-base font-black text-slate-800">Payroll Hours Export</p>
-                        <p className="text-[10px] text-slate-400 font-bold mt-1">CSV Format • Includes break deductions</p>
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Payroll</p>
+                        <p className="text-base font-black text-slate-800">Paid Hours Export</p>
+                        <p className="text-[10px] text-slate-400 font-bold mt-1">Includes break deductions</p>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+                      <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
                     </div>
                 </div>
-                <div onClick={() => { setActiveModal(null); toast({ title: "Generating Audit PDF 📊", description: "A summary will be sent to your email." }); }} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
+                <div onClick={() => { setActiveModal(null); toast({ title: "Generating Audit PDF 📊", description: "Performance summary is ready." }); }} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
                     <div className="flex justify-between items-center">
                       <div>
-                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Performance</p>
                         <p className="text-base font-black text-slate-800">Site Performance Audit</p>
-                        <p className="text-[10px] text-slate-400 font-bold mt-1">PDF Format • Photos and task logs</p>
+                        <p className="text-[10px] text-slate-400 font-bold mt-1">Task completion & photos</p>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
-                    </div>
-                </div>
-                <div onClick={() => { setActiveModal(null); toast({ title: "Incident Summary 📊", description: "Filtering recent field reports." }); }} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
-                        <p className="text-base font-black text-slate-800">Incident & Supply Alerts</p>
-                        <p className="text-[10px] text-slate-400 font-bold mt-1">Summary of field issues</p>
-                      </div>
-                      <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+                      <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
                     </div>
                 </div>
              </div>
           </div>
           <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100">
              <div className="w-full text-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                Select a report type to begin
+                Select a report to begin download
              </div>
           </DialogFooter>
         </DialogContent>

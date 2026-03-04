@@ -1,3 +1,4 @@
+
 import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger, UserCertification } from './models';
 
 class MockRepository {
@@ -15,21 +16,20 @@ class MockRepository {
 
   private seed() {
     // 1. ADMINS
-    for (let i = 1; i <= 3; i++) {
-      this.users.push({
-        id: `admin-${i}`,
-        name: i === 1 ? "Abraham Wellman" : `Admin User ${i}`,
-        email: i === 1 ? "abraham@affinity.com" : `admin${i}@affinity.com`,
-        role: 'ADMIN',
-        workerType: 'EMPLOYEE',
-        phone: `416-555-010${i}`,
-        status: 'ACTIVE',
-        points: 0,
-        avatarUrl: `https://picsum.photos/seed/admin${i}/100/100`,
-      });
-    }
+    this.users.push({
+      id: "admin-1",
+      name: "Abraham Wellman",
+      email: "abraham@affinity.com",
+      role: 'ADMIN',
+      workerType: 'EMPLOYEE',
+      phone: "416-555-0101",
+      status: 'ACTIVE',
+      points: 0,
+      avatarUrl: `https://picsum.photos/seed/abraham/100/100`,
+      createdAt: new Date().toISOString(),
+    });
 
-    // 2. CLEANERS
+    // 2. TEAM MEMBERS
     const names = [
       "Alex Rivera", "Jordan Smith", "Sam Taylor", "Casey Jones", "Taylor Reed",
       "Morgan Lee", "Riley Vance", "Quinn Brooks", "Avery Lane", "Parker Gray"
@@ -37,59 +37,35 @@ class MockRepository {
 
     for (let i = 1; i <= 10; i++) {
       const cleanerId = i;
-      
       const userCerts: UserCertification[] = [
         { 
           id: `cert-${cleanerId}-1`, 
-          name: "WHMIS Training", 
+          name: "Safety Training", 
           status: i === 2 ? 'EXPIRED' : (i === 4 ? 'EXPIRING' : 'VALID'), 
           expiryDate: i === 2 ? '2024-01-15' : (i === 4 ? '2024-04-10' : '2025-06-30') 
-        },
-        { 
-          id: `cert-${cleanerId}-2`, 
-          name: "Site Safety", 
-          status: i % 3 === 0 ? 'EXPIRING' : 'VALID', 
-          expiryDate: i % 3 === 0 ? '2024-04-01' : '2026-02-20' 
         }
       ];
 
       this.users.push({
         id: `cleaner-${cleanerId}`,
-        name: names[i-1] || `Cleaner ${cleanerId}`,
-        email: `cleaner${cleanerId}@affinity.com`,
+        name: names[i-1] || `Team Member ${cleanerId}`,
+        email: `member${cleanerId}@gmail.com`,
         role: 'CLEANER',
         workerType: i % 4 === 0 ? 'CONTRACT' : 'EMPLOYEE',
         phone: `647-555-${1000 + i}`,
         status: 'ACTIVE',
         points: 1200 + (i * 150),
-        avatarUrl: `https://picsum.photos/seed/cleaner${i}/100/100`,
+        avatarUrl: `https://picsum.photos/seed/member${i}/100/100`,
+        createdAt: new Date().toISOString(),
         certifications: userCerts
       });
     }
-
-    // Sam Tester for production testing
-    this.users.push({
-      id: "cleaner-sam",
-      name: "Sam Tester",
-      email: "sam@affinity.com",
-      role: 'CLEANER',
-      workerType: 'EMPLOYEE',
-      phone: "416-555-9999",
-      status: 'ACTIVE',
-      points: 2500,
-      avatarUrl: "https://picsum.photos/seed/samtester/100/100",
-      certifications: [
-        { id: "cert-sam-1", name: "WHMIS Training", status: 'VALID', expiryDate: '2025-12-31' },
-        { id: "cert-sam-2", name: "Site Rules", status: 'VALID', expiryDate: '2025-08-15' }
-      ]
-    });
 
     // 3. SITES
     const siteData = [
       { id: "site-1", name: "Metro Hub", addr: "100 Front St W, Toronto" },
       { id: "site-2", name: "Crystal Plaza", addr: "290 Bremner Blvd, Toronto" },
-      { id: "site-3", name: "Bay Street Financial", addr: "161 Bay St, Toronto" },
-      { id: "site-4", name: "Yorkville Tech Center", addr: "1240 Bay St, Toronto" }
+      { id: "site-3", name: "Bay Street Financial", addr: "161 Bay St, Toronto" }
     ];
     siteData.forEach((s) => {
       this.sites.push({
@@ -103,95 +79,66 @@ class MockRepository {
 
     const now = new Date();
     
-    // --- SHIFT SCENARIOS FOR ALEX RIVERA ---
-    const todayAt9 = new Date(now); todayAt9.setHours(9, 0, 0, 0);
-    const todayAt17 = new Date(now); todayAt17.setHours(17, 0, 0, 0);
+    // 4. SHIFTS FOR REVIEW
+    const today = new Date(now);
+    const todayStart = new Date(today.setHours(8, 0, 0, 0));
+    const todayEnd = new Date(today.setHours(16, 0, 0, 0));
 
     this.shifts.push({
-        id: "shift-alex-today",
+        id: "shift-review-1",
         userId: "cleaner-1",
         siteId: "site-1",
         siteName: "Metro Hub",
-        scheduledStart: todayAt9.toISOString(),
-        scheduledEnd: todayAt17.toISOString(),
-        status: "IN_PROGRESS",
+        scheduledStart: todayStart.toISOString(),
+        scheduledEnd: todayEnd.toISOString(),
+        status: "COMPLETED",
+        reviewStatus: "NEEDS_REVIEW",
         photosRequired: 5,
-        photosUploaded: 2,
-        inventoryChecked: false,
+        photosUploaded: 5,
+        inventoryChecked: true,
         tasks: [
-          { id: 't1', label: 'Wipe Entrance Tables', completed: true },
-          { id: 't2', label: 'Refill Washroom Soap', completed: false }
+          { id: 't1', label: 'Wipe Entrance', completed: true },
+          { id: 't2', label: 'Refill Soap', completed: true }
         ]
     });
 
-    // --- PAST SHIFTS (HISTORY) ---
-    const yesterdayStart = new Date(now); yesterdayStart.setDate(now.getDate() - 1); yesterdayStart.setHours(8, 0, 0, 0);
-    const yesterdayEnd = new Date(now); yesterdayEnd.setDate(now.getDate() - 1); yesterdayEnd.setHours(16, 0, 0, 0);
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const yestStart = new Date(yesterday.setHours(9, 0, 0, 0));
+    const yestEnd = new Date(yesterday.setHours(18, 0, 0, 0)); // 9 hours, requires break
+
     this.shifts.push({
-      id: "shift-past-1",
-      userId: "cleaner-1",
-      siteId: "site-2",
-      siteName: "Crystal Plaza",
-      scheduledStart: yesterdayStart.toISOString(),
-      scheduledEnd: yesterdayEnd.toISOString(),
-      status: "COMPLETED",
-      photosRequired: 5,
-      photosUploaded: 5,
-      inventoryChecked: true,
-      tasks: [{ id: 'pt1', label: 'Floor Polishing', completed: true }],
+        id: "shift-review-2",
+        userId: "cleaner-2",
+        siteId: "site-2",
+        siteName: "Crystal Plaza",
+        scheduledStart: yestStart.toISOString(),
+        scheduledEnd: yestEnd.toISOString(),
+        status: "COMPLETED",
+        reviewStatus: "FLAGGED",
+        issues: ["MISSING_PHOTOS", "LATE_ARRIVAL"],
+        photosRequired: 5,
+        photosUploaded: 2,
+        inventoryChecked: true,
+        tasks: [
+          { id: 't1', label: 'Floor Polishing', completed: true }
+        ]
     });
 
-    const lastWeekStart = new Date(now); lastWeekStart.setDate(now.getDate() - 7); lastWeekStart.setHours(20, 0, 0, 0);
-    const lastWeekEnd = new Date(now); lastWeekEnd.setDate(now.getDate() - 7); lastWeekEnd.setHours(4, 0, 0, 0); lastWeekEnd.setDate(lastWeekEnd.getDate() + 1);
     this.shifts.push({
-      id: "shift-past-2",
-      userId: "cleaner-1",
-      siteId: "site-4",
-      siteName: "Yorkville Tech",
-      scheduledStart: lastWeekStart.toISOString(),
-      scheduledEnd: lastWeekEnd.toISOString(),
-      status: "COMPLETED",
-      photosRequired: 5,
-      photosUploaded: 3,
-      inventoryChecked: true,
-      issues: ['MISSING_PHOTOS'],
-      tasks: [{ id: 'pt2', label: 'Garbage Disposal', completed: true }],
+        id: "shift-review-3",
+        userId: "cleaner-3",
+        siteId: "site-3",
+        siteName: "Bay Street Financial",
+        scheduledStart: yestStart.toISOString(),
+        scheduledEnd: yestEnd.toISOString(),
+        status: "COMPLETED",
+        reviewStatus: "APPROVED",
+        photosRequired: 5,
+        photosUploaded: 5,
+        inventoryChecked: true,
+        tasks: [{ id: 't1', label: 'Desk Sanitization', completed: true }]
     });
-
-    // --- SHIFT SCENARIOS FOR SAM ---
-    const samTodayStart = new Date(now); samTodayStart.setHours(10, 0, 0, 0);
-    const samTodayEnd = new Date(now); samTodayEnd.setHours(18, 0, 0, 0);
-    this.shifts.push({
-      id: "shift-sam-today",
-      userId: "cleaner-sam",
-      siteId: "site-3",
-      siteName: "Bay Street Financial",
-      scheduledStart: samTodayStart.toISOString(),
-      scheduledEnd: samTodayEnd.toISOString(),
-      status: "SCHEDULED",
-      photosRequired: 5,
-      photosUploaded: 0,
-      inventoryChecked: false,
-      tasks: [
-        { id: 's1', label: 'Mop Entrance Hall', completed: false },
-        { id: 's2', label: 'Refill Hand Towels', completed: false },
-        { id: 's3', label: 'Clean Desk Surfaces', completed: false }
-      ]
-    });
-
-    // --- NOTIFICATIONS ---
-    this.notifications.push(
-      {
-        id: `n-cleaner-1-1`,
-        userId: "cleaner-1",
-        role: 'CLEANER',
-        category: 'TIME',
-        title: 'Work Started',
-        body: 'You arrived at Metro Hub. Your work time has started.',
-        createdAt: new Date(now.getTime() - 15 * 60000).toISOString(),
-        read: true
-      }
-    );
   }
 
   getUser(id: string) { return this.users.find(u => u.id === id); }
@@ -201,7 +148,6 @@ class MockRepository {
   getReviewRequests() { return this.reviewRequests; }
   getEventsForShift(shiftId: string) { return this.timeEvents.filter(e => e.shiftId === shiftId); }
   getAllEvents() { return [...this.timeEvents].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); }
-  getRewardsForUser(userId: string) { return this.rewards.filter(r => r.userId === userId); }
   getNotificationsForUser(userId: string) { return this.notifications.filter(n => n.userId === userId); }
   
   getWorkersWithExpiredCerts() {
@@ -222,19 +168,6 @@ class MockRepository {
   addShift(shift: Shift) {
     this.shifts.push(shift);
     return shift;
-  }
-
-  updateReviewRequest(id: string, updates: Partial<TimeReviewRequest>) {
-    const idx = this.reviewRequests.findIndex(r => r.id === id);
-    if (idx !== -1) this.reviewRequests[idx] = { ...this.reviewRequests[idx], ...updates };
-  }
-
-  updateShiftTasks(shiftId: string, taskId: string) {
-    const shift = this.shifts.find(s => s.id === shiftId);
-    if (shift && shift.tasks) {
-      const task = shift.tasks.find(t => t.id === taskId);
-      if (task) task.completed = !task.completed;
-    }
   }
 
   updateShiftStatus(id: string, status: Shift['status']) {
