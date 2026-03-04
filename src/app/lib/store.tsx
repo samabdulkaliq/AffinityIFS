@@ -1,15 +1,14 @@
-
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole, WorkerType } from './models';
+import React, { createContext, useContext, useState } from 'react';
+import { User, UserRole } from './models';
 import { repository } from './repository';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password?: string) => Promise<boolean>;
-  signup: (name: string, email: string, password?: string) => Promise<boolean>;
+  signup: (name: string, email: string, role: UserRole, password?: string) => Promise<boolean>;
   logout: () => void;
   isMockMode: boolean;
   setMockMode: (mode: boolean) => void;
@@ -25,7 +24,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (loginIdentifier: string, password?: string) => {
     const identifier = loginIdentifier.trim().toLowerCase();
     
-    // Check against email or name
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     const mockUser = repository.users.find(u => 
       u.email.toLowerCase() === identifier || 
       u.name.toLowerCase() === identifier
@@ -39,29 +40,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return false;
   };
 
-  const signup = async (name: string, email: string, password?: string) => {
-    // Check if user already exists
+  const signup = async (name: string, email: string, role: UserRole, password?: string) => {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
     const existing = repository.users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (existing) return false;
 
     const newUser: User = {
-      id: `cleaner-${Math.random().toString(36).substring(2, 9)}`,
+      id: `${role.toLowerCase()}-${Math.random().toString(36).substring(2, 9)}`,
       name,
       email: email.toLowerCase(),
-      role: 'CLEANER',
+      role: role,
       workerType: 'EMPLOYEE',
       phone: "Not Provided",
       status: 'ACTIVE',
-      points: 500, // Welcome points
+      points: 500,
       avatarUrl: `https://picsum.photos/seed/${name}/100/100`,
+      createdAt: new Date().toISOString(),
       certifications: [
-        { id: 'c-new-1', name: 'Basic Safety', status: 'VALID', expiryDate: '2025-12-31' }
+        { id: `c-${Math.random()}`, name: 'Basic Safety', status: 'VALID', expiryDate: '2025-12-31' }
       ]
     };
 
     repository.addUser(newUser);
     setUser(newUser);
-    router.push('/cleaner');
+    router.push(role === 'ADMIN' ? '/admin' : '/cleaner');
     return true;
   };
 

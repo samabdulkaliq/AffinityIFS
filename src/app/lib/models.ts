@@ -25,6 +25,7 @@ export interface User {
   status: 'ACTIVE' | 'INACTIVE';
   points: number;
   avatarUrl: string;
+  createdAt: string; // Added for production tracking
   certifications?: UserCertification[];
 }
 

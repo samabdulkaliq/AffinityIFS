@@ -1,19 +1,19 @@
-
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "./lib/store";
-import { Mail, Lock, Loader2, User as UserIcon, Sparkles, ArrowRight } from "lucide-react";
+import { Mail, Lock, Loader2, User as UserIcon, Sparkles, ArrowRight, ChevronLeft, Check } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "./lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { UserRole } from "./lib/models";
 
 type FlowStep = "SPLASH" | "AUTH";
-type AuthMode = "LOGIN" | "SIGNUP";
+type AuthMode = "LOGIN" | "SIGNUP" | "FORGOT_PASSWORD";
 
 export default function AppEntryFlow() {
   const { login, signup } = useAuth();
@@ -27,6 +27,8 @@ export default function AppEntryFlow() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState<UserRole>("CLEANER");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -39,33 +41,42 @@ export default function AppEntryFlow() {
     ? PlaceHolderImages.find(img => img.id === 'brand-logo') 
     : null;
 
+  const isEmailValid = useMemo(() => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }, [email]);
+
+  const isFormValid = useMemo(() => {
+    if (mode === "LOGIN") return isEmailValid && password.length >= 1;
+    if (mode === "SIGNUP") return name.length >= 2 && isEmailValid && password.length >= 8 && password === confirmPassword;
+    if (mode === "FORGOT_PASSWORD") return isEmailValid;
+    return false;
+  }, [mode, name, email, password, confirmPassword, isEmailValid]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) return;
     
+    setIsLoading(true);
+
     if (mode === "LOGIN") {
-      if (!email || !password) {
-        toast({ variant: "destructive", title: "Missing Information", description: "Please enter your email and password." });
-        return;
-      }
-      setIsLoading(true);
       const success = await login(email, password);
       if (!success) {
         setIsLoading(false);
         toast({ variant: "destructive", title: "Access Denied", description: "Invalid email or password. Please check your credentials." });
       }
-    } else {
-      if (!name || !email || !password) {
-        toast({ variant: "destructive", title: "Incomplete Form", description: "Please fill in all fields to create your account." });
-        return;
-      }
-      setIsLoading(true);
-      const success = await signup(name, email, password);
+    } else if (mode === "SIGNUP") {
+      const success = await signup(name, email, role, password);
       if (!success) {
         setIsLoading(false);
         toast({ variant: "destructive", title: "Account Exists", description: "An account with this email already exists." });
       } else {
-        toast({ title: "Welcome! 🎉", description: "Your account has been created successfully." });
+        toast({ title: "Welcome! ✨", description: "Your account has been created successfully." });
       }
+    } else if (mode === "FORGOT_PASSWORD") {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setIsLoading(false);
+      toast({ title: "Reset link sent ✅", description: "Check your email for the reset link." });
+      setMode("LOGIN");
     }
   };
 
@@ -101,7 +112,7 @@ export default function AppEntryFlow() {
               )}
             </motion.div>
             <div className="text-center space-y-2">
-              <h1 className="text-5xl font-black tracking-tighter text-slate-900">AFFINITY</h1>
+              <h1 className="text-5xl font-black tracking-tighter text-slate-900 uppercase">Affinity</h1>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] ml-1">Workforce Platform</p>
             </div>
           </motion.div>
@@ -112,102 +123,187 @@ export default function AppEntryFlow() {
             key="auth"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-sm px-8 space-y-8"
+            className="w-full max-w-sm px-8 space-y-8 overflow-y-auto max-h-[90vh] pb-10 scrollbar-hide"
           >
             <div className="space-y-2 text-center">
-              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                 <Sparkles className="w-8 h-8 text-blue-600" />
-              </div>
+              {mode !== "FORGOT_PASSWORD" && (
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                   <Sparkles className="w-8 h-8 text-blue-600" />
+                </div>
+              )}
+              
               <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                {mode === "LOGIN" ? "Welcome Back" : "Join the Team"}
+                {mode === "LOGIN" ? "Welcome back 👋" : mode === "SIGNUP" ? "Let's get you set up ✨" : "Reset password"}
               </h2>
               <p className="text-sm text-slate-500 font-medium">
-                {mode === "LOGIN" ? "Sign in to access your dashboard" : "Register as a cleaner to start working"}
+                {mode === "LOGIN" ? "Sign in to access your dashboard" : mode === "SIGNUP" ? "Create your account to start working" : "Enter your email to receive a reset link"}
               </p>
             </div>
 
-            <div className="flex p-1 bg-slate-100 rounded-2xl">
-              <button 
-                onClick={() => setMode("LOGIN")}
-                className={cn(
-                  "flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
-                  mode === "LOGIN" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
-                )}
-              >
-                Log In
-              </button>
-              <button 
-                onClick={() => setMode("SIGNUP")}
-                className={cn(
-                  "flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
-                  mode === "SIGNUP" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
-                )}
-              >
-                Sign Up
-              </button>
-            </div>
+            {mode !== "FORGOT_PASSWORD" && (
+              <div className="flex p-1 bg-slate-100 rounded-2xl">
+                <button 
+                  onClick={() => setMode("LOGIN")}
+                  className={cn(
+                    "flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
+                    mode === "LOGIN" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  Log In
+                </button>
+                <button 
+                  onClick={() => setMode("SIGNUP")}
+                  className={cn(
+                    "flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all",
+                    mode === "SIGNUP" ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  Sign Up
+                </button>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <AnimatePresence mode="wait">
-                <motion.div 
-                  key={mode}
-                  initial={{ opacity: 0, x: mode === "LOGIN" ? -10 : 10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: mode === "LOGIN" ? 10 : -10 }}
-                  className="space-y-4"
-                >
-                  {mode === "SIGNUP" && (
+              <div className="space-y-4">
+                {mode === "SIGNUP" && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Full name</label>
                     <div className="relative group">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors">
-                        <UserIcon className="w-5 h-5" />
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors z-10">
+                        <UserIcon className="w-4 h-4" />
                       </div>
                       <Input 
                         type="text" 
-                        placeholder="Full Name"
+                        placeholder="e.g. Maria Thompson"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus-visible:ring-blue-600 font-bold"
                       />
                     </div>
-                  )}
+                  </div>
+                )}
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Email</label>
                   <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors">
-                      <Mail className="w-5 h-5" />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors z-10">
+                      <Mail className="w-4 h-4" />
                     </div>
                     <Input 
                       type="email" 
-                      placeholder="Email Address"
+                      placeholder="name@gmail.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus-visible:ring-blue-600 font-bold"
                     />
                   </div>
-                  <div className="relative group">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors">
-                      <Lock className="w-5 h-5" />
+                  <p className="text-[9px] text-slate-400 px-1 font-medium">Use your personal email (ex: name@gmail.com)</p>
+                </div>
+
+                {mode !== "FORGOT_PASSWORD" && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Password</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors z-10">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                      <Input 
+                        type="password" 
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        showToggle
+                        className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus-visible:ring-blue-600 font-bold"
+                      />
                     </div>
-                    <Input 
-                      type="password" 
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus-visible:ring-blue-600 font-bold"
-                    />
+                    {mode === "SIGNUP" && (
+                      <p className="text-[9px] text-slate-400 px-1 font-medium">Must be at least 8 characters</p>
+                    )}
                   </div>
-                </motion.div>
-              </AnimatePresence>
+                )}
+
+                {mode === "SIGNUP" && (
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Confirm password</label>
+                    <div className="relative group">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors z-10">
+                        <Check className="w-4 h-4" />
+                      </div>
+                      <Input 
+                        type="password" 
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        showToggle
+                        className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus-visible:ring-blue-600 font-bold"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {mode === "SIGNUP" && (
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Work role</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        type="button"
+                        onClick={() => setRole("CLEANER")}
+                        className={cn(
+                          "h-12 rounded-xl border-2 transition-all flex items-center justify-center font-black text-[10px] uppercase tracking-widest",
+                          role === "CLEANER" ? "bg-blue-600 border-blue-600 text-white shadow-lg" : "bg-white border-slate-100 text-slate-400"
+                        )}
+                      >
+                        Cleaner
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setRole("ADMIN")}
+                        className={cn(
+                          "h-12 rounded-xl border-2 transition-all flex items-center justify-center font-black text-[10px] uppercase tracking-widest",
+                          role === "ADMIN" ? "bg-blue-600 border-blue-600 text-white shadow-lg" : "bg-white border-slate-100 text-slate-400"
+                        )}
+                      >
+                        Admin
+                      </button>
+                    </div>
+                    <p className="text-[9px] text-slate-400 text-center font-medium italic">Admins can be approved later.</p>
+                  </div>
+                )}
+              </div>
+
+              {mode === "LOGIN" && (
+                <div className="flex justify-end">
+                  <button 
+                    type="button" 
+                    onClick={() => setMode("FORGOT_PASSWORD")}
+                    className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+              )}
 
               <Button 
                 type="submit" 
-                disabled={isLoading}
-                className="w-full h-16 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl shadow-xl shadow-slate-200 font-black uppercase text-xs tracking-widest transition-all active:scale-95 mt-4"
+                disabled={isLoading || !isFormValid}
+                className="w-full h-16 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl shadow-xl shadow-slate-200 font-black uppercase text-xs tracking-widest transition-all active:scale-95 mt-4 disabled:opacity-50"
               >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : mode === "LOGIN" ? "Sign In" : "Create Account"}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : mode === "LOGIN" ? "Sign in" : mode === "SIGNUP" ? "Create account" : "Send reset link"}
                 {!isLoading && <ArrowRight className="w-4 h-4 ml-2" />}
               </Button>
+
+              {mode === "FORGOT_PASSWORD" && (
+                <button 
+                  type="button"
+                  onClick={() => setMode("LOGIN")}
+                  className="w-full flex items-center justify-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-600"
+                >
+                  <ChevronLeft className="w-3 h-3" /> Back to sign in
+                </button>
+              )}
             </form>
 
-            <div className="text-center">
+            <div className="text-center pt-2">
               <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
                 Secure Enterprise Infrastructure 🔒
               </p>
