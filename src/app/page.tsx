@@ -98,13 +98,19 @@ export default function AppEntryFlow() {
   };
 
   const aiMessage = useMemo(() => {
-    if (isSuccess) return "Great! Your account is ready. Your manager will assign your first work site.";
+    if (isSuccess) return "Great! Your account is ready. Your manager will assign your first work site soon.";
+    
     if (mode === "SIGNUP") {
       if (!name) return "Welcome! I’ll help you get set up in less than a minute.";
-      if (!email) return "Use your personal email to create your team account.";
-      if (password.length < 8) return "Make sure your password is at least 8 characters long.";
-      return "You're almost finished! Just one more step.";
+      if (!email) return "Use your personal email to create your new team account.";
+      if (password.length < 8) return "Almost done! Choose a password with at least 8 characters.";
+      return "You're all set! Just click create account to finish.";
     }
+    
+    if (mode === "FORGOT_PASSWORD") {
+      return "No problem! Enter your email and I'll send you a recovery link.";
+    }
+
     return "Welcome back! Sign in to access your team dashboard.";
   }, [mode, name, email, password, isSuccess]);
 
