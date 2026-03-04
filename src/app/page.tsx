@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "./lib/store";
-import { Mail, Lock, Loader2, User as UserIcon, Sparkles, ArrowRight, ChevronLeft, Check, Brain, Bot, CheckCircle2 } from "lucide-react";
+import { Mail, Lock, Loader2, User as UserIcon, Sparkles, ArrowRight, ChevronLeft, Check, Bot } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "./lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
@@ -26,7 +26,8 @@ export default function AppEntryFlow() {
 
   // Form States
   const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -63,10 +64,10 @@ export default function AppEntryFlow() {
   const isFormValid = useMemo(() => {
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (mode === "LOGIN") return isEmailValid && password.length >= 1;
-    if (mode === "SIGNUP") return name.length >= 2 && isEmailValid && password.length >= 8 && password === confirmPassword;
+    if (mode === "SIGNUP") return firstName.length >= 2 && lastName.length >= 2 && isEmailValid && password.length >= 8 && password === confirmPassword;
     if (mode === "FORGOT_PASSWORD") return isEmailValid;
     return false;
-  }, [mode, name, email, password, confirmPassword]);
+  }, [mode, firstName, lastName, email, password, confirmPassword]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +82,8 @@ export default function AppEntryFlow() {
         toast({ variant: "destructive", title: "Access Denied", description: "Invalid email or password." });
       }
     } else if (mode === "SIGNUP") {
-      const success = await signup(name, email, "CLEANER", password);
+      const fullName = `${firstName} ${lastName}`.trim();
+      const success = await signup(fullName, email, "CLEANER", password);
       if (!success) {
         setIsLoading(false);
         toast({ variant: "destructive", title: "Account Exists", description: "An account with this email already exists." });
@@ -101,7 +103,8 @@ export default function AppEntryFlow() {
     if (isSuccess) return "Great! Your account is ready. Your manager will assign your first work site soon.";
     
     if (mode === "SIGNUP") {
-      if (!name) return "Welcome! I’ll help you get set up in less than a minute.";
+      if (!firstName) return "Welcome! I’ll help you get set up in less than a minute.";
+      if (!lastName) return "Great! Now enter your last name to complete your profile.";
       if (!email) return "Use your personal email to create your new team account.";
       if (password.length < 8) return "Almost done! Choose a password with at least 8 characters.";
       return "You're all set! Just click create account to finish.";
@@ -112,7 +115,7 @@ export default function AppEntryFlow() {
     }
 
     return "Welcome back! Sign in to access your team dashboard.";
-  }, [mode, name, email, password, isSuccess]);
+  }, [mode, firstName, lastName, email, password, isSuccess]);
 
   if (isSuccess) {
     return (
@@ -211,19 +214,33 @@ export default function AppEntryFlow() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-4">
                 {mode === "SIGNUP" && (
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Full name</label>
-                    <div className="relative group">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors z-10">
-                        <UserIcon className="w-4 h-4" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">First name</label>
+                      <div className="relative group">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors z-10">
+                          <UserIcon className="w-4 h-4" />
+                        </div>
+                        <Input 
+                          type="text" 
+                          placeholder="e.g. Maria"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus-visible:ring-blue-600 font-bold"
+                        />
                       </div>
-                      <Input 
-                        type="text" 
-                        placeholder="e.g. Maria Thompson"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        className="h-14 pl-12 rounded-2xl border-slate-100 bg-slate-50/50 focus-visible:ring-blue-600 font-bold"
-                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Last name</label>
+                      <div className="relative group">
+                        <Input 
+                          type="text" 
+                          placeholder="e.g. Thompson"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          className="h-14 px-4 rounded-2xl border-slate-100 bg-slate-50/50 focus-visible:ring-blue-600 font-bold"
+                        />
+                      </div>
                     </div>
                   </div>
                 )}
