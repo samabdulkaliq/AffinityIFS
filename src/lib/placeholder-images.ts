@@ -7,4 +7,5 @@ export type ImagePlaceholder = {
   imageHint: string;
 };
 
-export const PlaceHolderImages: ImagePlaceholder[] = data.placeholderImages;
+// Ensure PlaceHolderImages is always an array to prevent runtime errors during mapping
+export const PlaceHolderImages: ImagePlaceholder[] = data?.placeholderImages || [];

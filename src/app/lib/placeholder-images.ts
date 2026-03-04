@@ -12,5 +12,5 @@ export const PlaceHolderImages: ImagePlaceholder[] = data?.placeholderImages || 
 
 export function getPlaceholderById(id: string): ImagePlaceholder | undefined {
   if (!PlaceHolderImages) return undefined;
-  return PlaceHolderImages.find(img => img.id === id);
+  return PlaceHolderImages.find(img => img.id === img.id);
 }
