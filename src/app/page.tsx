@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "./lib/store";
-import { Mail, Lock, Loader2, User as UserIcon, Sparkles, ArrowRight, ChevronLeft, Check, Bot } from "lucide-react";
+import { Mail, Lock, Loader2, User as UserIcon, Sparkles, ArrowRight, ChevronLeft, Check, Bot, Sparkle } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "./lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
@@ -119,34 +119,91 @@ export default function AppEntryFlow() {
 
   if (isSuccess) {
     return (
-      <div className="flex-1 bg-white flex flex-col items-center justify-center p-8 text-center space-y-8 animate-in fade-in zoom-in-95 duration-700">
+      <div className="flex-1 bg-white flex flex-col items-center justify-center p-8 text-center space-y-10 animate-in fade-in duration-1000">
         <div className="relative">
-          <div className="absolute inset-0 bg-blue-500/10 blur-3xl rounded-full" />
+          {/* Animated Glow Backdrop */}
           <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="w-24 h-24 bg-blue-600 rounded-[2.5rem] flex items-center justify-center relative z-10 shadow-2xl shadow-blue-200"
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1 }}
+            className="absolute inset-0 bg-blue-500/20 blur-[60px] rounded-full" 
+          />
+          
+          {/* Animated Gradient Success Ring */}
+          <motion.div 
+            initial={{ scale: 0, rotate: -45 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", damping: 15, stiffness: 100 }}
+            className="w-28 h-28 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] flex items-center justify-center relative z-10 shadow-[0_20px_50px_-12px_rgba(37,99,235,0.4)]"
           >
-            <Check className="w-12 h-12 text-white" />
+            <motion.div
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
+              <Check className="w-14 h-14 text-white stroke-[3px]" />
+            </motion.div>
+          </motion.div>
+
+          <motion.div 
+            animate={{ y: [0, -10, 0] }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="absolute -top-4 -right-4 bg-amber-400 p-2 rounded-xl shadow-lg z-20"
+          >
+            <Sparkle className="w-4 h-4 text-white fill-white" />
           </motion.div>
         </div>
-        <div className="space-y-4">
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Account Created!</h2>
-          <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 flex items-start gap-4 text-left">
-            <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-              <Bot className="w-5 h-5 text-blue-600" />
-            </div>
-            <p className="text-sm font-medium text-slate-600 leading-relaxed">
-              {aiMessage}
-            </p>
-          </div>
-        </div>
-        <Button 
-          onClick={() => window.location.reload()}
-          className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all"
+
+        <motion.div 
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="space-y-6"
         >
-          Go to Sign In
-        </Button>
+          <div className="space-y-2">
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">You&apos;re all set!</h2>
+            <p className="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">Registration Complete</p>
+          </div>
+
+          <div className="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100 space-y-6 relative overflow-hidden text-left shadow-sm">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16" />
+            
+            <div className="space-y-4 relative z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-md">
+                  <Bot className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Onboarding Guide</p>
+              </div>
+              
+              <p className="text-base font-bold text-slate-700 leading-relaxed">
+                Your account has been created successfully. Your manager will assign your first work site soon.
+              </p>
+
+              <div className="pt-4 border-t border-slate-200/50 flex items-start gap-3">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
+                <p className="text-xs font-bold text-slate-400 italic">
+                  Tip: Once assigned, you&apos;ll see your schedule and tasks here.
+                </p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6 }}
+          className="w-full"
+        >
+          <Button 
+            onClick={() => window.location.reload()}
+            className="w-full h-18 bg-slate-900 hover:bg-slate-800 text-white rounded-[2rem] font-black uppercase text-xs tracking-widest shadow-2xl shadow-slate-200 transition-all active:scale-95 group"
+          >
+            Continue to Login
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </Button>
+        </motion.div>
       </div>
     );
   }
