@@ -52,7 +52,6 @@ export default function AdminDashboard() {
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Form states
   const [newWorker, setNewWorker] = useState({ name: '', email: '', type: 'EMPLOYEE' as const });
   const [newShift, setNewShift] = useState({ siteId: '', userId: '', startTime: '', endTime: '' });
 
@@ -61,7 +60,6 @@ export default function AdminDashboard() {
   const allShifts = repository.shifts;
   const activeShifts = allShifts.filter(s => s.status === 'IN_PROGRESS');
 
-  // Calculate Operational Metrics
   const metrics = useMemo(() => {
     const activeStaffCount = new Set(activeShifts.map(s => s.userId)).size;
     const activeSitesCount = new Set(activeShifts.map(s => s.siteId)).size;
@@ -79,7 +77,6 @@ export default function AdminDashboard() {
     };
   }, [activeShifts, allShifts, refreshKey]);
 
-  // AI Insights Logic
   const aiInsights = [
     { text: "Metro Hub missing 2 work photos", icon: Camera },
     { text: `${expiredCerts.length} certification expires this week`, icon: Shield },
@@ -124,7 +121,7 @@ export default function AdminDashboard() {
       userId: newShift.userId,
       siteId: newShift.siteId,
       siteName: site?.name || "Unknown Site",
-      scheduledStart: new Date().toISOString(), // Simplified for demo
+      scheduledStart: new Date().toISOString(),
       scheduledEnd: new Date(Date.now() + 8 * 3600000).toISOString(),
       status: 'SCHEDULED',
       tasks: [
@@ -141,7 +138,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-28">
-      {/* Header */}
       <div className="flex justify-between items-end px-1">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Operations Dashboard</h1>
@@ -153,7 +149,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 1. Smart Alerts */}
       <div className="space-y-4">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Certification & Payroll Alerts</h3>
         <div className="grid grid-cols-1 gap-3">
@@ -201,7 +196,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 2. Live Operations Overview */}
       <Card className="border-none bg-slate-900 shadow-2xl rounded-[2.5rem] overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] -mr-32 -mt-32" />
         <CardContent className="p-8 space-y-8 relative z-10">
@@ -227,7 +221,6 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* 3. AI Operations Assistant */}
       <div className="px-1">
         <Card className="border-none bg-blue-600 shadow-xl shadow-blue-200 rounded-[2.5rem] overflow-hidden group active:scale-[0.98] transition-all relative">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700" />
@@ -250,7 +243,6 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* 4. Site Activity Pulse */}
       <div className="space-y-4">
         <div className="flex justify-between items-center px-2">
           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Site Activity Pulse</h3>
@@ -286,7 +278,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* 5. Workforce Management Quick Actions */}
       <div className="space-y-4">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Workforce Management</h3>
         <div className="grid grid-cols-2 gap-3 px-1">
@@ -318,7 +309,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* MODALS FOR QUICK ACTIONS */}
       <Dialog open={activeModal === 'ADD_STAFF'} onOpenChange={(open) => !open && setActiveModal(null)}>
         <DialogContent className="max-w-[440px] rounded-[2.5rem] p-0 overflow-hidden border-none shadow-2xl">
           <div className="p-8 bg-blue-600 text-white">

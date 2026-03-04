@@ -32,8 +32,8 @@ export default function AdminSettings() {
                     <div className="flex items-center gap-3">
                         <Database className="w-5 h-5 text-secondary" />
                         <div>
-                            <p className="text-sm font-bold">Mock Demo Mode</p>
-                            <p className="text-xs text-muted-foreground">Use local seeded data</p>
+                            <p className="text-sm font-bold">Cloud Database Sync</p>
+                            <p className="text-xs text-muted-foreground">Enable real-time data synchronization</p>
                         </div>
                     </div>
                     <Switch checked={isMockMode} onCheckedChange={setMockMode} />
@@ -58,7 +58,7 @@ export default function AdminSettings() {
 
       <div className="pt-4">
         <Button onClick={logout} variant="destructive" className="w-full h-14 rounded-2xl shadow-lg shadow-red-500/20 font-bold">
-            <LogOut className="w-5 h-5 mr-2" /> Log Out Demo
+            <LogOut className="w-5 h-5 mr-2" /> Log Out
         </Button>
       </div>
     </div>

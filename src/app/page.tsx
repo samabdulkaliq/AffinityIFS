@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -22,7 +21,6 @@ export default function AppEntryFlow() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Transition from Splash to Login
   useEffect(() => {
     const timer = setTimeout(() => {
       setStep("LOGIN");
@@ -46,7 +44,6 @@ export default function AppEntryFlow() {
     }
 
     setIsLoading(true);
-    // Simulate slight network delay
     await new Promise(resolve => setTimeout(resolve, 800));
     
     const success = await login(email, password);
@@ -56,7 +53,7 @@ export default function AppEntryFlow() {
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: "Invalid email or password. Try 'sam@affinity.com' or 'david@affinity.com'."
+        description: "Invalid email or password. Please try again or contact your administrator."
       });
     }
   };
@@ -72,7 +69,6 @@ export default function AppEntryFlow() {
             exit={{ opacity: 0 }}
             className="flex flex-col items-center justify-center space-y-8 relative"
           >
-            {/* Subtle radial glow behind logo */}
             <div className="absolute w-[300px] h-[300px] bg-[#2F5BFF]/5 rounded-full blur-[80px] -z-10" />
             
             <div className="w-32 h-32 bg-white rounded-[2rem] flex items-center justify-center shadow-sm border border-slate-100 overflow-hidden">
