@@ -214,6 +214,16 @@ class MockRepository {
     return newEvent;
   }
 
+  addUser(user: User) {
+    this.users.push(user);
+    return user;
+  }
+
+  addShift(shift: Shift) {
+    this.shifts.push(shift);
+    return shift;
+  }
+
   updateReviewRequest(id: string, updates: Partial<TimeReviewRequest>) {
     const idx = this.reviewRequests.findIndex(r => r.id === id);
     if (idx !== -1) this.reviewRequests[idx] = { ...this.reviewRequests[idx], ...updates };

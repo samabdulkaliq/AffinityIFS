@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { repository } from "../lib/repository";
 import { 
@@ -51,6 +50,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeModal, setActiveModal] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Form states
+  const [newWorker, setNewWorker] = useState({ name: '', email: '', type: 'EMPLOYEE' as const });
+  const [newShift, setNewShift] = useState({ siteId: '', userId: '', startTime: '', endTime: '' });
 
   const pendingRequests = repository.getReviewRequests().filter(r => r.status === 'PENDING');
   const expiredCerts = repository.getWorkersWithExpiredCerts();
@@ -62,7 +66,6 @@ export default function AdminDashboard() {
     const activeStaffCount = new Set(activeShifts.map(s => s.userId)).size;
     const activeSitesCount = new Set(activeShifts.map(s => s.siteId)).size;
     
-    // Mocking "On Break" and "Issues" based on repository data
     const workersOnBreak = repository.timeEvents.filter(e => e.type === 'BREAK_START').length - 
                            repository.timeEvents.filter(e => e.type === 'BREAK_END').length;
     
@@ -74,7 +77,7 @@ export default function AdminDashboard() {
       workersOnBreak: Math.max(0, workersOnBreak),
       issuesDetected
     };
-  }, [activeShifts, allShifts]);
+  }, [activeShifts, allShifts, refreshKey]);
 
   // AI Insights Logic
   const aiInsights = [
@@ -86,7 +89,56 @@ export default function AdminDashboard() {
   const handleQuickAction = (action: string) => {
     setActiveModal(action);
   };
-  
+
+  const handleAddStaff = () => {
+    if (!newWorker.name || !newWorker.email) {
+      toast({ variant: "destructive", title: "Missing Information", description: "Please enter a name and email." });
+      return;
+    }
+    repository.addUser({
+      id: `cleaner-${Math.random().toString(36).substr(2, 5)}`,
+      name: newWorker.name,
+      email: newWorker.email,
+      role: 'CLEANER',
+      workerType: newWorker.type,
+      phone: "647-000-0000",
+      status: 'ACTIVE',
+      points: 1000,
+      avatarUrl: `https://picsum.photos/seed/${newWorker.name}/100/100`,
+      certifications: [{ id: 'c1', name: 'Standard Training', status: 'VALID', expiryDate: '2025-12-01' }]
+    });
+    setRefreshKey(prev => prev + 1);
+    setActiveModal(null);
+    setNewWorker({ name: '', email: '', type: 'EMPLOYEE' });
+    toast({ title: "Staff Registered ✅", description: "New worker added to the system." });
+  };
+
+  const handleCreateAssignment = () => {
+    if (!newShift.siteId || !newShift.userId) {
+      toast({ variant: "destructive", title: "Selection Required", description: "Please select a site and a worker." });
+      return;
+    }
+    const site = repository.getSite(newShift.siteId);
+    repository.addShift({
+      id: `shift-${Math.random().toString(36).substr(2, 5)}`,
+      userId: newShift.userId,
+      siteId: newShift.siteId,
+      siteName: site?.name || "Unknown Site",
+      scheduledStart: new Date().toISOString(), // Simplified for demo
+      scheduledEnd: new Date(Date.now() + 8 * 3600000).toISOString(),
+      status: 'SCHEDULED',
+      tasks: [
+        { id: 't1', label: 'Entrance Cleaning', completed: false },
+        { id: 't2', label: 'Restroom Sanitization', completed: false }
+      ],
+      photosRequired: 5,
+      photosUploaded: 0
+    });
+    setRefreshKey(prev => prev + 1);
+    setActiveModal(null);
+    toast({ title: "Shift Scheduled 🗓️", description: "Assignment successfully created and assigned." });
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-28">
       {/* Header */}
@@ -208,7 +260,7 @@ export default function AdminDashboard() {
         </div>
         <div className="space-y-3">
           {repository.sites.slice(0, 3).map((site) => {
-            const siteActiveStaff = activeShifts.filter(s => s.siteId === site.id).length;
+            const siteActiveStaff = repository.shifts.filter(s => s.siteId === site.id && s.status === 'IN_PROGRESS').length;
             return (
               <Link key={site.id} href="/admin/feed">
                 <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-[1.8rem] bg-white overflow-hidden group">
@@ -285,27 +337,37 @@ export default function AdminDashboard() {
           <div className="p-8 space-y-4">
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Full Name</Label>
-              <Input placeholder="e.g. Maria Thompson" className="h-12 rounded-xl border-slate-100 bg-slate-50 focus-visible:ring-blue-600 font-bold" />
+              <Input 
+                value={newWorker.name}
+                onChange={(e) => setNewWorker({ ...newWorker, name: e.target.value })}
+                placeholder="e.g. Maria Thompson" 
+                className="h-12 rounded-xl border-slate-100 bg-slate-50 focus-visible:ring-blue-600 font-bold" 
+              />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Email Address</Label>
-              <Input placeholder="maria@affinity.com" className="h-12 rounded-xl border-slate-100 bg-slate-50 focus-visible:ring-blue-600 font-bold" />
+              <Input 
+                value={newWorker.email}
+                onChange={(e) => setNewWorker({ ...newWorker, email: e.target.value })}
+                placeholder="maria@affinity.com" 
+                className="h-12 rounded-xl border-slate-100 bg-slate-50 focus-visible:ring-blue-600 font-bold" 
+              />
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Employment Type</Label>
-              <Select>
+              <Select value={newWorker.type} onValueChange={(val: any) => setNewWorker({ ...newWorker, type: val })}>
                 <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-100 font-bold">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="employee">Employee (Full Time)</SelectItem>
-                  <SelectItem value="contract">Contractor</SelectItem>
+                  <SelectItem value="EMPLOYEE">Employee (Full Time)</SelectItem>
+                  <SelectItem value="CONTRACT">Contractor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100">
-             <Button onClick={() => { setActiveModal(null); toast({ title: "Staff Registered ✅", description: "Worker added to directory." }); }} className="w-full h-14 bg-slate-900 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-slate-200">
+             <Button onClick={handleAddStaff} className="w-full h-14 bg-slate-900 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-slate-200">
                 Confirm Registration
              </Button>
           </DialogFooter>
@@ -330,7 +392,7 @@ export default function AdminDashboard() {
           <div className="p-8 space-y-4">
              <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Select Site</Label>
-                <Select>
+                <Select onValueChange={(val) => setNewShift({ ...newShift, siteId: val })}>
                   <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-100 font-bold">
                     <SelectValue placeholder="Choose a location" />
                   </SelectTrigger>
@@ -343,7 +405,7 @@ export default function AdminDashboard() {
              </div>
              <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Assign Worker</Label>
-                <Select>
+                <Select onValueChange={(val) => setNewShift({ ...newShift, userId: val })}>
                   <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-100 font-bold">
                     <SelectValue placeholder="Search staff" />
                   </SelectTrigger>
@@ -366,7 +428,7 @@ export default function AdminDashboard() {
              </div>
           </div>
           <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100">
-             <Button onClick={() => { setActiveModal(null); toast({ title: "Shift Scheduled 🗓️", description: "Assignment sent to worker." }); }} className="w-full h-14 bg-slate-900 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-slate-200">
+             <Button onClick={handleCreateAssignment} className="w-full h-14 bg-slate-900 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-slate-200">
                 Create Assignment
              </Button>
           </DialogFooter>
@@ -390,7 +452,7 @@ export default function AdminDashboard() {
           </div>
           <div className="p-8 space-y-4">
              <div className="grid grid-cols-1 gap-3">
-                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
+                <div onClick={() => { setActiveModal(null); toast({ title: "Processing Payroll Export 📊", description: "CSV file is being generated." }); }} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
@@ -400,7 +462,7 @@ export default function AdminDashboard() {
                       <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
                     </div>
                 </div>
-                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
+                <div onClick={() => { setActiveModal(null); toast({ title: "Generating Audit PDF 📊", description: "A summary will be sent to your email." }); }} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
@@ -410,7 +472,7 @@ export default function AdminDashboard() {
                       <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
                     </div>
                 </div>
-                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
+                <div onClick={() => { setActiveModal(null); toast({ title: "Incident Summary 📊", description: "Filtering recent field reports." }); }} className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
                     <div className="flex justify-between items-center">
                       <div>
                         <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
@@ -423,16 +485,12 @@ export default function AdminDashboard() {
              </div>
           </div>
           <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100">
-             <Button onClick={() => { setActiveModal(null); toast({ title: "Processing Report 📊", description: "This will be sent to your email." }); }} className="w-full h-14 bg-slate-900 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-slate-200">
-                Generate Selected Report
-             </Button>
+             <div className="w-full text-center text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                Select a report type to begin
+             </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
-}
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
