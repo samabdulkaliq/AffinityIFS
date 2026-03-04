@@ -102,3 +102,15 @@ export interface RewardsLedger {
   reason: string;
   createdAt: string;
 }
+
+export interface DocRequest {
+  id: string;
+  userId: string;
+  certId: string;
+  docType: string;
+  dueDate: string;
+  status: 'SENT' | 'OPENED' | 'UPLOADED';
+  sentAt: string;
+  pushSent: boolean;
+  emailSent: boolean;
+}

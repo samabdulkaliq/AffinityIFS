@@ -1,5 +1,5 @@
 
-import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger, UserCertification } from './models';
+import { User, Site, Shift, TimeEvent, TimeReviewRequest, Notification, RewardsLedger, UserCertification, DocRequest } from './models';
 
 class MockRepository {
   users: User[] = [];
@@ -9,6 +9,7 @@ class MockRepository {
   reviewRequests: TimeReviewRequest[] = [];
   notifications: Notification[] = [];
   rewards: RewardsLedger[] = [];
+  docRequests: DocRequest[] = [];
 
   constructor() {
     this.seed();
@@ -164,6 +165,7 @@ class MockRepository {
   getEventsForShift(shiftId: string) { return this.timeEvents.filter(e => e.shiftId === shiftId); }
   getAllEvents() { return [...this.timeEvents].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()); }
   getNotificationsForUser(userId: string) { return this.notifications.filter(n => n.userId === userId); }
+  getDocRequestsForUser(userId: string) { return this.docRequests.filter(r => r.userId === userId); }
   
   getWorkersWithExpiredCerts() {
     return this.users.filter(u => u.role === 'CLEANER' && u.certifications?.some(c => c.status === 'EXPIRED'));
@@ -181,6 +183,12 @@ class MockRepository {
     const newEvent = { ...event, id: Math.random().toString(36).substring(2, 9) };
     this.timeEvents.push(newEvent);
     return newEvent;
+  }
+
+  createDocRequest(request: Omit<DocRequest, 'id'>) {
+    const newRequest = { ...request, id: `dr-${Math.random().toString(36).substring(2, 9)}` };
+    this.docRequests.push(newRequest);
+    return newRequest;
   }
 
   addUser(user: User) {
