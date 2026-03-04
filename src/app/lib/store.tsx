@@ -48,11 +48,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const existing = repository.users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (existing) return false;
 
+    // Role is hardcoded to CLEANER (Team Member) for external signup flow
     const newUser: User = {
-      id: `${role.toLowerCase()}-${Math.random().toString(36).substring(2, 9)}`,
+      id: `team-${Math.random().toString(36).substring(2, 9)}`,
       name,
       email: email.toLowerCase(),
-      role: role,
+      role: 'CLEANER', // Internally 'CLEANER', displayed as 'Team Member'
       workerType: 'EMPLOYEE',
       phone: "Not Provided",
       status: 'ACTIVE',
@@ -66,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     repository.addUser(newUser);
     setUser(newUser);
-    router.push(role === 'ADMIN' ? '/admin' : '/cleaner');
+    router.push('/cleaner');
     return true;
   };
 

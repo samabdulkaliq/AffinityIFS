@@ -23,11 +23,6 @@ import {
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 
-/**
- * @fileOverview Staff Directory.
- * Lists all field staff with certification tracking and filtering.
- */
-
 export default function AdminWorkersPage() {
   const searchParams = useSearchParams();
   const initialFilter = searchParams.get('filter') || 'ALL';
@@ -63,8 +58,8 @@ export default function AdminWorkersPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       <div className="px-1 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Staff Directory</h1>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Field Workforce Directory</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Team Members</h1>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Workforce Directory</p>
         </div>
         <div className="flex gap-2">
             <Badge variant="outline" className="bg-white border-slate-200 text-slate-400 font-black px-3 py-1">
@@ -139,7 +134,7 @@ export default function AdminWorkersPage() {
                       
                       <div className="space-y-1">
                         <h3 className="text-lg font-black text-slate-900 leading-none">{worker.name}</h3>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{worker.workerType} Operation • ID {worker.id.split('-')[1]}</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Team Operation • ID {worker.id.split('-')[1]}</p>
                         <div className="flex items-center gap-3 pt-1">
                           <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400">
                             <Mail className="w-3 h-3" /> {worker.email}
@@ -177,7 +172,7 @@ export default function AdminWorkersPage() {
 
         {filteredWorkers.length === 0 && (
           <div className="py-24 text-center space-y-4 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
-            <Users className="w-12 h-12 text-slate-200 mx-auto" />
+            <UserIcon className="w-12 h-12 text-slate-200 mx-auto" />
             <p className="text-slate-400 font-black text-xs uppercase tracking-widest">No staff found</p>
           </div>
         )}

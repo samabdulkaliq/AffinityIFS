@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
@@ -80,7 +81,7 @@ export default function AdminDashboard() {
   const aiInsights = [
     { text: "Metro Hub missing 2 work photos", icon: Camera },
     { text: `${expiredCerts.length} certification expires this week`, icon: Shield },
-    { text: "Sam Tester is currently on a break", icon: Coffee }
+    { text: "A team member is currently on a break", icon: Coffee }
   ];
 
   const handleQuickAction = (action: string) => {
@@ -93,7 +94,7 @@ export default function AdminDashboard() {
       return;
     }
     repository.addUser({
-      id: `cleaner-${Math.random().toString(36).substr(2, 5)}`,
+      id: `team-${Math.random().toString(36).substr(2, 5)}`,
       name: newWorker.name,
       email: newWorker.email,
       role: 'CLEANER',
@@ -107,7 +108,7 @@ export default function AdminDashboard() {
     setRefreshKey(prev => prev + 1);
     setActiveModal(null);
     setNewWorker({ name: '', email: '', type: 'EMPLOYEE' });
-    toast({ title: "Staff Registered ✅", description: "New worker added to the system." });
+    toast({ title: "Team Member Registered ✅", description: "New member added to the system." });
   };
 
   const handleCreateAssignment = () => {
@@ -206,7 +207,7 @@ export default function AdminDashboard() {
 
           <div className="grid grid-cols-2 gap-4">
             {[
-              { label: "Staff Active", value: metrics.activeStaffCount, icon: Users, color: "text-blue-400" },
+              { label: "Members Active", value: metrics.activeStaffCount, icon: Users, color: "text-blue-400" },
               { label: "Sites Running", value: metrics.activeSitesCount, icon: Building2, color: "text-emerald-400" },
               { label: "On Break", value: metrics.workersOnBreak, icon: Coffee, color: "text-amber-400" },
               { label: "Issues", value: metrics.issuesDetected, icon: AlertTriangle, color: "text-red-400" },
@@ -286,7 +287,7 @@ export default function AdminDashboard() {
             className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95"
           >
             <UserPlus className="w-6 h-6 text-blue-600 mb-2" />
-            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Add Staff</span>
+            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Add Member</span>
           </button>
           <button 
             onClick={() => handleQuickAction('SCHEDULE')}
@@ -317,7 +318,7 @@ export default function AdminDashboard() {
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg">
                   <UserPlus className="w-5 h-5 text-white" />
                 </div>
-                <DialogTitle className="text-2xl font-black text-white">Register Staff</DialogTitle>
+                <DialogTitle className="text-2xl font-black text-white">Register Member</DialogTitle>
               </div>
               <DialogDescription className="text-blue-100 font-medium text-sm">
                 Add a new field worker to your operational roster.
