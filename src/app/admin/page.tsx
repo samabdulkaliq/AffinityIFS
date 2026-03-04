@@ -8,21 +8,25 @@ import {
   Shield, 
   AlertTriangle, 
   Camera, 
-  Sun, 
   Package, 
-  MessageSquare, 
   Activity as ActivityIcon, 
   ChevronRight, 
   MapPin,
   Users,
   CheckCircle2,
   Zap,
-  ClipboardCheck,
-  Building
+  PlusCircle,
+  CalendarPlus,
+  FileBarChart,
+  Coffee,
+  Sparkles,
+  Building2,
+  Clock
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 export default function AdminDashboard() {
   const pendingRequests = repository.getReviewRequests().filter(r => r.status === 'PENDING');
@@ -35,232 +39,195 @@ export default function AdminDashboard() {
     const activeStaffCount = new Set(activeShifts.map(s => s.userId)).size;
     const activeSitesCount = new Set(activeShifts.map(s => s.siteId)).size;
     
-    let totalTasks = 0;
-    let completedTasks = 0;
-    let totalPhotosReq = 0;
-    let totalPhotosUp = 0;
-
-    activeShifts.forEach(s => {
-      totalTasks += s.tasks?.length || 0;
-      completedTasks += s.tasks?.filter(t => t.completed).length || 0;
-      totalPhotosReq += s.photosRequired || 0;
-      totalPhotosUp += s.photosUploaded || 0;
-    });
-
-    const taskProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-    const photoProgress = totalPhotosReq > 0 ? Math.round((totalPhotosUp / totalPhotosReq) * 100) : 0;
+    // Mocking "On Break" and "Issues" based on repository data
+    const workersOnBreak = repository.timeEvents.filter(e => e.type === 'BREAK_START').length - 
+                           repository.timeEvents.filter(e => e.type === 'BREAK_END').length;
+    
+    const issuesDetected = allShifts.filter(s => (s.issues?.length || 0) > 0).length;
 
     return {
       activeStaffCount,
       activeSitesCount,
-      taskProgress,
-      photoProgress
+      workersOnBreak: Math.max(0, workersOnBreak),
+      issuesDetected
     };
-  }, [activeShifts]);
+  }, [activeShifts, allShifts]);
+
+  // AI Insights Logic
+  const aiInsights = [
+    { text: "Metro Hub missing 2 work photos", icon: Camera },
+    { text: `${expiredCerts.length} certification expires this week`, icon: Shield },
+    { text: "Sam Tester is currently on a break", icon: Coffee }
+  ];
   
   return (
-    <div className="space-y-8 animate-in fade-in duration-700 pb-24">
+    <div className="space-y-8 animate-in fade-in duration-700 pb-28">
+      {/* Header */}
       <div className="flex justify-between items-end px-1">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Operations Dashboard</h1>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Live Operational Summary</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Operations Dashboard</h1>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Live Field Command</p>
         </div>
-        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-black">
-          {metrics.activeStaffCount} STAFF LIVE
-        </Badge>
+        <div className="flex items-center gap-2">
+           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Live</span>
+        </div>
       </div>
 
-      {/* Staff Certification Alert */}
-      {expiredCerts.length > 0 && (
-        <Link href="/admin/workers?filter=EXPIRED">
-          <Card className="border-none bg-red-600 text-white shadow-xl shadow-red-200 rounded-3xl overflow-hidden group active:scale-[0.98] transition-all">
-            <CardContent className="p-6 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
-                  <Shield className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">Certification Alert</p>
-                  <p className="text-lg font-black">{expiredCerts.length} staff have expired certifications</p>
-                </div>
-              </div>
-              <ChevronRight className="w-6 h-6 text-white/50 group-hover:translate-x-1 transition-all" />
-            </CardContent>
-          </Card>
-        </Link>
-      )}
+      {/* 1. Smart Alerts */}
+      <div className="space-y-4">
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-1">Critical Alerts</h3>
+        <div className="grid grid-cols-1 gap-3">
+          {expiredCerts.length > 0 && (
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+              <Link href="/admin/workers?filter=EXPIRED">
+                <Card className="border-none bg-red-50 hover:bg-red-100 transition-colors rounded-[2rem] overflow-hidden group border border-red-100/50 shadow-sm">
+                  <CardContent className="p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
+                        <Shield className="w-6 h-6 text-red-500" />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-red-600/60 uppercase tracking-widest">Staff Safety</p>
+                        <p className="text-sm font-black text-red-900">{expiredCerts.length} Certifications Expired</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-red-300 group-hover:translate-x-1 transition-all" />
+                  </CardContent>
+                </Card>
+              </Link>
+            </motion.div>
+          )}
 
-      {/* Operations Overview Panel */}
-      <Card className="border-none bg-slate-900 shadow-2xl rounded-[2.5rem] overflow-hidden">
-        <CardContent className="p-8 space-y-8">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Operations Overview</p>
-              <h3 className="text-white text-2xl font-black mt-1">Field Summary</h3>
-            </div>
-            <div className="bg-blue-500/20 p-3 rounded-2xl border border-blue-500/30">
-              <Zap className="w-5 h-5 text-blue-400 fill-blue-400/20" />
-            </div>
+          {metrics.issuesDetected > 0 && (
+             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.1 }}>
+                <Link href="/admin/approvals">
+                  <Card className="border-none bg-amber-50 hover:bg-amber-100 transition-colors rounded-[2rem] overflow-hidden group border border-amber-100/50 shadow-sm">
+                    <CardContent className="p-5 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
+                          <AlertTriangle className="w-6 h-6 text-amber-500" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-amber-600/60 uppercase tracking-widest">Operational Risk</p>
+                          <p className="text-sm font-black text-amber-900">{metrics.issuesDetected} Site Exceptions Detected</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-amber-300 group-hover:translate-x-1 transition-all" />
+                    </CardContent>
+                  </Card>
+                </Link>
+             </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* 2. Live Operations Overview */}
+      <Card className="border-none bg-slate-900 shadow-2xl rounded-[2.5rem] overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] -mr-32 -mt-32" />
+        <CardContent className="p-8 space-y-8 relative z-10">
+          <div>
+            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Operational Snapshot</p>
+            <h3 className="text-white text-2xl font-black mt-1">Live Overview</h3>
           </div>
 
-          <div className="grid grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-white/40 mb-1">
-                  <Users className="w-3.5 h-3.5" />
-                  <span className="text-[9px] font-black uppercase tracking-widest">Live Staff</span>
-                </div>
-                <p className="text-3xl font-black text-white">{metrics.activeStaffCount}</p>
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { label: "Staff Active", value: metrics.activeStaffCount, icon: Users, color: "text-blue-400" },
+              { label: "Sites Running", value: metrics.activeSitesCount, icon: Building2, color: "text-emerald-400" },
+              { label: "On Break", value: metrics.workersOnBreak, icon: Coffee, color: "text-amber-400" },
+              { label: "Issues", value: metrics.issuesDetected, icon: AlertTriangle, color: "text-red-400" },
+            ].map((stat, i) => (
+              <div key={i} className="bg-white/5 p-5 rounded-[2rem] border border-white/5 backdrop-blur-md">
+                <stat.icon className={cn("w-5 h-5 mb-3", stat.color)} />
+                <p className="text-2xl font-black text-white">{stat.value}</p>
+                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mt-1">{stat.label}</p>
               </div>
-              
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-white/40 mb-1">
-                  <Building className="w-3.5 h-3.5" />
-                  <span className="text-[9px] font-black uppercase tracking-widest">Active Sites</span>
-                </div>
-                <p className="text-3xl font-black text-white">{metrics.activeSitesCount}</p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between items-end text-white/40">
-                  <div className="flex items-center gap-2">
-                    <ClipboardCheck className="w-3.5 h-3.5" />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Tasks</span>
-                  </div>
-                  <span className="text-xs font-black text-blue-400">{metrics.taskProgress}%</span>
-                </div>
-                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-500 transition-all duration-1000" 
-                    style={{ width: `${metrics.taskProgress}%` }} 
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex justify-between items-end text-white/40">
-                  <div className="flex items-center gap-2">
-                    <Camera className="w-3.5 h-3.5" />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Evidence</span>
-                  </div>
-                  <span className="text-xs font-black text-emerald-400">{metrics.photoProgress}%</span>
-                </div>
-                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-emerald-500 transition-all duration-1000" 
-                    style={{ width: `${metrics.photoProgress}%` }} 
-                  />
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Critical Exceptions */}
-      <div className="grid grid-cols-2 gap-4 px-1">
-        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-50 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-500" />
+      {/* 3. AI Operations Assistant */}
+      <div className="px-1">
+        <Card className="border-none bg-blue-600 shadow-xl shadow-blue-200 rounded-[2.5rem] overflow-hidden group active:scale-[0.98] transition-all relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700" />
+          <CardContent className="p-6 relative z-10 space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-xs font-black text-white uppercase tracking-widest">AI Operations Assistant</p>
             </div>
-            <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">No-Shows</p>
-                <p className="text-2xl font-black text-slate-900">02 <span className="text-[10px] text-red-500 font-bold ml-1">ALERT</span></p>
+            <div className="space-y-3">
+              {aiInsights.map((insight, i) => (
+                <div key={i} className="flex items-center gap-3 text-white/90">
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-300" />
+                  <p className="text-sm font-medium tracking-tight">{insight.text}</p>
+                </div>
+              ))}
             </div>
-        </div>
-        <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-50 space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                <Camera className="w-5 h-5 text-blue-500" />
-            </div>
-            <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Unverified</p>
-                <p className="text-2xl font-black text-slate-900">01 <span className="text-[10px] text-blue-500 font-bold ml-1">LOGS</span></p>
-            </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Workforce Management */}
+      {/* 4. Today's Operations */}
       <div className="space-y-4">
-        <h3 className="text-xl font-black text-slate-900 px-1">Workforce Management</h3>
+        <div className="flex justify-between items-center px-2">
+          <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Today's Site Pulse</h3>
+          <Badge variant="outline" className="border-slate-200 text-slate-400 font-black">VIEW ALL</Badge>
+        </div>
         <div className="space-y-3">
-            <Link href="/admin/workers">
-                <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-3xl bg-white overflow-hidden group">
-                    <CardContent className="p-5 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                                <Users className="w-6 h-6 text-blue-500" />
-                            </div>
-                            <div>
-                                <h4 className="font-black text-slate-900 uppercase text-xs tracking-tight">Staff Management</h4>
-                                <p className="text-[10px] font-bold text-slate-400">Staff Health & Certification Hub</p>
-                            </div>
+          {repository.sites.slice(0, 3).map((site) => {
+            const siteActiveStaff = activeShifts.filter(s => s.siteId === site.id).length;
+            return (
+              <Link key={site.id} href="/admin/feed">
+                <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-[1.8rem] bg-white overflow-hidden group">
+                  <CardContent className="p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                        <MapPin className="w-6 h-6 text-slate-400 group-hover:text-blue-500" />
+                      </div>
+                      <div>
+                        <h4 className="font-black text-slate-900 text-sm">{site.name}</h4>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Users className="w-3 h-3 text-blue-500" />
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">{siteActiveStaff} Workers Active</span>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-blue-500" />
-                    </CardContent>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-blue-500" />
+                  </CardContent>
                 </Card>
-            </Link>
-
-            <Link href="/admin/approvals">
-                <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-3xl bg-white overflow-hidden group">
-                    <CardContent className="p-5 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
-                                <Sun className="w-6 h-6 text-purple-500" />
-                            </div>
-                            <div>
-                                <h4 className="font-black text-slate-900 uppercase text-xs tracking-tight">Payroll Exceptions</h4>
-                                <p className="text-[10px] font-bold text-slate-400">Payroll & Compliance Gates</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {pendingRequests.length > 0 && (
-                                <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{pendingRequests.length}</span>
-                            )}
-                            <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-purple-500" />
-                        </div>
-                    </CardContent>
-                </Card>
-            </Link>
-
-            <Link href="/admin/assets">
-                <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-3xl bg-white overflow-hidden group">
-                    <CardContent className="p-5 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
-                                <Package className="w-6 h-6 text-orange-500" />
-                            </div>
-                            <div>
-                                <h4 className="font-black text-slate-900 uppercase text-xs tracking-tight">Supply Management</h4>
-                                <p className="text-[10px] font-bold text-slate-400">Site-Specific Stock Management</p>
-                            </div>
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-orange-500" />
-                    </CardContent>
-                </Card>
-            </Link>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
-      {/* Site Activity */}
-      <div className="space-y-4 px-1">
-        <h3 className="text-xl font-black text-slate-900">Site Activity</h3>
-        <div className="grid grid-cols-3 gap-3">
-            <Link href="/admin/chat" className="bg-blue-50 p-4 rounded-3xl flex flex-col items-center gap-3 text-center active:scale-95 transition-all">
-                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm"><MessageSquare className="w-5 h-5 text-blue-500" /></div>
-                <span className="text-[9px] font-black text-blue-700 uppercase">Field Comms</span>
-            </Link>
-            <div className="bg-indigo-50 p-4 rounded-3xl flex flex-col items-center gap-3 text-center">
-                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm"><ActivityIcon className="w-5 h-5 text-indigo-500" /></div>
-                <span className="text-[9px] font-black text-indigo-700 uppercase">Site Pulse</span>
-            </div>
-            <div className="bg-slate-100 p-4 rounded-3xl flex flex-col items-center gap-3 text-center">
-                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm"><MapPin className="w-5 h-5 text-slate-400" /></div>
-                <span className="text-[9px] font-black text-slate-500 uppercase">Geofencing</span>
-            </div>
+      {/* 5. Quick Admin Actions */}
+      <div className="space-y-4">
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-3 px-1">
+          <button className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95">
+            <PlusCircle className="w-6 h-6 text-blue-600 mb-2" />
+            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Add Staff</span>
+          </button>
+          <button className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95">
+            <CalendarPlus className="w-6 h-6 text-indigo-600 mb-2" />
+            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Schedule</span>
+          </button>
+          <button className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95">
+            <FileBarChart className="w-6 h-6 text-emerald-600 mb-2" />
+            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Run Report</span>
+          </button>
+          <Link href="/admin/assets" className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95">
+            <Package className="w-6 h-6 text-orange-600 mb-2" />
+            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Supplies</span>
+          </Link>
         </div>
       </div>
     </div>
   );
 }
+
