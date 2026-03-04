@@ -105,7 +105,7 @@ class MockRepository {
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
     const yestStart = new Date(yesterday.setHours(9, 0, 0, 0));
-    const yestEnd = new Date(yesterday.setHours(18, 0, 0, 0)); // 9 hours, requires break
+    const yestEnd = new Date(yesterday.setHours(18, 0, 0, 0));
 
     this.shifts.push({
         id: "shift-review-2",
@@ -138,6 +138,21 @@ class MockRepository {
         photosUploaded: 5,
         inventoryChecked: true,
         tasks: [{ id: 't1', label: 'Desk Sanitization', completed: true }]
+    });
+
+    // Seed an in-progress shift
+    this.shifts.push({
+      id: "shift-live-1",
+      userId: "cleaner-4",
+      siteId: "site-1",
+      siteName: "Metro Hub",
+      scheduledStart: todayStart.toISOString(),
+      scheduledEnd: todayEnd.toISOString(),
+      status: "IN_PROGRESS",
+      reviewStatus: "NEEDS_REVIEW",
+      photosRequired: 5,
+      photosUploaded: 1,
+      tasks: [{ id: 't1', label: 'Lobby Glass', completed: false }]
     });
   }
 

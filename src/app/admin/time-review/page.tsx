@@ -13,28 +13,22 @@ import {
   AlertTriangle, 
   Clock, 
   Filter,
-  ArrowUpRight,
-  Calendar,
   Building2,
-  Inbox
+  Inbox,
+  Camera,
+  MapPin,
+  ClipboardCheck
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Shift } from "@/app/lib/models";
-
-/**
- * @fileOverview Time Review Dashboard.
- * Managers audit work hours before payroll processing.
- */
 
 type DateFilter = 'TODAY' | 'WEEK' | 'CUSTOM';
-type StatusFilter = 'NEEDS_REVIEW' | 'APPROVED' | 'FLAGGED' | 'ALL';
+type StatusFilter = 'NEEDS_REVIEW' | 'FLAGGED' | 'APPROVED' | 'ALL';
 
 export default function TimeReviewPage() {
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilter>('TODAY');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('NEEDS_REVIEW');
-  const [siteFilter, setSiteFilter] = useState("ALL");
 
   const completedShifts = useMemo(() => {
     return repository.shifts.filter(s => s.status === 'COMPLETED');
@@ -47,7 +41,6 @@ export default function TimeReviewPage() {
                             shift.siteName?.toLowerCase().includes(search.toLowerCase());
       
       const matchesStatus = statusFilter === 'ALL' || shift.reviewStatus === statusFilter;
-      const matchesSite = siteFilter === 'ALL' || shift.siteId === siteFilter;
 
       // Date logic
       const shiftDate = new Date(shift.scheduledStart);
@@ -60,26 +53,16 @@ export default function TimeReviewPage() {
         matchesDate = shiftDate >= weekAgo;
       }
 
-      return matchesSearch && matchesStatus && matchesSite && matchesDate;
+      return matchesSearch && matchesStatus && matchesDate;
     });
-  }, [completedShifts, search, statusFilter, siteFilter, dateFilter]);
+  }, [completedShifts, search, statusFilter, dateFilter]);
 
-  const calculateSummary = useMemo(() => {
-    const totalHours = filteredShifts.reduce((acc, s) => {
-      const hours = (new Date(s.scheduledEnd).getTime() - new Date(s.scheduledStart).getTime()) / 3600000;
-      return acc + (hours > 5 ? hours - 0.5 : hours);
-    }, 0);
-
-    return {
-      totalHours: totalHours.toFixed(1),
-      pending: filteredShifts.filter(s => s.reviewStatus === 'NEEDS_REVIEW').length,
-      flagged: filteredShifts.filter(s => s.reviewStatus === 'FLAGGED').length,
-      deductions: filteredShifts.filter(s => {
-        const hours = (new Date(s.scheduledEnd).getTime() - new Date(s.scheduledStart).getTime()) / 3600000;
-        return hours > 5;
-      }).length * 0.5
-    };
-  }, [filteredShifts]);
+  const stats = useMemo(() => ({
+    needsReview: completedShifts.filter(s => s.reviewStatus === 'NEEDS_REVIEW').length,
+    flagged: completedShifts.filter(s => s.reviewStatus === 'FLAGGED').length,
+    approved: completedShifts.filter(s => s.reviewStatus === 'APPROVED').length,
+    total: completedShifts.length
+  }), [completedShifts]);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-24">
@@ -87,33 +70,31 @@ export default function TimeReviewPage() {
       <div className="px-1 flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-black text-slate-900 tracking-tight">Time Review</h1>
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Review and approve hours</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Audit and approve hours</p>
         </div>
         <Badge variant="outline" className="bg-white border-slate-200 text-slate-400 font-black px-3 py-1">
           {filteredShifts.length} RECORDS
         </Badge>
       </div>
 
-      {/* SUMMARY CARDS */}
+      {/* SUMMARY SECTION */}
       <div className="grid grid-cols-2 gap-3 px-1">
-        <Card className="border-none shadow-sm bg-blue-600 text-white rounded-3xl overflow-hidden">
-          <CardContent className="p-5 space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-widest text-blue-100">Paid Hours</p>
-            <div className="flex items-baseline gap-1">
-              <h3 className="text-3xl font-black">{calculateSummary.totalHours}</h3>
-              <span className="text-xs font-bold text-blue-200">HRS</span>
+        {[
+          { label: "Pending", value: stats.needsReview, color: "text-amber-500", bg: "bg-amber-50" },
+          { label: "Flagged", value: stats.flagged, color: "text-red-500", bg: "bg-red-50" },
+          { label: "Approved", value: stats.approved, color: "text-emerald-500", bg: "bg-emerald-50" },
+          { label: "Total", value: stats.total, color: "text-slate-500", bg: "bg-slate-50" },
+        ].map((s, i) => (
+          <div key={i} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center justify-between">
+            <div className="space-y-0.5">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{s.label}</p>
+              <p className={cn("text-2xl font-black", s.color)}>{s.value}</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="border-none shadow-sm bg-white rounded-3xl overflow-hidden border border-slate-100">
-          <CardContent className="p-5 space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Deductions</p>
-            <div className="flex items-baseline gap-1">
-              <h3 className="text-3xl font-black text-red-500">-{calculateSummary.deductions.toFixed(1)}</h3>
-              <span className="text-xs font-bold text-slate-400">HRS</span>
+            <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", s.bg)}>
+               <div className={cn("w-1.5 h-1.5 rounded-full", s.color.replace('text', 'bg'))} />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
       </div>
 
       {/* FILTERS */}
@@ -167,12 +148,13 @@ export default function TimeReviewPage() {
       <div className="space-y-3">
         {filteredShifts.map((shift) => {
           const user = repository.getUser(shift.userId);
-          const hours = (new Date(shift.scheduledEnd).getTime() - new Date(shift.scheduledStart).getTime()) / 3600000;
-          const paidHours = hours > 5 ? (hours - 0.5).toFixed(1) : hours.toFixed(1);
+          const isVerified = !shift.issues?.includes('GPS_MISMATCH');
+          const isPhotosDone = shift.photosUploaded === shift.photosRequired;
+          const isTasksDone = shift.tasks?.every(t => t.completed);
 
           return (
             <Link key={shift.id} href={`/admin/time-review/${shift.id}`}>
-              <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-[1.8rem] bg-white overflow-hidden group">
+              <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-[2rem] bg-white overflow-hidden group">
                 <CardContent className="p-0">
                   <div className="flex items-stretch min-h-[100px]">
                     <div className={cn(
@@ -180,42 +162,37 @@ export default function TimeReviewPage() {
                       shift.reviewStatus === 'APPROVED' ? "bg-emerald-500" :
                       shift.reviewStatus === 'FLAGGED' ? "bg-red-500" : "bg-amber-400"
                     )} />
-                    <div className="flex-1 p-5 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className={cn(
-                          "w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm",
-                          shift.reviewStatus === 'APPROVED' ? "bg-emerald-50 text-emerald-500 border-emerald-100" :
-                          shift.reviewStatus === 'FLAGGED' ? "bg-red-50 text-red-500 border-red-100" :
-                          "bg-amber-50 text-amber-500 border-amber-100"
-                        )}>
-                          {shift.reviewStatus === 'APPROVED' ? <CheckCircle2 className="w-6 h-6" /> : 
-                           shift.reviewStatus === 'FLAGGED' ? <AlertTriangle className="w-6 h-6" /> : 
-                           <Clock className="w-6 h-6" />}
+                    <div className="flex-1 p-6 flex items-center justify-between">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-black text-slate-900 text-base leading-tight">{user?.name}</h4>
+                          <Badge className={cn(
+                            "text-[8px] font-black uppercase px-2 py-0 border-none",
+                            shift.reviewStatus === 'APPROVED' ? "bg-emerald-100 text-emerald-700" :
+                            shift.reviewStatus === 'FLAGGED' ? "bg-red-100 text-red-700" :
+                            "bg-amber-100 text-amber-700"
+                          )}>
+                            {shift.reviewStatus?.replace('_', ' ')}
+                          </Badge>
                         </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-black text-slate-900 text-sm leading-tight">{user?.name}</h4>
-                            <Badge className={cn(
-                              "text-[8px] font-black uppercase px-2 py-0 border-none",
-                              shift.reviewStatus === 'APPROVED' ? "bg-emerald-100 text-emerald-700" :
-                              shift.reviewStatus === 'FLAGGED' ? "bg-red-100 text-red-700" :
-                              "bg-amber-100 text-amber-700"
-                            )}>
-                              {shift.reviewStatus}
-                            </Badge>
+                        <p className="text-xs font-bold text-slate-400 flex items-center gap-1.5">
+                          <Building2 className="w-3.5 h-3.5" /> {shift.siteName}
+                        </p>
+                        <div className="flex items-center gap-4 pt-1">
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="w-3 h-3 text-slate-300" />
+                            <span className="text-[10px] font-black text-slate-500 tabular-nums">
+                              {formatTime(shift.scheduledStart)} – {formatTime(shift.scheduledEnd)}
+                            </span>
                           </div>
-                          <p className="text-[10px] font-bold text-slate-400 flex items-center gap-1 mt-1">
-                            <Building2 className="w-3 h-3" /> {shift.siteName}
-                          </p>
-                          <p className="text-[9px] font-black text-slate-300 uppercase tracking-tighter mt-1">
-                            {formatTime(shift.scheduledStart)} – {formatTime(shift.scheduledEnd)}
-                          </p>
+                          <div className="flex items-center gap-3 border-l border-slate-100 pl-4">
+                            <MapPin className={cn("w-3.5 h-3.5", isVerified ? "text-emerald-500" : "text-red-500")} />
+                            <Camera className={cn("w-3.5 h-3.5", isPhotosDone ? "text-emerald-500" : "text-amber-500")} />
+                            <ClipboardCheck className={cn("w-3.5 h-3.5", isTasksDone ? "text-emerald-500" : "text-amber-500")} />
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-lg font-black text-slate-900 leading-none">{paidHours}</p>
-                        <p className="text-[8px] font-bold text-slate-400 uppercase mt-1">Paid Hrs</p>
-                      </div>
+                      <ChevronRight className="w-5 h-5 text-slate-200 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
                     </div>
                   </div>
                 </CardContent>
@@ -230,8 +207,8 @@ export default function TimeReviewPage() {
               <Inbox className="w-10 h-10 text-slate-200" />
             </div>
             <div className="space-y-1">
-              <p className="text-slate-400 font-black text-xs uppercase tracking-widest">Inbox Zero</p>
-              <p className="text-slate-300 text-[10px] font-medium px-12">Shifts will appear here once team members complete their work.</p>
+              <p className="text-slate-400 font-black text-xs uppercase tracking-widest">All hours reviewed</p>
+              <p className="text-slate-300 text-[10px] font-medium px-12">No shifts need approval right now.</p>
             </div>
           </div>
         )}
