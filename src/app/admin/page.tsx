@@ -24,7 +24,11 @@ import {
   Clock,
   Search,
   Plus,
-  ArrowRight
+  ArrowRight,
+  UserPlus,
+  CalendarDays,
+  FileText,
+  Briefcase
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +46,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function AdminDashboard() {
   const { toast } = useToast();
@@ -111,7 +116,7 @@ export default function AdminDashboard() {
                       </div>
                       <div>
                         <p className="text-[10px] font-black text-red-600/60 uppercase tracking-widest">Certification Alert</p>
-                        <p className="text-sm font-black text-red-900">{expiredCerts.length} Certifications Expired</p>
+                        <p className="text-sm font-black text-red-900">{expiredCerts.length} Staff Certifications Expired</p>
                       </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-red-300 group-hover:translate-x-1 transition-all" />
@@ -149,8 +154,8 @@ export default function AdminDashboard() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] -mr-32 -mt-32" />
         <CardContent className="p-8 space-y-8 relative z-10">
           <div>
-            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Operations Overview</p>
-            <h3 className="text-white text-2xl font-black mt-1">Live Metrics</h3>
+            <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Operations Snapshot</p>
+            <h3 className="text-white text-2xl font-black mt-1">Live Performance</h3>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -193,7 +198,7 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      {/* 4. Workforce Management / Site Pulse */}
+      {/* 4. Site Activity Pulse */}
       <div className="space-y-4">
         <div className="flex justify-between items-center px-2">
           <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Site Activity Pulse</h3>
@@ -216,7 +221,7 @@ export default function AdminDashboard() {
                         <h4 className="font-black text-slate-900 text-sm">{site.name}</h4>
                         <div className="flex items-center gap-2 mt-1">
                           <Users className="w-3 h-3 text-blue-500" />
-                          <span className="text-[10px] font-bold text-slate-400 uppercase">{siteActiveStaff} Workers Active</span>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">{siteActiveStaff} Workers On Site</span>
                         </div>
                       </div>
                     </div>
@@ -237,26 +242,26 @@ export default function AdminDashboard() {
             onClick={() => handleQuickAction('ADD_STAFF')}
             className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95"
           >
-            <PlusCircle className="w-6 h-6 text-blue-600 mb-2" />
+            <UserPlus className="w-6 h-6 text-blue-600 mb-2" />
             <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Add Staff</span>
           </button>
           <button 
             onClick={() => handleQuickAction('SCHEDULE')}
             className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95"
           >
-            <CalendarPlus className="w-6 h-6 text-indigo-600 mb-2" />
+            <CalendarDays className="w-6 h-6 text-indigo-600 mb-2" />
             <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Schedule</span>
           </button>
           <button 
             onClick={() => handleQuickAction('REPORT')}
             className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95"
           >
-            <FileBarChart className="w-6 h-6 text-emerald-600 mb-2" />
+            <FileText className="w-6 h-6 text-emerald-600 mb-2" />
             <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Run Report</span>
           </button>
           <Link href="/admin/assets" className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:border-blue-200 hover:bg-blue-50/30 transition-all active:scale-95">
             <Package className="w-6 h-6 text-orange-600 mb-2" />
-            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Supply Mgmt</span>
+            <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Supplies</span>
           </Link>
         </div>
       </div>
@@ -268,7 +273,7 @@ export default function AdminDashboard() {
             <DialogHeader className="text-left space-y-2">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg">
-                  <PlusCircle className="w-5 h-5 text-white" />
+                  <UserPlus className="w-5 h-5 text-white" />
                 </div>
                 <DialogTitle className="text-2xl font-black text-white">Register Staff</DialogTitle>
               </div>
@@ -286,6 +291,18 @@ export default function AdminDashboard() {
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Email Address</Label>
               <Input placeholder="maria@affinity.com" className="h-12 rounded-xl border-slate-100 bg-slate-50 focus-visible:ring-blue-600 font-bold" />
             </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Employment Type</Label>
+              <Select>
+                <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-100 font-bold">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="employee">Employee (Full Time)</SelectItem>
+                  <SelectItem value="contract">Contractor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100">
              <Button onClick={() => { setActiveModal(null); toast({ title: "Staff Registered ✅", description: "Worker added to directory." }); }} className="w-full h-14 bg-slate-900 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-slate-200">
@@ -301,27 +318,55 @@ export default function AdminDashboard() {
             <DialogHeader className="text-left space-y-2">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg">
-                  <CalendarPlus className="w-5 h-5 text-white" />
+                  <CalendarDays className="w-5 h-5 text-white" />
                 </div>
-                <DialogTitle className="text-2xl font-black text-white">Schedule Shift</DialogTitle>
+                <DialogTitle className="text-2xl font-black text-white">Assign Shift</DialogTitle>
               </div>
               <DialogDescription className="text-indigo-100 font-medium text-sm">
-                Assign work sites and times to your staff.
+                Deploy staff to a specific site and time slot.
               </DialogDescription>
             </DialogHeader>
           </div>
-          <div className="p-8 space-y-6">
-             <div className="bg-slate-50 p-6 rounded-2xl border border-dashed border-slate-200 text-center">
-                <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Select Site & Worker</p>
-                <div className="flex justify-center mt-4">
-                   <div className="w-12 h-12 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-400">
-                      <Search className="w-6 h-6" />
-                   </div>
+          <div className="p-8 space-y-4">
+             <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Select Site</Label>
+                <Select>
+                  <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-100 font-bold">
+                    <SelectValue placeholder="Choose a location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {repository.sites.map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+             </div>
+             <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Assign Worker</Label>
+                <Select>
+                  <SelectTrigger className="h-12 rounded-xl bg-slate-50 border-slate-100 font-bold">
+                    <SelectValue placeholder="Search staff" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {repository.users.filter(u => u.role === 'CLEANER').map(u => (
+                      <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+             </div>
+             <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Start Time</Label>
+                  <Input type="time" className="h-12 rounded-xl bg-slate-50 border-slate-100 font-bold" />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">End Time</Label>
+                  <Input type="time" className="h-12 rounded-xl bg-slate-50 border-slate-100 font-bold" />
                 </div>
              </div>
           </div>
           <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100">
-             <Button onClick={() => setActiveModal(null)} className="w-full h-14 bg-slate-900 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-slate-200">
+             <Button onClick={() => { setActiveModal(null); toast({ title: "Shift Scheduled 🗓️", description: "Assignment sent to worker." }); }} className="w-full h-14 bg-slate-900 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-slate-200">
                 Create Assignment
              </Button>
           </DialogFooter>
@@ -336,32 +381,58 @@ export default function AdminDashboard() {
                 <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg">
                   <FileBarChart className="w-5 h-5 text-white" />
                 </div>
-                <DialogTitle className="text-2xl font-black text-white">Operational Report</DialogTitle>
+                <DialogTitle className="text-2xl font-black text-white">Operational Reports</DialogTitle>
               </div>
               <DialogDescription className="text-emerald-100 font-medium text-sm">
-                Generate performance and payroll data.
+                Generate data exports for payroll and site audits.
               </DialogDescription>
             </DialogHeader>
           </div>
           <div className="p-8 space-y-4">
-             <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 transition-all cursor-pointer">
-                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
-                    <p className="text-sm font-bold text-slate-800">Payroll Export</p>
+             <div className="grid grid-cols-1 gap-3">
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
+                        <p className="text-base font-black text-slate-800">Payroll Hours Export</p>
+                        <p className="text-[10px] text-slate-400 font-bold mt-1">CSV Format • Includes break deductions</p>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+                    </div>
                 </div>
-                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 transition-all cursor-pointer">
-                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
-                    <p className="text-sm font-bold text-slate-800">Site Performance</p>
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
+                        <p className="text-base font-black text-slate-800">Site Performance Audit</p>
+                        <p className="text-[10px] text-slate-400 font-bold mt-1">PDF Format • Photos and task logs</p>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+                    </div>
+                </div>
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/20 transition-all cursor-pointer group">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Type</p>
+                        <p className="text-base font-black text-slate-800">Incident & Supply Alerts</p>
+                        <p className="text-[10px] text-slate-400 font-bold mt-1">Summary of field issues</p>
+                      </div>
+                      <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+                    </div>
                 </div>
              </div>
           </div>
           <DialogFooter className="p-8 bg-slate-50 border-t border-slate-100">
-             <Button onClick={() => { setActiveModal(null); toast({ title: "Report Generated 📊", description: "Sent to your email." }); }} className="w-full h-14 bg-slate-900 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-slate-200">
-                Run Report
+             <Button onClick={() => { setActiveModal(null); toast({ title: "Processing Report 📊", description: "This will be sent to your email." }); }} className="w-full h-14 bg-slate-900 text-white font-black uppercase text-xs tracking-widest rounded-2xl shadow-xl shadow-slate-200">
+                Generate Selected Report
              </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
+}
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
