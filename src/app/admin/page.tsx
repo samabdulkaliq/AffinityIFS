@@ -28,17 +28,23 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
   const { toast } = useToast();
+  const router = useRouter();
   
-  // Real-time derived metrics
+  // Real-time derived metrics from the store
   const allShifts = repository.shifts;
   const activeShifts = allShifts.filter(s => s.status === 'IN_PROGRESS');
-  const lateShifts = allShifts.filter(s => s.issues?.includes('LATE_ARRIVAL'));
-  const noShows = allShifts.filter(s => s.status === 'CANCELLED'); // Mocking no-show as cancelled for now
-  const pendingReviews = allShifts.filter(s => s.reviewStatus === 'NEEDS_REVIEW').length;
+  const lateShifts = repository.getLateShifts();
+  const missingPhotos = repository.getMissingPhotoShifts();
   const expiredCerts = repository.getWorkersWithExpiredCerts();
+  
+  // No shows: shifts scheduled for earlier today that haven't started (mock logic)
+  const noShows = allShifts.filter(s => s.status === 'SCHEDULED' && new Date(s.scheduledStart) < new Date());
+  
+  const pendingReviews = allShifts.filter(s => s.reviewStatus === 'NEEDS_REVIEW').length;
 
   const activityMetrics = [
     { label: "Scheduled", value: allShifts.length, icon: CalendarDays, color: "text-blue-500", bg: "bg-blue-50" },
@@ -48,10 +54,10 @@ export default function AdminDashboard() {
   ];
 
   const alerts = [
-    { text: `${lateShifts.length} worker arrived late`, icon: Clock, color: "text-amber-600" },
-    { text: `${allShifts.filter(s => (s.photosUploaded || 0) < (s.photosRequired || 0)).length} shifts missing photos`, icon: Camera, color: "text-blue-600" },
-    { text: `${expiredCerts.length} certification expired`, icon: ShieldAlert, color: "text-red-600" },
-  ];
+    { text: `${lateShifts.length} worker arrived late`, icon: Clock, color: "text-amber-600", href: "/admin/issues/late", count: lateShifts.length },
+    { text: `${missingPhotos.length} shifts missing photos`, icon: Camera, color: "text-blue-600", href: "/admin/issues/photos", count: missingPhotos.length },
+    { text: `${expiredCerts.length} certification issues`, icon: ShieldAlert, color: "text-red-600", href: "/admin/issues/certs", count: expiredCerts.length },
+  ].filter(a => a.count > 0);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-28">
@@ -91,19 +97,26 @@ export default function AdminDashboard() {
           <Zap className="w-3 h-3" /> Action Required
         </h3>
         <div className="space-y-2 px-1">
-          {alerts.map((alert, i) => (
-            <Card key={i} className="border-none bg-white shadow-sm rounded-2xl overflow-hidden group hover:border-slate-200 transition-all border border-transparent">
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center")}>
-                    <alert.icon className={cn("w-5 h-5", alert.color)} />
+          {alerts.length > 0 ? alerts.map((alert, i) => (
+            <Link href={alert.href} key={i}>
+              <Card className="border-none bg-white shadow-sm rounded-2xl overflow-hidden group hover:border-slate-200 transition-all border border-transparent mb-2">
+                <CardContent className="p-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={cn("w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center")}>
+                      <alert.icon className={cn("w-5 h-5", alert.color)} />
+                    </div>
+                    <span className="text-sm font-bold text-slate-700">{alert.text}</span>
                   </div>
-                  <span className="text-sm font-bold text-slate-700">{alert.text}</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 transition-all" />
-              </CardContent>
-            </Card>
-          ))}
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-600 transition-all" />
+                </CardContent>
+              </Card>
+            </Link>
+          )) : (
+            <div className="p-8 text-center bg-slate-50/50 rounded-[2rem] border-2 border-dashed border-slate-100">
+              <CheckCircle2 className="w-8 h-8 text-emerald-200 mx-auto mb-2" />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">All Clear</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -111,7 +124,10 @@ export default function AdminDashboard() {
       <div className="space-y-4">
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">Operations</h3>
         <div className="grid grid-cols-2 gap-3 px-1">
-          <button className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:bg-slate-50 transition-all active:scale-95">
+          <button 
+            onClick={() => router.push('/admin/assign')}
+            className="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm hover:bg-slate-50 transition-all active:scale-95"
+          >
             <UserPlus className="w-6 h-6 text-blue-600 mb-2" />
             <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Assign Staff</span>
           </button>

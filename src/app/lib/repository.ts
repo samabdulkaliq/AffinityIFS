@@ -169,6 +169,14 @@ class MockRepository {
     return this.users.filter(u => u.role === 'CLEANER' && u.certifications?.some(c => c.status === 'EXPIRED'));
   }
 
+  getLateShifts() {
+    return this.shifts.filter(s => s.issues?.includes('LATE_ARRIVAL'));
+  }
+
+  getMissingPhotoShifts() {
+    return this.shifts.filter(s => (s.photosUploaded || 0) < (s.photosRequired || 0));
+  }
+
   createTimeEvent(event: Omit<TimeEvent, 'id'>) {
     const newEvent = { ...event, id: Math.random().toString(36).substring(2, 9) };
     this.timeEvents.push(newEvent);
@@ -188,6 +196,20 @@ class MockRepository {
   updateShiftStatus(id: string, status: Shift['status']) {
     const shift = this.shifts.find(s => s.id === id);
     if (shift) shift.status = status;
+  }
+
+  updateShift(id: string, updates: Partial<Shift>) {
+    const idx = this.shifts.findIndex(s => s.id === id);
+    if (idx !== -1) {
+      this.shifts[idx] = { ...this.shifts[idx], ...updates };
+    }
+  }
+
+  updateUser(id: string, updates: Partial<User>) {
+    const idx = this.users.findIndex(u => u.id === id);
+    if (idx !== -1) {
+      this.users[idx] = { ...this.users[idx], ...updates };
+    }
   }
 }
 
