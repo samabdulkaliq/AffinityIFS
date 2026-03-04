@@ -257,7 +257,7 @@ export default function WorkLogPage() {
 
       {/* 2. Inventory Check Section */}
       <div className="space-y-4">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Inventory Check 🧾</h3>
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Inventory Check 🧼</h3>
         <Card className="premium-card">
           <CardContent className="p-6 space-y-6">
             <div className="flex items-start gap-4">
@@ -364,7 +364,7 @@ export default function WorkLogPage() {
                       <Camera className="w-4 h-4 mr-2" /> (Optional) Add Photo
                     </Button>
                     <Button onClick={handleSubmitReport} disabled={isSubmittingReport} className="w-full h-14 rounded-2xl bg-slate-900 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-slate-200">
-                      {isSubmittingReport ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send to Manager"}
+                      {isSubmittingReport ? <Loader2 className="w-4 h-4 animate-spin" /> : "Submit Report"}
                     </Button>
                   </div>
                 </motion.div>
