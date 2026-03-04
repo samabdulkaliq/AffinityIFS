@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useAuth } from "../lib/store";
@@ -24,18 +25,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user || user.role !== 'ADMIN') return null;
 
   const navItems = [
-    { label: "Feed", icon: LayoutDashboard, href: "/admin/feed" },
-    { label: "Workers", icon: Users, href: "/admin/workers" },
-    { label: "Assets", icon: LayoutGrid, href: "/admin/assets" },
+    { label: "Dashboard", icon: LayoutDashboard, href: "/admin" },
+    { label: "Staff", icon: Users, href: "/admin/workers" },
+    { label: "Supplies", icon: LayoutGrid, href: "/admin/assets" },
     { label: "Chat", icon: MessageSquare, href: "/admin/chat" },
-    { label: "Admin", icon: Crown, href: "/admin" },
+    { label: "Settings", icon: Settings, href: "/admin/settings" },
   ];
 
   return (
     <div className="flex flex-col flex-1 pb-16 bg-slate-50/50">
       <header className="flex justify-between items-center p-6 bg-transparent">
         <div className="text-xs font-bold text-slate-400 tracking-widest uppercase">
-          12:38
+          {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 rounded-full border-2 border-slate-300"></div>

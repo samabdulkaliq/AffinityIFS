@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useMemo } from "react";
@@ -23,7 +24,7 @@ import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 
 /**
- * @fileOverview Worker Management.
+ * @fileOverview Staff Directory.
  * Lists all field staff with certification tracking and filtering.
  */
 
@@ -62,7 +63,7 @@ export default function AdminWorkersPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       <div className="px-1 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Staff Hub</h1>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Staff Directory</h1>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Field Workforce Directory</p>
         </div>
         <div className="flex gap-2">
@@ -76,7 +77,7 @@ export default function AdminWorkersPage() {
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
-            placeholder="Search workers by name..." 
+            placeholder="Search staff by name..." 
             className="h-14 pl-12 rounded-2xl border-none shadow-sm bg-white font-medium focus-visible:ring-blue-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -177,7 +178,7 @@ export default function AdminWorkersPage() {
         {filteredWorkers.length === 0 && (
           <div className="py-24 text-center space-y-4 bg-white/50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
             <Users className="w-12 h-12 text-slate-200 mx-auto" />
-            <p className="text-slate-400 font-black text-xs uppercase tracking-widest">No workers found</p>
+            <p className="text-slate-400 font-black text-xs uppercase tracking-widest">No staff found</p>
           </div>
         )}
       </div>

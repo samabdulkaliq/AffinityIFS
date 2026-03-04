@@ -62,7 +62,7 @@ export default function AdminDashboard() {
     <div className="space-y-8 animate-in fade-in duration-700 pb-24">
       <div className="flex justify-between items-end px-1">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Ops Center</h1>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Operations Dashboard</h1>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Live Operational Summary</p>
         </div>
         <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 font-black">
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
         </Badge>
       </div>
 
-      {/* Staff Compliance Alert */}
+      {/* Staff Certification Alert */}
       {expiredCerts.length > 0 && (
         <Link href="/admin/workers?filter=EXPIRED">
           <Card className="border-none bg-red-600 text-white shadow-xl shadow-red-200 rounded-3xl overflow-hidden group active:scale-[0.98] transition-all">
@@ -80,8 +80,8 @@ export default function AdminDashboard() {
                   <Shield className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">Compliance Alert</p>
-                  <p className="text-lg font-black">{expiredCerts.length} workers have expired certifications</p>
+                  <p className="text-[10px] font-black text-white/70 uppercase tracking-widest">Certification Alert</p>
+                  <p className="text-lg font-black">{expiredCerts.length} staff have expired certifications</p>
                 </div>
               </div>
               <ChevronRight className="w-6 h-6 text-white/50 group-hover:translate-x-1 transition-all" />
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
         </Link>
       )}
 
-      {/* Operations Overview Panel - REPLACED CHART */}
+      {/* Operations Overview Panel */}
       <Card className="border-none bg-slate-900 shadow-2xl rounded-[2.5rem] overflow-hidden">
         <CardContent className="p-8 space-y-8">
           <div className="flex justify-between items-start">
@@ -181,9 +181,9 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Quick Ops Access */}
+      {/* Workforce Management */}
       <div className="space-y-4">
-        <h3 className="text-xl font-black text-slate-900 px-1">Management Flow</h3>
+        <h3 className="text-xl font-black text-slate-900 px-1">Workforce Management</h3>
         <div className="space-y-3">
             <Link href="/admin/workers">
                 <Card className="border-none shadow-sm hover:shadow-md transition-all rounded-3xl bg-white overflow-hidden group">
@@ -193,7 +193,7 @@ export default function AdminDashboard() {
                                 <Users className="w-6 h-6 text-blue-500" />
                             </div>
                             <div>
-                                <h4 className="font-black text-slate-900 uppercase text-xs tracking-tight">Worker Management</h4>
+                                <h4 className="font-black text-slate-900 uppercase text-xs tracking-tight">Staff Management</h4>
                                 <p className="text-[10px] font-bold text-slate-400">Staff Health & Certification Hub</p>
                             </div>
                         </div>
@@ -210,7 +210,7 @@ export default function AdminDashboard() {
                                 <Sun className="w-6 h-6 text-purple-500" />
                             </div>
                             <div>
-                                <h4 className="font-black text-slate-900 uppercase text-xs tracking-tight">Audit Exceptions</h4>
+                                <h4 className="font-black text-slate-900 uppercase text-xs tracking-tight">Payroll Exceptions</h4>
                                 <p className="text-[10px] font-bold text-slate-400">Payroll & Compliance Gates</p>
                             </div>
                         </div>
@@ -232,7 +232,7 @@ export default function AdminDashboard() {
                                 <Package className="w-6 h-6 text-orange-500" />
                             </div>
                             <div>
-                                <h4 className="font-black text-slate-900 uppercase text-xs tracking-tight">Supply & Inventory</h4>
+                                <h4 className="font-black text-slate-900 uppercase text-xs tracking-tight">Supply Management</h4>
                                 <p className="text-[10px] font-bold text-slate-400">Site-Specific Stock Management</p>
                             </div>
                         </div>
@@ -243,9 +243,9 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Site Intelligence */}
+      {/* Site Activity */}
       <div className="space-y-4 px-1">
-        <h3 className="text-xl font-black text-slate-900">Site Intelligence</h3>
+        <h3 className="text-xl font-black text-slate-900">Site Activity</h3>
         <div className="grid grid-cols-3 gap-3">
             <Link href="/admin/chat" className="bg-blue-50 p-4 rounded-3xl flex flex-col items-center gap-3 text-center active:scale-95 transition-all">
                 <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm"><MessageSquare className="w-5 h-5 text-blue-500" /></div>

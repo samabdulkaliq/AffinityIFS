@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -33,12 +34,12 @@ interface Asset {
 }
 
 const MOCK_ASSETS: Asset[] = [
-  { id: '1', name: 'Industrial Floor Scrubber X1', category: 'EQUIPMENT', status: 'IN_USE', assignedTo: 'Cleaner 5', lastChecked: '2024-03-01', serialNumber: 'EQ-9928-XP' },
+  { id: '1', name: 'Industrial Floor Scrubber X1', category: 'EQUIPMENT', status: 'IN_USE', assignedTo: 'Alex Rivera', lastChecked: '2024-03-01', serialNumber: 'EQ-9928-XP' },
   { id: '2', name: 'Service Van - Fleet #04', category: 'VEHICLE', status: 'AVAILABLE', lastChecked: '2024-03-02', serialNumber: 'VAN-TOR-04' },
-  { id: '3', name: 'Field iPad Pro - 12.9"', category: 'TECH', status: 'IN_USE', assignedTo: 'Admin User 2', lastChecked: '2024-02-28', serialNumber: 'APL-PAD-112' },
+  { id: '3', name: 'Field iPad Pro - 12.9"', category: 'TECH', status: 'IN_USE', assignedTo: 'David Smith', lastChecked: '2024-02-28', serialNumber: 'APL-PAD-112' },
   { id: '4', name: 'HEPA Vacuum - Grade A', category: 'EQUIPMENT', status: 'MAINTENANCE', lastChecked: '2024-02-15', serialNumber: 'EQ-1102-H' },
   { id: '5', name: 'Chemical Inventory - Lot B', category: 'SUPPLIES', status: 'AVAILABLE', lastChecked: '2024-03-03', serialNumber: 'SUP-991-CHEM' },
-  { id: '6', name: 'Service Van - Fleet #01', category: 'VEHICLE', status: 'IN_USE', assignedTo: 'Cleaner 1', lastChecked: '2024-03-01', serialNumber: 'VAN-TOR-01' },
+  { id: '6', name: 'Service Van - Fleet #01', category: 'VEHICLE', status: 'IN_USE', assignedTo: 'Sam Tester', lastChecked: '2024-03-01', serialNumber: 'VAN-TOR-01' },
 ];
 
 export default function AdminAssetsPage() {
@@ -73,7 +74,7 @@ export default function AdminAssetsPage() {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
       <div className="px-1 flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Assets</h1>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Supplies & Equipment</h1>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Inventory Management</p>
         </div>
         <Button className="rounded-2xl bg-blue-600 hover:bg-blue-700 h-12 px-6 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-200">
@@ -85,7 +86,7 @@ export default function AdminAssetsPage() {
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
-            placeholder="Search by name or S/N..." 
+            placeholder="Search assets..." 
             className="h-14 pl-12 rounded-2xl border-none shadow-sm bg-white font-medium focus-visible:ring-blue-500"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
