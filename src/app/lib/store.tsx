@@ -20,10 +20,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isMockMode, setMockMode] = useState(true);
   const router = useRouter();
 
-  const login = async (email: string, password?: string) => {
+  const login = async (loginIdentifier: string, password?: string) => {
+    // Standardize input
+    const identifier = loginIdentifier.trim().toLowerCase();
+    
     // In production, this would use Firebase Auth.
-    // For the demo, we find the user by email in the repository.
-    const mockUser = repository.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    // For this prototype, we check against both email and name for convenience.
+    const mockUser = repository.users.find(u => 
+      u.email.toLowerCase() === identifier || 
+      u.name.toLowerCase() === identifier
+    );
+
     if (mockUser) {
       setUser(mockUser);
       router.push(mockUser.role === 'ADMIN' ? '/admin' : '/cleaner');

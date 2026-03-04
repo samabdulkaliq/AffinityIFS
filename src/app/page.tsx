@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "./lib/store";
-import { Mail, Lock, Loader2 } from "lucide-react";
+import { Mail, Lock, Loader2, User as UserIcon } from "lucide-react";
 import Image from "next/image";
 import { PlaceHolderImages } from "./lib/placeholder-images";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +17,7 @@ export default function AppEntryFlow() {
   const { toast } = useToast();
   
   const [step, setStep] = useState<FlowStep>("SPLASH");
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,11 +34,11 @@ export default function AppEntryFlow() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!identifier || !password) {
       toast({
         variant: "destructive",
         title: "Missing fields",
-        description: "Please enter your email and password."
+        description: "Please enter your username or email and password."
       });
       return;
     }
@@ -46,14 +46,14 @@ export default function AppEntryFlow() {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 800));
     
-    const success = await login(email, password);
+    const success = await login(identifier, password);
     
     if (!success) {
       setIsLoading(false);
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: "Invalid email or password. Please try again or contact your administrator."
+        description: "Invalid credentials. Please use 'Abraham Wellman' or 'abraham@affinity.com' for Admin access."
       });
     }
   };
@@ -119,7 +119,7 @@ export default function AppEntryFlow() {
                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">
                   Sign In
                 </h2>
-                <p className="text-sm text-slate-500 font-medium">Welcome back to Affinity</p>
+                <p className="text-sm text-slate-500 font-medium">Abraham Wellman Command Portal</p>
               </div>
             </div>
 
@@ -127,13 +127,13 @@ export default function AppEntryFlow() {
               <div className="space-y-4">
                 <div className="relative group">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#2F5BFF] transition-colors">
-                    <Mail className="w-5 h-5" />
+                    <UserIcon className="w-5 h-5" />
                   </div>
                   <Input 
-                    type="email" 
-                    placeholder="Email Address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    type="text" 
+                    placeholder="Email or Full Name"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
                     className="h-14 pl-12 rounded-2xl border-slate-100 bg-white focus-visible:ring-[#2F5BFF] font-medium"
                   />
                 </div>
@@ -143,7 +143,7 @@ export default function AppEntryFlow() {
                   </div>
                   <Input 
                     type="password" 
-                    placeholder="Password"
+                    placeholder="Any Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="h-14 pl-12 rounded-2xl border-slate-100 bg-white focus-visible:ring-[#2F5BFF] font-medium"
@@ -156,13 +156,13 @@ export default function AppEntryFlow() {
                 disabled={isLoading}
                 className="w-full h-14 bg-[#2F5BFF] hover:bg-[#254EDF] text-white rounded-2xl shadow-xl shadow-blue-500/10 font-black uppercase text-xs tracking-widest transition-all active:scale-95"
               >
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
+                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Open Dashboard"}
               </Button>
             </form>
 
             <div className="text-center pt-8">
               <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.3em]">
-                Secure Workforce Platform 🔒
+                Abraham Wellman Secure Session 🔒
               </p>
             </div>
           </motion.div>

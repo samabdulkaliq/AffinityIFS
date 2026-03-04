@@ -1,7 +1,7 @@
 
 # Affinity IFS Workforce Protototype
 
-This is a high-fidelity prototype of the Affinity Workforce Platform, built for senior field workers.
+This is a high-fidelity prototype of the Affinity Workforce Platform, built for senior field workers and administrators.
 
 ## 🚀 Key Features for Production
 
@@ -10,9 +10,9 @@ This is a high-fidelity prototype of the Affinity Workforce Platform, built for 
 - **AI Smart Guide:** An interactive assistant that explains app features in simple language using Genkit AI.
 - **Calm UI:** High-contrast, airy design with large buttons and clear spacing.
 
-### 🔐 Multi-Scenario Testing
-- **New Cleaner:** Log in as `sam@affinity.com` (any password) to test the fresh onboarding and scheduling experience.
-- **Admin Portal:** Log in as `abraham@affinity.com` to review shift exceptions and staff training status.
+### 🔐 Login Access
+- **Admin Portal:** Log in as `Abraham Wellman` or `abraham@affinity.com` (any password) to review shift exceptions and staff management.
+- **Field Worker:** Log in as `Sam Tester` or `sam@affinity.com` (any password) to test the fresh onboarding and scheduling experience.
 
 ### 🛠️ Key Modules
 - **Duty Verification:** Real-time geofence scanning and task tracking.
